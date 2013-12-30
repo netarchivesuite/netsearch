@@ -17,6 +17,8 @@ package dk.statsbiblioteket.netarchivesuite.arctika;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
+import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
+
 /**
  * Entry class for the Arctika project.
  */

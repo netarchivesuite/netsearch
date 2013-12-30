@@ -12,7 +12,7 @@
  *  limitations under the License.
  *
  */
-package dk.statsbiblioteket.netarchivesuite.arctika;
+package dk.statsbiblioteket.netarchivesuite.core;
 
 import java.util.List;
 

@@ -5,17 +5,16 @@
   <parent>
     <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
     <artifactId>search</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
   </parent>
 
     <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
     <artifactId>netarchive-arctika</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <packaging>jar</packaging>
 
     <name>netarchive-arctika</name>
     <description>Builds limited size Solr indexes from ARC files using Tika. Sister project to Archon.</description>
-    <url>http://maven.apache.org</url>
 
     <build>
         <plugins>
@@ -79,9 +78,14 @@
 
     <dependencies>
 
-
-    <!-- Local dependencies -->
+      <!-- Local dependencies -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>netarchive-core</artifactId>
+            <version>0.1</version>
+        </dependency>
     
+    <!-- Third party dependencies -->   
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>

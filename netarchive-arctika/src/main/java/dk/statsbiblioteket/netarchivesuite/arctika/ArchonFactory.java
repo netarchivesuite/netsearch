@@ -17,6 +17,8 @@ package dk.statsbiblioteket.netarchivesuite.arctika;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
+import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
+
 import java.util.HashMap;
 import java.util.Map;
 
