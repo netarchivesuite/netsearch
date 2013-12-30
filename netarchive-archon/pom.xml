@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+ <modelVersion>4.0.0</modelVersion>
+ <parent>
+    <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
+    <artifactId>search</artifactId>
+    <version>0.1-SNAPSHOT</version>
+ </parent>
+
+
+   <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
+    <artifactId>netarchive-archon</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <packaging>war</packaging>
+ 
+  <name>netarchive-archon</name>
+    <description>Keep track of indexing progress for arc-files. Sister project to arctika.</description>
+    <url>https://github.com/netarchivesuite/search-archon</url>
+       
+ <dependencies>
+
+    
+
+
+  <!-- DB -->
+  <dependency>
+   <groupId>com.h2database</groupId>
+   <artifactId>h2</artifactId>
+   <version>1.3.161</version>
+  </dependency>
+
+  <!-- jUnit -->
+  <dependency>
+   <groupId>junit</groupId>
+   <artifactId>junit</artifactId>
+   <version>4.8.2</version>
+   <scope>test</scope>
+  </dependency>
+
+  <!-- REST -->
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-server</artifactId>
+   <version>1.8</version>
+  </dependency>
+
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-core</artifactId>
+   <version>1.8</version>
+  </dependency>
+
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-json</artifactId>
+   <version>1.8</version>
+  </dependency>
+
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-client</artifactId>
+   <version>1.8</version>
+  </dependency>
+
+  <!-- WEB -->
+  <dependency>
+   <groupId>javax.servlet</groupId>
+   <artifactId>servlet-api</artifactId>
+   <version>2.5</version>
+   <scope>provided</scope>
+  </dependency>
+
+  <!-- logging -->
+
+  <dependency>
+   <groupId>log4j</groupId>
+   <artifactId>log4j</artifactId>
+   <version>1.2.16</version>
+  </dependency>
+
+  <dependency>
+   <groupId>org.slf4j</groupId>
+   <artifactId>slf4j-api</artifactId>
+   <version>1.6.1</version>
+  </dependency>
+
+  <dependency>
+   <groupId>org.slf4j</groupId>
+   <artifactId>slf4j-log4j12</artifactId>
+   <version>1.6.1</version>
+   <scope>runtime</scope>
+  </dependency>
+
+  <!-- apache commons io -->
+  <dependency>
+   <groupId>commons-io</groupId>
+   <artifactId>commons-io</artifactId>
+   <version>2.1</version>
+  </dependency>
+
+  <dependency>
+   <groupId>commons-lang</groupId>
+   <artifactId>commons-lang</artifactId>
+   <version>2.6</version>
+  </dependency>
+
+  <!-- only used for integrationtest -->
+  <dependency>
+   <scope>test</scope>
+   <groupId>com.google.code.gson</groupId>
+   <artifactId>gson</artifactId>
+   <version>2.2.2</version>
+  </dependency>
+
+  <dependency>
+   <scope>test</scope>
+   <groupId>commons-httpclient</groupId>
+   <artifactId>commons-httpclient</artifactId>
+   <version>3.1</version>
+  </dependency>
+ 
+ </dependencies>
+
+ <build>
+  <plugins>
+   <plugin>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <configuration>
+     <source>1.6</source>
+     <target>1.6</target>
+    </configuration>
+   </plugin>
+
+   <plugin>
+    <!-- Filter resources -->
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-war-plugin</artifactId>
+    <configuration>
+     <archive>
+      <manifest>
+       <addDefaultImplementationEntries>
+        true
+       </addDefaultImplementationEntries>
+      </manifest>
+     </archive>
+     <webResources>
+      <webResource>
+       <directory>${basedir}/src/main/resources/</directory>
+       <includes>
+        <include>log4j.properties</include>
+        <include>build.properties</include>
+       </includes>
+       <targetPath>WEB-INF/classes</targetPath>
+       <filtering>true</filtering>
+      </webResource>
+      <webResource>
+       <directory>${basedir}/src/main/webapp/</directory>
+       <includes>
+        <include>rest_api.jsp</include>
+       </includes>
+       <targetPath></targetPath>
+       <filtering>true</filtering>
+      </webResource>
+     </webResources>
+    </configuration>
+   </plugin>
+  </plugins>
+
+  <pluginManagement>
+   <plugins>
+    <plugin>
+     <artifactId>maven-antrun-plugin</artifactId>
+     <version>1.6</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-assembly-plugin</artifactId>
+     <version>2.2.1</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-clean-plugin</artifactId>
+     <version>2.4.1</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-compiler-plugin</artifactId>
+     <version>2.3.2</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-dependency-plugin</artifactId>
+     <version>2.3</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-deploy-plugin</artifactId>
+     <version>2.7</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-ear-plugin</artifactId>
+     <version>2.6</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-ejb-plugin</artifactId>
+     <version>2.3</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-install-plugin</artifactId>
+     <version>2.3.1</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-jar-plugin</artifactId>
+     <version>2.3.2</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-javadoc-plugin</artifactId>
+     <version>2.8</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-plugin-plugin</artifactId>
+     <version>2.9</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-release-plugin</artifactId>
+     <version>2.2.1</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-resources-plugin</artifactId>
+     <version>2.5</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-site-plugin</artifactId>
+     <version>2.3</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-source-plugin</artifactId>
+     <version>2.1.2</version>
+    </plugin>
+    <plugin>
+     <artifactId>maven-surefire-plugin</artifactId>
+     <version>2.9</version>
+     <configuration>
+      <forkMode>always</forkMode>  <!-- because H2database is first shutdown when JVM exit -->
+     </configuration>
+    </plugin>
+    <plugin>
+     <artifactId>maven-war-plugin</artifactId>
+     <version>2.1.1</version>
+    </plugin>
+   </plugins>
+  </pluginManagement>
+ </build>
+
+</project>

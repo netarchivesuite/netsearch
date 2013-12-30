@@ -1,0 +1,170 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
+    <artifactId>search</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>netarchive-search</name>
+    <description>Contains netarchive-search and netarchive-archon projects</description>
+    <url>https://github.com/thomasegense/Search</url>
+
+   <properties>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <build.time>${maven.build.timestamp}</build.time>
+      <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+    </properties>
+
+
+ <!-- Netarchove-search modules -->
+    <modules>
+        <module>netarchive-archon</module>
+        <module>netarchive-arctika</module>
+    </modules>
+
+
+    <!-- General building -->
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2-beta-5</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>all-jar.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <!-- <executions>
+                    <execution>
+                        <id>package-all</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions> -->
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.1</version>
+                <configuration>
+                    <compilerVersion>1.6.0_20</compilerVersion>
+                    <optimize>true</optimize>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <compilerArgument>-Xlint</compilerArgument>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <testFailureIgnore>true</testFailureIgnore>
+                    <enableAssertions>false</enableAssertions>
+                    <trimStackTrace>false</trimStackTrace>
+                    <forkMode>always</forkMode>
+                    <argLine>-Xms256m -Xmx768m</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>2.4.1</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>./</directory>
+                            <includes>
+                                <include>**/configuration.*.xml</include>
+                                <include>**/xconfiguration.*.xml</include>
+                            </includes>
+                            <!--
+                                <excludes>
+                                <exclude>**/important.log</exclude>
+                                <exclude>**/another-important.log</exclude>
+                                </excludes>
+                            -->
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <!-- Jars -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.7</version>
+            </plugin>
+        </plugins>
+
+    </build>
+
+    <!-- plugin to generate html output for test cases -->
+    <reporting>
+        <plugins>
+            <!--            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <showSuccess>false</showSuccess>
+                </configuration>
+            </plugin>-->
+            <!-- Aggregate javadoc for all sub modules -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.7</version>
+            </plugin>
+        </plugins>
+    </reporting>
+
+
+   <organization>
+        <name>Statsbiblioteket</name>
+        <url>http://www.statsbiblioteket.dk</url>
+    </organization>
+    <developers>
+        <developer>
+            <name>Toke Eskildsen</name>
+            <organization>Statsbiblioteket.dk</organization>
+            <email>te@statsbiblioteket.dk</email>
+        </developer>
+        <developer>
+            <name>Thomas Egense</name>
+            <organization>Statsbiblioteket.dk</organization>
+            <email>teg@statsbiblioteket.dk</email>
+        </developer>
+    </developers>
+    
+
+  <distributionManagement>
+        <repository>
+            <id>sbforge-nexus</id>
+            <name>SBForgeb Nexus Repo manager</name>
+            <url>https://sbforge.org/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>sbforge-nexus</id>
+            <name>SBForgeb Nexus Repo manager</name>
+            <url>https://sbforge.org/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+      </distributionManagement> 
+
+</project>
