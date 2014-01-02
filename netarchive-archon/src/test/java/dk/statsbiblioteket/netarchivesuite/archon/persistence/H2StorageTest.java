@@ -6,7 +6,6 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.After;
@@ -16,6 +15,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
 
 /*
  * Unittest class for the H2Storage.
@@ -87,7 +88,7 @@ public class H2StorageTest {
     public void testNextShardID() throws Exception {
 
         //Empty DB, first shardId must be 1.
-        int nextShardId = storage.getNextShardId();
+        int nextShardId = storage.nextShardId();
         assertEquals(1,nextShardId);
 
         storage.addARC(arcFile1);          
@@ -95,8 +96,8 @@ public class H2StorageTest {
         // Has not been assigned shardId yet
         assertEquals(1,nextShardId);
 
-        storage.setARCProperties(arcFile1, "1", "RUNNING", 9);         
-        nextShardId = storage.getNextShardId(); 
+        storage.setARCProperties(arcFile1, "1", ArchonConnector.ARC_STATE.RUNNING, 9);         
+        nextShardId = storage.nextShardId(); 
         assertEquals(2,nextShardId);
 
 
@@ -111,7 +112,7 @@ public class H2StorageTest {
         nextArc = storage.nextARC("10");
         assertEquals(arcFile1,nextArc); //have shardid = null as is returned
         storage.addARC(arcFile2);
-        storage.setARCProperties(arcFile2, "10", "NEW", 1); //set shardid 10 and still NEW
+        storage.setARCProperties(arcFile2, "10",ArchonConnector.ARC_STATE.NEW, 1); //set shardid 10 and still NEW
 
         //Test shard sorting
         nextArc = storage.nextARC("10");
@@ -125,8 +126,8 @@ public class H2StorageTest {
         String arcFile4Shard10Priority2= "arcfile4";      
         storage.addARC(arcFile3Shard10Priority3);
         storage.addARC(arcFile4Shard10Priority2);
-        storage.setARCProperties(arcFile3Shard10Priority3, "10", "NEW", 3);
-        storage.setARCProperties(arcFile4Shard10Priority2, "10", "NEW", 2);
+        storage.setARCProperties(arcFile3Shard10Priority3, "10", ArchonConnector.ARC_STATE.NEW, 3);
+        storage.setARCProperties(arcFile4Shard10Priority2, "10", ArchonConnector.ARC_STATE.NEW, 2);
 
         nextArc = storage.nextARC("10");
         assertEquals(arcFile3Shard10Priority3,nextArc); // must be the one with highest priority
@@ -135,7 +136,7 @@ public class H2StorageTest {
         //add another with priority 3, but name aaarcfile5 and this must be returned    
         String arcFile5Shard10Priority3= "aaarcfile5";      
         storage.addARC(arcFile5Shard10Priority3);
-        storage.setARCProperties(arcFile5Shard10Priority3, "10", "NEW", 3);
+        storage.setARCProperties(arcFile5Shard10Priority3, "10", ArchonConnector.ARC_STATE.NEW, 3);
         nextArc = storage.nextARC("10"); 
         assertEquals(arcFile5Shard10Priority3,nextArc);
 
@@ -157,14 +158,14 @@ public class H2StorageTest {
         ids = storage.getShardIDs();
         assertEquals(0, ids.size());   //not empty DB, but this arc has not been assigned ID yet.
 
-        storage.setARCProperties(arcFile1, "1", "NEW", 1);
+        storage.setARCProperties(arcFile1, "1",ArchonConnector.ARC_STATE.NEW, 1);
         ids = storage.getShardIDs();
         assertEquals(1, ids.size());   //not empty DB, but this arc has not been assigned ID yet.
         assertEquals("1", ids.get(0));
 
         storage.addARC(arcFile2);
         assertEquals(1, ids.size());  //Still only 1 not null shardID
-        storage.setARCProperties(arcFile2, "2", "NEW", 1);
+        storage.setARCProperties(arcFile2, "2", ArchonConnector.ARC_STATE.NEW, 1);
         ids = storage.getShardIDs();
         assertEquals(2, ids.size());  //now 2 ids (1 and 2)                   
     }
@@ -175,7 +176,7 @@ public class H2StorageTest {
         List<String> ids = storage.getARCFiles("10");      
         assertEquals(0, ids.size()); 
         storage.addARC("arcfile1");
-        storage.setARCProperties(arcFile1, "1", "NEW", 1); //shardid 1
+        storage.setARCProperties(arcFile1, "1", ArchonConnector.ARC_STATE.NEW, 1); //shardid 1
 
         ids = storage.getARCFiles("2"); //None      
         assertEquals(0, ids.size());
@@ -185,7 +186,7 @@ public class H2StorageTest {
 
         //add one with shardid2 
         storage.addARC("arcfile2");
-        storage.setARCProperties(arcFile2, "2", "NEW", 1); //shardid 2
+        storage.setARCProperties(arcFile2, "2", ArchonConnector.ARC_STATE.NEW, 1); //shardid 2
 
         //Still only 1 with shardid 1
         ids = storage.getARCFiles("1");      
@@ -220,14 +221,14 @@ public class H2StorageTest {
 
 
         try{
-            storage.setARCState(arcFile1,"RUNNING");// does not exist
+            storage.setARCState(arcFile1,ArchonConnector.ARC_STATE.RUNNING);// does not exist
             fail();
         }
         catch(Exception e){
             //Expected            
         }
         storage.addARC(arcFile1);
-        storage.setARCState(arcFile1,"RUNNING");        
+        storage.setARCState(arcFile1,ArchonConnector.ARC_STATE.RUNNING);        
         //Check status has been set to running.
         ArcVO arc = storage.getArcByID(arcFile1); 
         assertEquals("RUNNING",arc.getArcState());                
@@ -239,10 +240,10 @@ public class H2StorageTest {
 
         String fileName ="arcfile1";
 
-        storage.setShardState("1", "RUNNING", 2); //shard ID does not exist, but this is OK        
+        storage.setShardState("1", ArchonConnector.ARC_STATE.RUNNING, 2); //shard ID does not exist, but this is OK        
         storage.addARC(fileName);
 
-        storage.setARCProperties(arcFile1, "1", "RUNNING", 1); //shardid 1
+        storage.setARCProperties(arcFile1, "1", ArchonConnector.ARC_STATE.RUNNING, 1); //shardid 1
 
         ArcVO arc = storage.getArcByID(fileName); 
         assertEquals("RUNNING",arc.getArcState());                
@@ -251,14 +252,14 @@ public class H2StorageTest {
     @Test
     public void testSetARCProperties() throws Exception {    
         try{
-            storage.setARCProperties(arcFile1, "1", "RUNNING", 9);
+            storage.setARCProperties(arcFile1, "1", ArchonConnector.ARC_STATE.RUNNING, 9);
             fail();
         }
         catch(Exception e){
             //Expected            
         }
         storage.addARC(arcFile1);          
-        storage.setARCProperties(arcFile1, "1", "RUNNING", 9); //This should succeed
+        storage.setARCProperties(arcFile1, "1", ArchonConnector.ARC_STATE.RUNNING, 9); //This should succeed
 
         ArcVO arc = storage.getArcByID(arcFile1); 
         assertEquals("RUNNING",arc.getArcState());    
@@ -270,8 +271,8 @@ public class H2StorageTest {
         
         storage.addARC(arcFile1);          
         storage.addARC(arcFile2);
-        storage.setARCProperties(arcFile1, "1", "RUNNING", 9);  
-        storage.setARCProperties(arcFile2, "1", "RUNNING", 9);
+        storage.setARCProperties(arcFile1, "1", ArchonConnector.ARC_STATE.RUNNING, 9);  
+        storage.setARCProperties(arcFile2, "1", ArchonConnector.ARC_STATE.RUNNING, 9);
         //Now clearIndexing and check status
         storage.clearIndexing("1");
         

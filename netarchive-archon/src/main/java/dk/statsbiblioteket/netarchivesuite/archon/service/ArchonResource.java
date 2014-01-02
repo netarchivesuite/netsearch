@@ -17,6 +17,7 @@ import dk.statsbiblioteket.netarchivesuite.archon.persistence.H2Storage;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.ArchonServiceException;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.InternalServiceException;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.InvalidArgumentServiceException;
+import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
 import dk.statsbiblioteket.netarchivesuite.core.StringListWrapper;
 
 
@@ -33,7 +34,7 @@ public class ArchonResource {
     @Produces({MediaType.APPLICATION_JSON})	
     public String nextShardID() throws ArchonServiceException  {        						  	    
         try {
-            return ""+H2Storage.getInstance().getNextShardId();	
+            return ""+H2Storage.getInstance().nextShardId();	
         } catch (Exception e) {
             throw handleServiceExceptions(e);
         }           
@@ -68,7 +69,8 @@ public class ArchonResource {
     @Path("setARCState/{arcID}/{state}")           
     public void setARCState(@PathParam("arcID") String arcID , @PathParam("state") String state) throws ArchonServiceException  {                                     
         try {
-            H2Storage.getInstance().setARCState(arcID, state);
+            ArchonConnector.ARC_STATE stateEnum = ArchonConnector.ARC_STATE.valueOf(state);
+            H2Storage.getInstance().setARCState(arcID, stateEnum);
             
         } catch (Exception e) {
             throw handleServiceExceptions(e);
@@ -132,7 +134,9 @@ public class ArchonResource {
             @PathParam("priority") int priority) throws ArchonServiceException  {                                     
   
         try {
-             H2Storage.getInstance().setARCProperties(arcID, shardID, state, priority);            
+            ArchonConnector.ARC_STATE stateEnum = ArchonConnector.ARC_STATE.valueOf(state);
+            
+             H2Storage.getInstance().setARCProperties(arcID, shardID, stateEnum, priority);            
         } catch (Exception e) {
             throw handleServiceExceptions(e);
         }
@@ -146,7 +150,8 @@ public class ArchonResource {
             @PathParam("priority") int priority) throws ArchonServiceException  {                                     
    
         try {
-            H2Storage.getInstance().setShardState(shardID, state, priority);            
+            ArchonConnector.ARC_STATE stateEnum = ArchonConnector.ARC_STATE.valueOf(state);
+            H2Storage.getInstance().setShardState(shardID, stateEnum, priority);            
        } catch (Exception e) {
            throw handleServiceExceptions(e);
        }

@@ -14,6 +14,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
+
 
 /**
  * This class handles all communication with the DB. Singleton pattern. From unit-test the test-class initializes the singleton - on Tomcat it is initialized by
@@ -34,9 +36,6 @@ public class H2Storage {
 
     private static Connection singleDBConnection = null;
 
-    private enum ARC_STATE {NEW, RUNNING, COMPLETED, REJECTED};
-
-    private long lastTimestamp = 0; // Remember last timestamp and make sure each is only used once;
 
     // statistics shown on monitor.jsp page
     public static Date INITDATE = null;
@@ -143,7 +142,8 @@ public class H2Storage {
     }
 
 
-    public int getNextShardId() throws Exception{
+    
+    public int nextShardId() throws Exception{
         PreparedStatement stmt = null;
         try {
             stmt = singleDBConnection.prepareStatement(selectNextShardIdQuery);
@@ -350,12 +350,12 @@ public class H2Storage {
 
 
     //synchronized since we are writing.
-    public synchronized void setARCState(String arcID, String arcState) throws Exception{
+    public synchronized void setARCState(String arcID, ArchonConnector.ARC_STATE arcState) throws Exception{
         PreparedStatement stmt = null;
         try {                   
             stmt = singleDBConnection.prepareStatement(setArcStateStatement);
 
-            stmt.setString(1, arcState);
+            stmt.setString(1, arcState.toString());
             stmt.setString(2, arcID);
             int updated = stmt.executeUpdate();
             if (updated == 0){ //arcfile not found
@@ -377,13 +377,13 @@ public class H2Storage {
     //TODO vil gerne returnere antallet af ændrede filer
     //change state/priority for all archfiles in the shardID
     //synchronized since we are writing.
-    public synchronized void setShardState(String shardID, String state, int priority) throws Exception{
+    public synchronized void setShardState(String shardID, ArchonConnector.ARC_STATE state, int priority) throws Exception{
 
         PreparedStatement stmt = null;
         try {                   
             stmt = singleDBConnection.prepareStatement(setShardStateStatement);
 
-            stmt.setString(1, state);
+            stmt.setString(1, state.toString());
             stmt.setInt(2, priority);
             stmt.setString(3, shardID);
             int updated = stmt.executeUpdate();
@@ -404,13 +404,13 @@ public class H2Storage {
     //synchronized since we are writing. 
     //TODO vil gerne returnere antallet af ændrede filer
     //Supposed to change all data for the given arcID
-    public synchronized void setARCProperties(String arcID, String shardID, String state, int priority) throws Exception{
+    public synchronized void setARCProperties(String arcID, String shardID,ArchonConnector.ARC_STATE state, int priority) throws Exception{
         PreparedStatement stmt = null;
         try {                   
             stmt = singleDBConnection.prepareStatement(setArcPropertiesStatement);
 
             stmt.setInt(1, Integer.parseInt(shardID));
-            stmt.setString(2, state);
+            stmt.setString(2, state.toString());
             stmt.setInt(3, priority);            
             stmt.setString(4, arcID);
             int updated = stmt.executeUpdate();
@@ -455,8 +455,7 @@ public class H2Storage {
     //synchronized since we are writing.
     public synchronized void clearIndexing(String shardID) throws Exception{
         PreparedStatement stmt = null;
-        try {                   
-            System.out.println(clearIndexingStatement);
+        try {                               
             stmt = singleDBConnection.prepareStatement(clearIndexingStatement);
 
             stmt.setString(1, "NEW");

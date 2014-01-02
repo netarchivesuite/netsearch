@@ -3,20 +3,12 @@ package dk.statsbiblioteket.netarchivesuite.core;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
-
-import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector.ARC_STATE;
-
 
 
 public class ArchonConnectorClient implements ArchonConnector{ //TODO implement interface
@@ -24,7 +16,7 @@ public class ArchonConnectorClient implements ArchonConnector{ //TODO implement 
     private  WebResource service;
 
     public static void main(String[] args){
-        ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/archon/services");
+       // ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/archon/services");
         //   System.out.println(client.nextARCShardID());
         //client.addARC("home/netarc/test2s.arc");
         //  client.nextARC("1");
@@ -96,15 +88,14 @@ public class ArchonConnectorClient implements ArchonConnector{ //TODO implement 
         StringListWrapper wrapper = service.path("getARCFiles").path(shardID).get(StringListWrapper.class);
         ArrayList<String> values = wrapper.getValues();        
         return values;     
-
     }
 
     @Override 
     public void setARCProperties(String arcID, String shardID, ARC_STATE state, int priority){              
         String urlencodedArcId= arcID.replaceAll("/", "%2F");         
         service.path("setARCProperties").path(urlencodedArcId).path(shardID).path(state.toString()).path(""+priority).post();  
-
     }
+    
     @Override
     public void setShardState(String shardID, ARC_STATE state, int priority){       
         service.path("setShardState").path(shardID).path(state.toString()).path(""+priority).post();       
