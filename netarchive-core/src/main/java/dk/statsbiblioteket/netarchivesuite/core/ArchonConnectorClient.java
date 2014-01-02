@@ -15,22 +15,6 @@ public class ArchonConnectorClient implements ArchonConnector{ //TODO implement 
 
     private  WebResource service;
 
-    public static void main(String[] args){
-        ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/netarchive-archon/services");
-        //   System.out.println(client.nextARCShardID());
-        //  client.addARC("home/netarc/test1s.arc");
-        //  client.nextARC("1");
-        //System.out.println( client.getShardIDs());
-        //  client.setARCState("home/netarc/test1s.arc", ARC_STATE.NEW);
-        //
-        //   client.setARCProperties("home/netarc/test2s.arc", "1", ARC_STATE.RUNNING, 5);
-        // client.clearIndexing("1");
-        //client.setShardState("1", ARC_STATE.NEW, 6);
-        //  System.out.println(client.getARCFiles("1"));
-        //  client.removeARC("home/netarc/test2s.arc");        
-    }
-
-
     /**
      * Client for the REST-based webservice provided by the netachive-archon module. 
      * @param archonServerUrl url to the service on the webserver (ie. localhost:8080/netarchive-archon/services)    
