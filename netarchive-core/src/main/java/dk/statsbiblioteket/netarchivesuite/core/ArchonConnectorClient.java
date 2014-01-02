@@ -16,9 +16,9 @@ public class ArchonConnectorClient implements ArchonConnector{ //TODO implement 
     private  WebResource service;
 
     public static void main(String[] args){
-ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/netarchive-archon/services");
+        ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/netarchive-archon/services");
         //   System.out.println(client.nextARCShardID());
-      //  client.addARC("home/netarc/test1s.arc");
+        //  client.addARC("home/netarc/test1s.arc");
         //  client.nextARC("1");
         //System.out.println( client.getShardIDs());
         //  client.setARCState("home/netarc/test1s.arc", ARC_STATE.NEW);
@@ -49,7 +49,7 @@ ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/
 
     @Override
     public void addARC(String arcID){
-        String urlencodedArcId= arcID.replaceAll("/", "%2F");       
+        String urlencodedArcId= fixSlashUrlEncoding(arcID);       
         service.path("addARC").path(urlencodedArcId).post();        
     }
 
@@ -61,7 +61,7 @@ ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/
 
     @Override
     public void setARCState(String arcID, ARC_STATE state){
-        String urlencodedArcId= arcID.replaceAll("/", "%2F"); 
+        String urlencodedArcId= fixSlashUrlEncoding(arcID); 
         service.path("setARCState").path(urlencodedArcId).path(state.toString()).post();        
     }
 
@@ -72,7 +72,7 @@ ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/
 
     @Override
     public void removeARC(String arcID){
-        String urlencodedArcId= arcID.replaceAll("/", "%2F"); 
+        String urlencodedArcId= fixSlashUrlEncoding(arcID); 
         service.path("removeARC").path(urlencodedArcId).post();              
     }
 
@@ -92,13 +92,21 @@ ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/
 
     @Override 
     public void setARCProperties(String arcID, String shardID, ARC_STATE state, int priority){              
-        String urlencodedArcId= arcID.replaceAll("/", "%2F");         
+        String urlencodedArcId= fixSlashUrlEncoding(arcID);
         service.path("setARCProperties").path(urlencodedArcId).path(shardID).path(state.toString()).path(""+priority).post();  
     }
-    
+
     @Override
     public void setShardState(String shardID, ARC_STATE state, int priority){       
         service.path("setShardState").path(shardID).path(state.toString()).path(""+priority).post();       
+    }
+
+    /*
+     * the ARCName is a file-path which contains /, and these must be url encoded.
+     */
+    private String fixSlashUrlEncoding(String url){
+        String urlencodedArcId= url.replaceAll("/", "%2F");
+        return urlencodedArcId;                
     }
 
 }
