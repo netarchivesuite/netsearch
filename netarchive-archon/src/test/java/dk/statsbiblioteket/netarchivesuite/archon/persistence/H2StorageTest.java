@@ -26,7 +26,7 @@ import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
  * Each test-method will delete all entries in the database, but keep the database tables.
  * 
  * Currently the directory is not deleted after the tests have run. This is useful as you can
- * open at checke the database and see what the unit-tests did.
+ * open and checke the database and see what the unit-tests did.
  */
 
 public class H2StorageTest {
