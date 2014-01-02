@@ -17,7 +17,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 
 
 
-public class ArchonConnectorClient { //TODO implement interface
+public class ArchonConnectorClient implements ArchonConnector{ //TODO implement interface
     
     private String archonServerUrl;
     private  WebResource service;
@@ -28,11 +28,11 @@ public class ArchonConnectorClient { //TODO implement interface
        //client.addARC("home/netarc/test2s.arc");
      //  client.nextARC("1");
        System.out.println( client.getShardIDs());
-   // client.setARCState("home/netarc/test2s.arc", "RUNNING");
+ ///  client.setARCState("home/netarc/test1s.arc", ARC_STATE.NEW);
      //
-   //     client.setARCProperties("home/netarc/test1s.arc", "1", "RUNNING", 5);
+     //   client.setARCProperties("home/netarc/test1s.arc", "1", ARC_STATE.REJECTED, 5);
        // client.clearIndexing("1");
-       // client.setShardState("1", "COMPLETED", 6);
+        client.setShardState("1", ARC_STATE.NEW, 6);
   //  System.out.println(client.getARCFiles("1"));
     //  client.removeARC("home/netarc/test2s.arc");        
     }
@@ -46,7 +46,7 @@ public class ArchonConnectorClient { //TODO implement interface
         service = client.resource(UriBuilder.fromUri(archonServerUrl).build());
     }
 
-    public String nextARCShardID(){
+    public String nextShardID(){
         String shardID =service.path("nextShardID").get(String.class);
         return shardID;
     }
@@ -62,9 +62,9 @@ public class ArchonConnectorClient { //TODO implement interface
     }
 
     
-    public void setARCState(String arcID, String state){
+    public void setARCState(String arcID, ARC_STATE state){
         String urlencodedArcId= arcID.replaceAll("/", "%2F"); 
-        service.path("setARCState").path(urlencodedArcId).path(state).post();        
+        service.path("setARCState").path(urlencodedArcId).path(state.toString()).post();        
     }
     
     
@@ -93,15 +93,14 @@ public class ArchonConnectorClient { //TODO implement interface
         
     }
     
-   public void setARCProperties(String arcID, String shardID, String state, int priority){              
+   public void setARCProperties(String arcID, String shardID, ARC_STATE state, int priority){              
        String urlencodedArcId= arcID.replaceAll("/", "%2F");         
-       service.path("setARCProperties").path(urlencodedArcId).path(shardID).path(state).path(""+priority).post();  
+       service.path("setARCProperties").path(urlencodedArcId).path(shardID).path(state.toString()).path(""+priority).post();  
        
    }
    
-   public void setShardState(String shardID, String state, int priority){       
-       service.path("setShardState").path(shardID).path(state).path(""+priority).post();       
+   public void setShardState(String shardID, ARC_STATE state, int priority){       
+       service.path("setShardState").path(shardID).path(state.toString()).path(""+priority).post();       
    }
-    
-    
+        
 }
