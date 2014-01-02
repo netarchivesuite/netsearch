@@ -3,7 +3,6 @@ package dk.statsbiblioteket.netarchivesuite.archon.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -15,10 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.statsbiblioteket.netarchivesuite.archon.persistence.H2Storage;
-import dk.statsbiblioteket.netarchivesuite.archon.service.dto.StringListWrapper;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.ArchonServiceException;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.InternalServiceException;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.InvalidArgumentServiceException;
+import dk.statsbiblioteket.netarchivesuite.core.StringListWrapper;
 
 
 

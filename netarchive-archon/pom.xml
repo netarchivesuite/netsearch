@@ -7,26 +7,24 @@
     <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
     <artifactId>search</artifactId>
     <version>0.1</version>
+    <relativePath>../</relativePath>
  </parent>
 
-
-   <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
+   
     <artifactId>netarchive-archon</artifactId>
-    <version>0.1</version>
     <packaging>war</packaging>
  
-  <name>netarchive-archon</name>
+   <name>netarchive-archon</name>
    <description>Keep track of indexing progress for arc-files. Sister project to arctika.</description>
 
-    
-       
- <dependencies>
+           
+   <dependencies>
     
       <!-- Local dependencies -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>netarchive-core</artifactId>
-            <version>0.1</version>
+            <version>0.2</version>
         </dependency>
     
   <!-- DB -->

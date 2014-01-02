@@ -1,4 +1,4 @@
-package dk.statsbiblioteket.netarchivesuite.archon.service;
+package dk.statsbiblioteket.netarchivesuite.core;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,32 +15,31 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
-import dk.statsbiblioteket.netarchivesuite.archon.service.dto.StringListWrapper;
 
 
-public class ArchonClient { //TODO implement interface
+public class ArchonConnectorClient { //TODO implement interface
     
     private String archonServerUrl;
     private  WebResource service;
     
     public static void main(String[] args){
-        ArchonClient client = new ArchonClient("http://localhost:8080/archon/services");
+        ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/archon/services");
    //   System.out.println(client.nextARCShardID());
        //client.addARC("home/netarc/test2s.arc");
      //  client.nextARC("1");
-    //    client.getShardIDs();
+       System.out.println( client.getShardIDs());
    // client.setARCState("home/netarc/test2s.arc", "RUNNING");
      //
    //     client.setARCProperties("home/netarc/test1s.arc", "1", "RUNNING", 5);
        // client.clearIndexing("1");
        // client.setShardState("1", "COMPLETED", 6);
   //  System.out.println(client.getARCFiles("1"));
-      client.removeARC("home/netarc/test2s.arc");        
+    //  client.removeARC("home/netarc/test2s.arc");        
     }
     
     
     
-    public ArchonClient(String archonServerUrl){
+    public ArchonConnectorClient(String archonServerUrl){
         this.archonServerUrl=archonServerUrl;
         ClientConfig config = new DefaultClientConfig();
         Client client = Client.create(config);
@@ -58,8 +57,7 @@ public class ArchonClient { //TODO implement interface
     }
     
     public String nextARC(String shardID){
-        String nextArc = service.path("nextARC").path(shardID).get(String.class);
-        System.out.println("nextArc:"+nextArc);      
+        String nextArc = service.path("nextARC").path(shardID).get(String.class);      
        return nextArc;
     }
 

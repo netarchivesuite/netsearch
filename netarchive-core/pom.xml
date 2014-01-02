@@ -6,20 +6,41 @@
  <parent>
     <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
     <artifactId>search</artifactId>
-    <version>0.1</version>
+    <version>0.2</version>
+    <relativePath>../</relativePath>
  </parent>
-
-
-   <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
+   
     <artifactId>netarchive-core</artifactId>
-    <version>0.1</version>
     <packaging>jar</packaging>
  
-  <name>netarchive-core</name>
+    <name>netarchive-core</name>
     <description>Common files for arctika and archon</description>       
- <dependencies>
-    
  
+ <dependencies>
+  <!-- REST -->
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-server</artifactId>
+   <version>1.8</version>
+  </dependency>
+
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-core</artifactId>
+   <version>1.8</version>
+  </dependency>
+
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-json</artifactId>
+   <version>1.8</version>
+  </dependency>
+
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-client</artifactId>
+   <version>1.8</version>
+  </dependency>
  </dependencies>
 
 

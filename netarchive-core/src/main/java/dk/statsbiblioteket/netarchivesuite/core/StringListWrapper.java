@@ -1,4 +1,4 @@
-package dk.statsbiblioteket.netarchivesuite.archon.service.dto;
+package dk.statsbiblioteket.netarchivesuite.core;
 
 import java.util.ArrayList;
 
