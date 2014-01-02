@@ -7,7 +7,7 @@ public class ArcVO {
     private int priority;
     private String arcState;
     private Integer shardId;
-
+    private long modifiedTime;
     
     public ArcVO(){
         
@@ -44,10 +44,32 @@ public class ArcVO {
     public void setShardId(Integer shardId) {
         this.shardId = shardId;
     }
+
+    public long getModifiedTime() {
+        return modifiedTime;
+    }
+
+    public void setModifiedTime(long modifiedTime) {
+        this.modifiedTime = modifiedTime;
+    }
+    
+    public String calculateTimeSinceLastModified(){
+        return formatRunningTime(System.currentTimeMillis()-modifiedTime);
+    }
+    
+    public static String formatRunningTime(long milliseconds){
+        
+        int seconds = (int) ((milliseconds / 1000) % 60);
+        int minutes = (int) ((milliseconds / 1000) / 60);    
+        return minutes +" minutes "+seconds+" seconds";   
+    }
+    
     @Override
     public String toString() {
-        return "ArcVO [fileName=" + fileName + ", createdTime=" + createdTime + ", shardId=" + shardId + ", arcState=" + arcState + ", priority=" + priority + "]";
+        return "ArcVO [fileName=" + fileName + ", createdTime=" + createdTime + ", priority=" + priority + ", arcState=" + arcState + ", shardId=" + shardId + ", modifiedTime=" + modifiedTime + "]";
     }
+    
+    
   
 
 

@@ -329,6 +329,19 @@ public class H2StorageTest {
         assertEquals(1, latest1000Arcs.size());       
     }
         
+    
+    @Test
+    public void testGetAllRunningArcs() throws Exception {
+         List<ArcVO> allRunningArcs = storage.getAllRunningArcs();
+         assertEquals(0, allRunningArcs.size());
+        
+        storage.addARC(arcFile1);
+        storage.addARC(arcFile2); //This should not be found
+        storage.setARCProperties(arcFile1, "1", ArchonConnector.ARC_STATE.RUNNING, 9);
+        allRunningArcs = storage.getAllRunningArcs();
+        assertEquals(1, allRunningArcs.size());       
+    }
+    
     // file.delete does not work for a directory unless it is empty. hence this method
     private static void doDelete(File path) throws IOException {
         if (path.isDirectory()) {

@@ -31,8 +31,8 @@
 <h1>Archon</h1>
 
 <ul class="nav nav-tabs" id="configTab">
-    <li class="active"><a href="#oversigt">Oversigt</a></li>
-    <li><a href="#test">test</a></li>
+    <li class="active"><a href="#latest">Latest ARCs added</a></li>
+    <li><a href="#running">All Running</a></li>
 </ul>
 
 <%@ include file="message.jsp" %>
@@ -42,11 +42,11 @@
     <input type="hidden" name="typeName" />
 
     <div class="tab-content">
-        <div class="tab-pane active" id="oversigt">
-            <%@ include file="oversigt.jsp" %>
+        <div class="tab-pane active" id="latest">
+            <%@ include file="latest.jsp" %>
         </div>
-        <div class="tab-pane" id="test">
-            <%@ include file="test.jsp" %>
+        <div class="tab-pane" id="running">
+            <%@ include file="running.jsp" %>
         </div>       
     </div>
 </form>

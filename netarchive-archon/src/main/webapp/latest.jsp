@@ -1,4 +1,4 @@
-Oversigt!
+Latest 1000 arcs added:
 
 <%     
    List<ArcVO> latest1000Arcs = storage.getLatest1000Arcs();
@@ -12,6 +12,7 @@ Oversigt!
     <th>State</th>
     <th>Priority</th>
     <th>createdTime</th>
+    <th>modifiedTime</th>
    </tr>
    </thead>
    <tbody>
@@ -22,6 +23,7 @@ Oversigt!
       <td><%=current.getArcState()%></td>
       <td><%=current.getPriority()%></td>
       <td><%=current.getCreatedTime()%></td>
+      <td><%=current.getModifiedTime()%></td>
   </tr>
 <%}%>
    </tbody>

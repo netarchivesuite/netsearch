@@ -49,6 +49,7 @@ public class H2Storage {
     private static final String PRIORITY_COLUMN = "PRIORITY";
     private static final String ARC_STATE_COLUMN = "ARC_STATE";
     private static final String SHARD_ID_COLUMN = "SHARD_ID";
+    private static final String MODIFIED_TIME_COLUMN = "MODIFIED_TIME";
 
     //private static final String ID_COLUMN = "ID"; // ID used for all tables
 
@@ -71,6 +72,13 @@ public class H2Storage {
             "SELECT * FROM " + ARCHON_TABLE            
             +" ORDER BY "+CREATED_TIME_COLUMN +" DESC"
             +" LIMIT 1000";
+    
+    private final static String selectAllRunningQuery =
+            "SELECT * FROM " + ARCHON_TABLE         
+            +" WHERE "+ ARC_STATE_COLUMN+"  = 'RUNNING'"
+            +" ORDER BY "+CREATED_TIME_COLUMN +" DESC";
+            
+    
 
     private final static String addArcStatement = 
             "INSERT INTO " +ARCHON_TABLE
@@ -79,17 +87,20 @@ public class H2Storage {
             + CREATED_TIME_COLUMN + "," 
             + PRIORITY_COLUMN + ","
             + ARC_STATE_COLUMN  + ","
-            + ") VALUES (?,?,?,?)"; // #|?|=4
+            + MODIFIED_TIME_COLUMN  + ","
+            + ") VALUES (?,?,?,?,?)"; // #|?|=5
 
     private final static String setArcStateStatement = "UPDATE "+ ARCHON_TABLE 
-            +" SET "+ARC_STATE_COLUMN+ " = ?"
+            +" SET "+ARC_STATE_COLUMN+ " = ? ,"
+             + MODIFIED_TIME_COLUMN + " = ? " 
             +" WHERE "
             +FILENAME_COLUMN+" = ?";
 
 
     private final static String setShardStateStatement = "UPDATE "+ ARCHON_TABLE 
             +" SET "+ARC_STATE_COLUMN+ " = ? , " 
-            + PRIORITY_COLUMN + " = ?"
+            + PRIORITY_COLUMN + " = ? ,"
+            + MODIFIED_TIME_COLUMN + " = ? " 
             +" WHERE "
             +SHARD_ID_COLUMN+" = ?";
 
@@ -97,7 +108,8 @@ public class H2Storage {
     private final static String setArcPropertiesStatement = "UPDATE "+ ARCHON_TABLE 
             +" SET "+SHARD_ID_COLUMN+ " = ? , " 
             + ARC_STATE_COLUMN + " = ? ,"
-            + PRIORITY_COLUMN + " = ? "
+            + PRIORITY_COLUMN + " = ? ,"
+            + MODIFIED_TIME_COLUMN + " = ? " 
             +" WHERE "
             +FILENAME_COLUMN+" = ?";
 
@@ -188,10 +200,13 @@ public class H2Storage {
         try {					
             stmt = singleDBConnection.prepareStatement(addArcStatement);
 
+            long now = System.currentTimeMillis();
+            
             stmt.setString(1, arcID);
-            stmt.setLong(2, System.currentTimeMillis());
+            stmt.setLong(2, now);
             stmt.setInt(3,1);  //priority 1
             stmt.setString(4,"NEW");					
+            stmt.setLong(5,now);
             //Shardid is not set. Will be null
             stmt.execute();
 
@@ -295,7 +310,8 @@ public class H2Storage {
             arc.setCreatedTime(rs.getLong(CREATED_TIME_COLUMN));            
             arc.setArcState(rs.getString(ARC_STATE_COLUMN)); 
             arc.setPriority(rs.getInt(PRIORITY_COLUMN));            
-
+            arc.setModifiedTime(rs.getLong(MODIFIED_TIME_COLUMN));
+            
             //Can be NULL
             String shardIdStr= rs.getString(SHARD_ID_COLUMN);            
             if (shardIdStr != null){
@@ -327,7 +343,8 @@ public class H2Storage {
                 arc.setCreatedTime(rs.getLong(CREATED_TIME_COLUMN));            
                 arc.setArcState(rs.getString(ARC_STATE_COLUMN)); 
                 arc.setPriority(rs.getInt(PRIORITY_COLUMN));            
-
+                arc.setModifiedTime(rs.getLong(MODIFIED_TIME_COLUMN));
+                
                 //Can be NULL
                 String shardIdStr= rs.getString(SHARD_ID_COLUMN);            
                 if (shardIdStr != null){
@@ -347,6 +364,39 @@ public class H2Storage {
 
 
 
+    public List<ArcVO> getAllRunningArcs() throws Exception{
+        PreparedStatement stmt = null;
+
+        List<ArcVO> latestArcs = new ArrayList<ArcVO>();
+        try {
+            stmt = singleDBConnection.prepareStatement(selectAllRunningQuery);            
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()){        
+                ArcVO arc = new ArcVO();
+                arc.setFileName(rs.getString(FILENAME_COLUMN));
+                arc.setCreatedTime(rs.getLong(CREATED_TIME_COLUMN));            
+                arc.setArcState(rs.getString(ARC_STATE_COLUMN)); 
+                arc.setPriority(rs.getInt(PRIORITY_COLUMN));            
+                arc.setModifiedTime(rs.getLong(MODIFIED_TIME_COLUMN));
+                
+                //Can be NULL
+                String shardIdStr= rs.getString(SHARD_ID_COLUMN);            
+                if (shardIdStr != null){
+                    arc.setShardId(new Integer(shardIdStr));                
+                }                                                                   
+                latestArcs.add(arc);
+            }
+            return latestArcs; 
+
+        } catch (SQLException e) {
+            log.error("SQL Exception in getAllRunningArcs:" + e.getMessage());
+            throw e;
+        } finally {
+            closeStatement(stmt);
+        }
+    }
+
 
     //synchronized since we are writing.
     public synchronized void setARCState(String arcID, ArchonConnector.ARC_STATE arcState) throws Exception{
@@ -355,7 +405,8 @@ public class H2Storage {
             stmt = singleDBConnection.prepareStatement(setArcStateStatement);
 
             stmt.setString(1, arcState.toString());
-            stmt.setString(2, arcID);
+            stmt.setLong(2, System.currentTimeMillis());
+            stmt.setString(3, arcID);
             int updated = stmt.executeUpdate();
             if (updated == 0){ //arcfile not found
                 throw new IllegalArgumentException("Arcfile not found with id:"+arcID);
@@ -384,7 +435,8 @@ public class H2Storage {
 
             stmt.setString(1, state.toString());
             stmt.setInt(2, priority);
-            stmt.setString(3, shardID);
+            stmt.setLong(3, System.currentTimeMillis());
+            stmt.setString(4, shardID);
             int updated = stmt.executeUpdate();
 
             //System.out.println("setShardState for shardID:"+shardID +" #updated arcfiles ="+updated);
@@ -411,7 +463,8 @@ public class H2Storage {
             stmt.setInt(1, Integer.parseInt(shardID));
             stmt.setString(2, state.toString());
             stmt.setInt(3, priority);            
-            stmt.setString(4, arcID);
+            stmt.setLong(4, System.currentTimeMillis());
+            stmt.setString(5, arcID);
             int updated = stmt.executeUpdate();
 
             if (updated == 0){ //arcfile not found
@@ -575,4 +628,6 @@ public class H2Storage {
             log.error("shutdown failed", e);
         }
     }
+    
+
 }

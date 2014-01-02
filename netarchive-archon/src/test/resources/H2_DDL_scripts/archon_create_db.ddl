@@ -3,7 +3,8 @@ CREATE TABLE ARCHON (
        CREATED_TIME BIGINT NOT NULL,
        SHARD_ID INT,
        ARC_STATE VARCHAR(32) NOT NULL,
-       PRIORITY INT NOT NULL                                                  
+       PRIORITY INT NOT NULL,
+       MODIFIED_TIME BIGINT NOT NULL                     
 );
 
 CREATE UNIQUE INDEX FILENAME_ID_IN ON ARCHON(FILENAME);
