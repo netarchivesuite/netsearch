@@ -194,6 +194,15 @@ public class H2StorageTest {
 
     }
 
+    
+
+    @Test
+    public void testCreateDBAndDoNothing() throws Exception {
+        //Run this test to create the DB      
+          
+    }
+        
+
     @Test
     public void testAddArc() throws Exception {
 

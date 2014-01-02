@@ -36,7 +36,6 @@ public class H2Storage {
 
     private static Connection singleDBConnection = null;
 
-
     // statistics shown on monitor.jsp page
     public static Date INITDATE = null;
     public static Date LASTDATABASEBACKUPDATE = null;
