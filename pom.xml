@@ -176,14 +176,7 @@
           </links>
         </configuration>
       </plugin>
-
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.9</version>
-        <configuration>
-          <forkMode>always</forkMode>  <!-- because H2database is first shutdown when JVM exit -->
-        </configuration>
-      </plugin>
+     
 
     </plugins>
 
