@@ -1,124 +1,90 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
     <artifactId>search</artifactId>
-    <version>0.3</version>
+    <version>0.4</version>
     <relativePath>../</relativePath>
   </parent>
 
-    
-    <artifactId>netarchive-arctika</artifactId>
-    <packaging>jar</packaging>
 
-    <name>netarchive-arctika</name>
-    <description>Builds limited size Solr indexes from ARC files using Tika. Sister project to Archon.</description>
+  <artifactId>netarchive-arctika</artifactId>
+  <packaging>jar</packaging>
 
-<dependencies>
+  <name>netarchive-arctika</name>
+  <description>Builds limited size Solr indexes from ARC files using Tika. Sister project to Archon.</description>
 
-      <!-- Local dependencies -->
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>netarchive-core</artifactId>
-            <version>0.2</version>
-        </dependency>
-          
-    <!-- Third party dependencies -->   
-        <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>1.1.1</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.9</version>
-            <type>jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.14</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-              <groupId>commons-cli</groupId>
-              <artifactId>commons-cli</artifactId>
-              <version>1.2</version>
-        </dependency>
-        <!--        <dependency>
-            <groupId>dk.statsbiblioteket.sbutil</groupId>
-            <artifactId>sbutil-common</artifactId>
-            <version>0.5.14</version>
-        </dependency>-->
-    </dependencies>
+  <dependencies>
+
+    <!-- Local dependencies -->
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>netarchive-core</artifactId>
+      <version>0.2</version>
+    </dependency>
+
+    <!-- Third party dependencies -->
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.1</version>
+      <type>jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.9</version>
+      <type>jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.14</version>
+      <type>jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-cli</groupId>
+      <artifactId>commons-cli</artifactId>
+      <version>1.2</version>
+    </dependency>
+    <!-- <dependency> <groupId>dk.statsbiblioteket.sbutil</groupId> <artifactId>sbutil-common</artifactId> 
+      <version>0.5.14</version> </dependency> -->
+  </dependencies>
 
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.9</version>
-                <configuration>
-                    <includes>
-                        <include>**/*Test.java</include>
-                    </includes>
-                    <!--<forkMode>never</forkMode>-->
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.8</version>
-                <configuration>
-                    <source>1.6</source>
-                    <links>
-                        <link>http://java.sun.com/j2se/1.6.0/docs/api</link>
-                        <link>http://crawler.archive.org/apidocs/</link>
-                    </links>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>dk.statsbiblioteket.netarchivesuite.arctika.Arctika</mainClass>
-                        </manifest>
-                        <manifestEntries>
-                            <mode>development</mode>
-                            <url>${project.url}</url>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-        </plugins>
-        <resources>
-            <!-- This is Open Source; just deliver the source along with the binaries -->
-            <resource>
-                <directory>${basedir}/src/main/java</directory>
-                <includes>
-                    <include>**/*.java</include>
-                </includes>
-            </resource>
-        </resources>
-    </build>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>dk.statsbiblioteket.netarchivesuite.arctika.Arctika</mainClass>
+            </manifest>
+            <manifestEntries>
+              <mode>development</mode>
+              <url>${project.url}</url>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+    <resources>
+      <!-- This is Open Source; just deliver the source along with the binaries -->
+      <resource>
+        <directory>${basedir}/src/main/java</directory>
+        <includes>
+          <include>**/*.java</include>
+        </includes>
+      </resource>
+    </resources>
+  </build>
 
-    
+
 </project>

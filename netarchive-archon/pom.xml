@@ -1,277 +1,198 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
- <modelVersion>4.0.0</modelVersion>
- <parent>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
     <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
     <artifactId>search</artifactId>
-    <version>0.3</version>
+    <version>0.4</version>
     <relativePath>../</relativePath>
- </parent>
+  </parent>
 
-   
-    <artifactId>netarchive-archon</artifactId>
-    <packaging>war</packaging>
-   <name>netarchive-archon</name>
-   <description>Keep track of indexing progress for arc-files. Sister project to arctika.</description>
 
-           
-   <dependencies>
-    
-      <!-- Local dependencies -->
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>netarchive-core</artifactId>
-            <version>0.2</version>
-        </dependency>
-    
-  <!-- DB -->
-  <dependency>
-   <groupId>com.h2database</groupId>
-   <artifactId>h2</artifactId>
-   <version>1.3.161</version>
-  </dependency>
+  <artifactId>netarchive-archon</artifactId>
+  <packaging>war</packaging>
+  <name>netarchive-archon</name>
+  <description>Keep track of indexing progress for arc-files. Sister project to arctika.</description>
 
-  <!-- jUnit -->
-  <dependency>
-   <groupId>junit</groupId>
-   <artifactId>junit</artifactId>
-   <version>4.8.2</version>
-   <scope>test</scope>
-  </dependency>
 
-  <!-- REST -->
-  <dependency>
-   <groupId>com.sun.jersey</groupId>
-   <artifactId>jersey-server</artifactId>
-  </dependency>
+  <dependencies>
 
-  <dependency>
-   <groupId>com.sun.jersey</groupId>
-   <artifactId>jersey-core</artifactId>   
-  </dependency>
+    <!-- Local dependencies -->
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>netarchive-core</artifactId>
+      <version>0.2</version>
+    </dependency>
 
-  <dependency>
-   <groupId>com.sun.jersey</groupId>
-   <artifactId>jersey-json</artifactId>   
-  </dependency>
+    <!-- DB -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.3.161</version>
+    </dependency>
 
-  <dependency>
-   <groupId>com.sun.jersey</groupId>
-   <artifactId>jersey-client</artifactId>   
-  </dependency>
+    <!-- jUnit -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.2</version>
+      <scope>test</scope>
+    </dependency>
 
-  <!-- WEB -->
-  <dependency>
-   <groupId>javax.servlet</groupId>
-   <artifactId>servlet-api</artifactId>
-   <version>2.5</version>
-   <scope>provided</scope>
-  </dependency>
+    <!-- REST -->
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-server</artifactId>
+    </dependency>
 
-  <!-- logging -->
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-core</artifactId>
+    </dependency>
 
-  <dependency>
-   <groupId>log4j</groupId>
-   <artifactId>log4j</artifactId>
-   <version>1.2.16</version>
-  </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-json</artifactId>
+    </dependency>
 
-  <dependency>
-   <groupId>org.slf4j</groupId>
-   <artifactId>slf4j-api</artifactId>
-   <version>1.6.1</version>
-  </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-client</artifactId>
+    </dependency>
 
-  <dependency>
-   <groupId>org.slf4j</groupId>
-   <artifactId>slf4j-log4j12</artifactId>
-   <version>1.6.1</version>
-   <scope>runtime</scope>
-  </dependency>
+    <!-- WEB -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+      <scope>provided</scope>
+    </dependency>
 
-  <!-- apache commons io -->
-  <dependency>
-   <groupId>commons-io</groupId>
-   <artifactId>commons-io</artifactId>
-   <version>2.1</version>
-  </dependency>
+    <!-- logging -->
 
-  <dependency>
-   <groupId>commons-lang</groupId>
-   <artifactId>commons-lang</artifactId>
-   <version>2.6</version>
-  </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.16</version>
+    </dependency>
 
-  <!-- only used for integrationtest -->
-  <dependency>
-   <scope>test</scope>
-   <groupId>com.google.code.gson</groupId>
-   <artifactId>gson</artifactId>
-   <version>2.2.2</version>
-  </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.6.1</version>
+    </dependency>
 
-  <dependency>
-   <scope>test</scope>
-   <groupId>commons-httpclient</groupId>
-   <artifactId>commons-httpclient</artifactId>
-   <version>3.1</version>
-  </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.6.1</version>
+      <scope>runtime</scope>
+    </dependency>
 
- </dependencies>
+    <!-- apache commons io -->
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.1</version>
+    </dependency>
 
- <build>
-  <plugins>   
-      
-     
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
 
-<plugin>
-  <groupId>org.mortbay.jetty</groupId>
-  <artifactId>jetty-maven-plugin</artifactId>
-  <version>8.1.14.v20131031</version>
-  <configuration>
-    <scanIntervalSeconds>10</scanIntervalSeconds>
-    <webApp>
-      <contextPath>/archon</contextPath>
-    </webApp>
-     <systemProperties>
-          <!-- Make jetty use log file /target/logs/jetty.log -->
-         <systemProperty>
-          <name>catalina.home</name>
-           <value>target</value>
-          </systemProperty>
-          <systemProperty>
-          <name>pom.name</name>
-           <value>jetty</value>
-          </systemProperty>          
-      </systemProperties>
-  </configuration>
-</plugin>
+    <!-- only used for integrationtest -->
+    <dependency>
+      <scope>test</scope>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.2.2</version>
+    </dependency>
 
-          
-   <plugin>
-    <artifactId>maven-compiler-plugin</artifactId>
-    <configuration>
-     <source>1.6</source>
-     <target>1.6</target>
-    </configuration>
-   </plugin>
+    <dependency>
+      <scope>test</scope>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <version>3.1</version>
+    </dependency>
 
-   <plugin>
-    <!-- Filter resources -->
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-war-plugin</artifactId>
-    <configuration>
-     <archive>
-      <manifest>
-       <addDefaultImplementationEntries>
-        true
-       </addDefaultImplementationEntries>
-      </manifest>
-     </archive>
-     <webResources>
-      <webResource>
-       <directory>${basedir}/src/main/resources/</directory>
-       <includes>
-        <include>log4j.properties</include>
-        <include>build.properties</include>
-       </includes>
-       <targetPath>WEB-INF/classes</targetPath>
-       <filtering>true</filtering>
-      </webResource>
-      <webResource>
-       <directory>${basedir}/src/main/webapp/</directory>
-       <includes>
-        <include>rest_api.jsp</include>
-       </includes>
-       <targetPath></targetPath>
-       <filtering>true</filtering>
-      </webResource>
-     </webResources>
-    </configuration>
-   </plugin>
-  </plugins>
+  </dependencies>
 
-  <pluginManagement>
-   <plugins>
-    <plugin>
-     <artifactId>maven-antrun-plugin</artifactId>
-     <version>1.6</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-assembly-plugin</artifactId>
-     <version>2.2.1</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-clean-plugin</artifactId>
-     <version>2.4.1</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-compiler-plugin</artifactId>
-     <version>2.3.2</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-dependency-plugin</artifactId>
-     <version>2.3</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-deploy-plugin</artifactId>
-     <version>2.7</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-ear-plugin</artifactId>
-     <version>2.6</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-ejb-plugin</artifactId>
-     <version>2.3</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-install-plugin</artifactId>
-     <version>2.3.1</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-jar-plugin</artifactId>
-     <version>2.3.2</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-javadoc-plugin</artifactId>
-     <version>2.8</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-plugin-plugin</artifactId>
-     <version>2.9</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-release-plugin</artifactId>
-     <version>2.2.1</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-resources-plugin</artifactId>
-     <version>2.5</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-site-plugin</artifactId>
-     <version>2.3</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-source-plugin</artifactId>
-     <version>2.1.2</version>
-    </plugin>
-    <plugin>
-     <artifactId>maven-surefire-plugin</artifactId>
-     <version>2.9</version>
-     <configuration>
-      <forkMode>always</forkMode>  <!-- because H2database is first shutdown when JVM exit -->
-     </configuration>
-    </plugin>
-    <plugin>
-     <artifactId>maven-war-plugin</artifactId>
-     <version>2.1.1</version>
-    </plugin>
-   </plugins>
-  </pluginManagement>
- </build>
+  <build>
+    <plugins>
+
+
+
+      <plugin>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>8.1.14.v20131031</version>
+        <configuration>
+          <scanIntervalSeconds>10</scanIntervalSeconds>
+          <webApp>
+            <contextPath>/archon</contextPath>
+          </webApp>
+          <systemProperties>
+            <!-- Make jetty use log file /target/logs/jetty.log -->
+            <systemProperty>
+              <name>catalina.home</name>
+              <value>target</value>
+            </systemProperty>
+            <systemProperty>
+              <name>pom.name</name>
+              <value>jetty</value>
+            </systemProperty>
+          </systemProperties>
+        </configuration>
+      </plugin>
+
+
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <!-- Filter resources -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>
+                true
+              </addDefaultImplementationEntries>
+            </manifest>
+          </archive>
+          <webResources>
+            <webResource>
+              <directory>${basedir}/src/main/resources/</directory>
+              <includes>
+                <include>log4j.properties</include>
+                <include>build.properties</include>
+              </includes>
+              <targetPath>WEB-INF/classes</targetPath>
+              <filtering>true</filtering>
+            </webResource>
+            <webResource>
+              <directory>${basedir}/src/main/webapp/</directory>
+              <includes>
+                <include>rest_api.jsp</include>
+              </includes>
+              <targetPath></targetPath>
+              <filtering>true</filtering>
+            </webResource>
+          </webResources>
+        </configuration>
+      </plugin>
+    </plugins>
+
+  </build>
 
 </project>
