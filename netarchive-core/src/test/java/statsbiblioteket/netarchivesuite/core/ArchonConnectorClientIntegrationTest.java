@@ -6,9 +6,9 @@ import dk.statsbiblioteket.netarchivesuite.core.ArchonConnectorClient;
 //This is a manual integration-test and not a unittest. It requires a running server with the netarchive-archon deployed.
 public class ArchonConnectorClientIntegrationTest {
     public static void main(String[] args){
-      ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/netarchive-archon/services");
+      ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/archon/services");
     System.out.println(client.nextShardID());
-        //  client.addARC("home/netarc/test1s.arc");
+         client.addARC("home/netarc/test1s.arc");
         //  client.nextARC("1");
         //System.out.println( client.getShardIDs());
         //  client.setARCState("home/netarc/test1s.arc", ARC_STATE.NEW);
