@@ -5,7 +5,7 @@
   <parent>
     <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
     <artifactId>search</artifactId>
-    <version>0.1</version>
+    <version>0.3</version>
     <relativePath>../</relativePath>
   </parent>
 

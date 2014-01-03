@@ -5,7 +5,7 @@
 
     <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
     <artifactId>search</artifactId>
-    <version>0.1</version>
+    <version>0.3</version>
     <packaging>pom</packaging>
 
     <name>netarchive-search</name>
@@ -19,14 +19,42 @@
     </properties>
 
 
- <!-- Netarchove-search modules -->
+ <!-- Netarchive-search modules -->
     <modules>
         <module>netarchive-core</module>
         <module>netarchive-archon</module>
         <module>netarchive-arctika</module>
     </modules>
 
+ <!-- For sub-modules.  -->
+<dependencyManagement>
+ <dependencies>
+  <!-- REST -->
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-server</artifactId>
+   <version>1.8</version>
+  </dependency>
 
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-core</artifactId>
+   <version>1.8</version>
+  </dependency>
+
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-json</artifactId>
+   <version>1.8</version>
+  </dependency>
+
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-client</artifactId>
+   <version>1.8</version>
+  </dependency>
+ </dependencies>
+</dependencyManagement>
     <!-- General building -->
     <build>
         <plugins>
