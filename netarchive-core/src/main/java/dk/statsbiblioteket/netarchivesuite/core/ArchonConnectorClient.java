@@ -11,13 +11,15 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
 
-public class ArchonConnectorClient implements ArchonConnector{ //TODO implement interface
+public class ArchonConnectorClient implements ArchonConnector{ 
 
     private  WebResource service;
 
     /**
      * Client for the REST-based webservice provided by the netachive-archon module. 
-     * @param archonServerUrl url to the service on the webserver (ie. localhost:8080/netarchive-archon/services)    
+     * @param archonServerUrl url to the service on the webserver
+     * For tomcat this: localhost:8080/netarchive-archon/services
+     * For jetty (mvn jetty:run) this is localhost:8080/archon/services 
      */
     public ArchonConnectorClient(String archonServerUrl){
         ClientConfig config = new DefaultClientConfig();
