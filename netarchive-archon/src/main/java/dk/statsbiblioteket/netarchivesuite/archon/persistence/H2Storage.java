@@ -393,6 +393,11 @@ public class H2Storage {
     public synchronized void setARCState(String arcID, ArchonConnector.ARC_STATE arcState) throws Exception{
         PreparedStatement stmt = null;
         try {                   
+            boolean aRCIDExist = aRCIDExist(arcID);
+            if (!aRCIDExist){
+               throw new IllegalArgumentException("ArcID does not exist:"+arcID);            
+            }
+            
             stmt = singleDBConnection.prepareStatement(setArcStateStatement);
 
             stmt.setString(1, arcState.toString());
@@ -422,6 +427,8 @@ public class H2Storage {
 
         PreparedStatement stmt = null;
         try {                   
+          
+            
             stmt = singleDBConnection.prepareStatement(setShardStateStatement);
 
             stmt.setString(1, state.toString());
@@ -449,6 +456,11 @@ public class H2Storage {
     public synchronized void setARCProperties(String arcID, String shardID,ArchonConnector.ARC_STATE state, int priority) throws Exception{
         PreparedStatement stmt = null;
         try {                   
+            boolean aRCIDExist = aRCIDExist(arcID);
+            if (!aRCIDExist){
+               throw new IllegalArgumentException("ArcID does not exist:"+arcID);            
+            }
+            
             stmt = singleDBConnection.prepareStatement(setArcPropertiesStatement);
 
             stmt.setInt(1, Integer.parseInt(shardID));
@@ -475,6 +487,12 @@ public class H2Storage {
     public synchronized void removeARC(String arcID) throws Exception{
         PreparedStatement stmt = null;
         try {                   
+         
+            boolean aRCIDExist = aRCIDExist(arcID);
+            if (!aRCIDExist){
+               throw new IllegalArgumentException("ArcID does not exist:"+arcID);            
+            }
+            
             stmt = singleDBConnection.prepareStatement(deleteArcByIDQuery);
 
             stmt.setString(1, arcID);
