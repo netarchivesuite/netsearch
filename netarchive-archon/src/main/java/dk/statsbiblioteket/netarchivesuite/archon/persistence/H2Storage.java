@@ -177,25 +177,17 @@ public class H2Storage {
         }
     }
 
-
     
-    //TODO verify shardID is not already in DB
     //synchronized since we are writing.
     public synchronized void addARC(String arcID) throws Exception {
 
-        /*
-			    if (priority<1){
-			        throw new IllegalArgumentException("Priority must be greater than 1, priority="+priority);
-			    }			    
-         */
-
+   
         log.info("Persisting new arc-file: " + arcID);
-
-        /*
-				if (!validateAttributesValues) {
-					throw new IllegalArgumentException("Validation error. Attributes or values must not be empty");
-				}
-         */
+         boolean aRCIDExist = aRCIDExist(arcID);
+        if (aRCIDExist){
+           throw new IllegalArgumentException("ArcID already exist:"+arcID);            
+        }
+        
         PreparedStatement stmt = null;
         try {					
             stmt = singleDBConnection.prepareStatement(addArcStatement);
@@ -292,8 +284,7 @@ public class H2Storage {
 
 
     }
-
-
+   
     public ArcVO getArcByID(String arcID) throws Exception{
         PreparedStatement stmt = null;
         try {
@@ -526,7 +517,23 @@ public class H2Storage {
 
     }
 
+    private boolean aRCIDExist(String arcID) throws Exception{
+        PreparedStatement stmt = null;
+        try {
+            stmt = singleDBConnection.prepareStatement(getArcByIDQuery);
+            stmt.setString(1, arcID);
+            ResultSet rs = stmt.executeQuery();
 
+            return rs.next();
+
+        } catch (SQLException e) {
+            log.error("SQL Exception in aRCIDExist:" + e.getMessage());
+            throw e;
+        } finally {
+            closeStatement(stmt);
+        } 
+        
+    }
     /*
      * Will create a zip-file with a backup of the database.
      * 
