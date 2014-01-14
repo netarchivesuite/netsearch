@@ -1,0 +1,4 @@
+#!/bin/bash
+# Updates the Maven versions in modules based on the super pom.xml
+
+mvn -N versions:update-child-modules
