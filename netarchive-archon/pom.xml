@@ -6,7 +6,7 @@
   <parent>
     <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
     <artifactId>search</artifactId>
-    <version>0.4</version>
+    <version>0.5-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
 
@@ -23,7 +23,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>netarchive-core</artifactId>
-      <version>0.2</version>
+        <version>${project.version}</version>
     </dependency>
 
     <!-- DB -->
