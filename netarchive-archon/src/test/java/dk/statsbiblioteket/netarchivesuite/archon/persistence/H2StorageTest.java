@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import dk.statsbiblioteket.netarchivesuite.core.ArchonUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,8 +35,8 @@ public class H2StorageTest {
     private static final Logger log = LoggerFactory.getLogger(H2StorageTest.class);
     private static final String DB_TEMP_DIR = "target/h2";
     private static final String DB_FILE = DB_TEMP_DIR + "/archon_h2storage";
-    private static final String CREATE_TABLES_DDL_FILE = "src/test/resources/H2_DDL_scripts/archon_create_db.ddl";
-    private static final String DELETE_FROM_TABLES_DDL_FILE = "src/test/resources/H2_DDL_scripts/delete_from_all_tables.ddl";
+    private static final String CREATE_TABLES_DDL_FILE = "H2_DDL_scripts/archon_create_db.ddl";
+    private static final String DELETE_FROM_TABLES_DDL_FILE = "H2_DDL_scripts/delete_from_all_tables.ddl";
 
     private static H2Storage storage = null;
 
@@ -55,7 +56,7 @@ public class H2StorageTest {
             doDelete(db_temp_dir);
         }
         storage = new H2Storage(DB_FILE);
-        File create_ddl_file = new File(CREATE_TABLES_DDL_FILE);
+        File create_ddl_file = ArchonUtil.getFile(CREATE_TABLES_DDL_FILE);
 
         storage.runDDLScript(create_ddl_file);
 
@@ -75,7 +76,7 @@ public class H2StorageTest {
     @Before
     public void before() throws Exception {
         // Nuke all data in DB
-        File delete_ddl_file = new File(DELETE_FROM_TABLES_DDL_FILE);
+        File delete_ddl_file = ArchonUtil.getFile(DELETE_FROM_TABLES_DDL_FILE);
         storage.runDDLScript(delete_ddl_file);
     }
 
