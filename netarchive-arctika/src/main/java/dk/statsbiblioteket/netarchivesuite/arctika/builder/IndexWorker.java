@@ -62,11 +62,14 @@ public class IndexWorker implements Runnable{
          //java -jar /media/teg/500GB/netarchive_servers/warc-discovery/warc-indexer/warc-indexer-1.0.1-SNAPSHOT-jar-with-dependencies -s "http://localhost:8983/" $I
             
          ProcessRunner runner = new ProcessRunner("java",
+                 "-Xmx256M",                 
                  "-jar",
-                 "/media/teg/500GB/netarchive_servers/warc-discovery/warc-indexer/warc-indexer-1.0.1-SNAPSHOT-jar-with-dependencies.jar",
+                 "/media/teg/500GB/netarchive_servers/warc-discovery/warc-indexer/warc-indexer-1.1.1-SNAPSHOT-jar-with-dependencies.jar",
                  "-s",
-               solrUrl,
+                 solrUrl,
                  arcFile);
+         runner.setTimeout(60*60*1000l); // 1 hour
+         
          runner.run(); //this will wait until native call returned         
          int returnCode = runner.getReturnCode();
 

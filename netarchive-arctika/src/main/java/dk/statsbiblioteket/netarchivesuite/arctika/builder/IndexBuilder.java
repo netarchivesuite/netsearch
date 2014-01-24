@@ -18,7 +18,7 @@ public class IndexBuilder {
                
     private static long max_workers = 10;
     
-    private static long index_size_target = 500*mB; //300 MB for test
+    private static long index_size_target = 100*mB; //300 MB for test
     private static double optimize_limit=0.96; //96%
     private static double index_target_limit=0.95; //95%
     
@@ -33,8 +33,7 @@ public class IndexBuilder {
         System.out.println("IndexBuilder started");
         System.out.println("SOLR_URL:"+solr_url);
         System.out.println("ShardID:"+shardId);
-        
-        
+                
         SolrCoreStatus status = solrClient.getStatus();
         
         System.out.println("Core status:"+status);
@@ -43,7 +42,7 @@ public class IndexBuilder {
         //Clear shardId for old jobs that hang(status running)
         archonClient.clearIndexing(""+shardId);
         
-        optimizeAndWaitUntilCompleted();//Check index is not finished before we start
+        optimizeAndExitIfSizeIsReached();//Check index is not finished before we start
         
         do{                                                  
            //Cleanup in worker-pool
@@ -57,14 +56,13 @@ public class IndexBuilder {
                               
            Thread.sleep(10*1000l); //Sleep for 10 secs before checking workers           
         }
-        while (optimizeAndWaitUntilCompleted());
-              
-            
+        while (optimizeAndExitIfSizeIsReached());
+                          
         System.out.println("unexpected to get here");
      
     }
 
-    private static boolean optimizeAndWaitUntilCompleted() throws Exception, InterruptedException {        
+    private static boolean optimizeAndExitIfSizeIsReached() throws Exception, InterruptedException {        
         //Do we need to optimize yet?        
         if (solrClient.getStatus().getIndexSizeBytes() < index_size_target*optimize_limit){
           return true;
@@ -76,7 +74,6 @@ public class IndexBuilder {
             Thread.sleep(10*1000l); //Sleep 10 secs between checks   
         }
         
-        //TODO... give automerge a chance before calling the time consuming optimize ?
         
         //Do the optimize
         System.out.println(" Optimizing, size of index before optimize:"+solrClient.getStatus().getIndexSizeHumanReadable());
