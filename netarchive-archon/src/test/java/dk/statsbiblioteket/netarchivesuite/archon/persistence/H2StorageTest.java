@@ -119,8 +119,8 @@ public class H2StorageTest {
         nextArc = storage.nextARC("10");
         assertEquals(arcFile2,nextArc); // must return this over the one with no shardID
 
-        nextArc = storage.nextARC("11");
-        assertEquals(arcFile1,nextArc); // no shard 11, so return the one without shardid
+        nextArc = storage.nextARC("10");
+        assertEquals("",nextArc); //behavior if none is left
 
         //Test priority sorting
         String arcFile3Shard10Priority3= "arcfile3";
@@ -141,9 +141,9 @@ public class H2StorageTest {
         nextArc = storage.nextARC("10"); 
         assertEquals(arcFile5Shard10Priority3,nextArc);
 
-        //test again with no shardid
+
         nextArc = storage.nextARC("12");
-        assertEquals(arcFile1,nextArc); // no shard 12, so return the one without shardid
+        assertEquals("",nextArc); //behavior if none is left
 
     }
 
@@ -291,7 +291,10 @@ public class H2StorageTest {
         ArcVO arc2 = storage.getArcByID(arcFile2);
         assertEquals("NEW",arc1.getArcState());
         assertEquals("NEW",arc2.getArcState());                       
+        
+        assertEquals(null,arc1.getShardId());
     }
+    
         
 
     @Test

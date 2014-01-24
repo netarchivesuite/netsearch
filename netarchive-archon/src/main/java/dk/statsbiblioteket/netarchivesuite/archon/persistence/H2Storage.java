@@ -130,7 +130,8 @@ public class H2Storage {
 
 
     private final static String clearIndexingStatement =  "UPDATE "+ ARCHON_TABLE 
-            +" SET "+ARC_STATE_COLUMN+ " = ?  " 
+            +" SET "+ARC_STATE_COLUMN+ " = ?  ,"
+                   + SHARD_ID_COLUMN + " = ? "
             +" WHERE "
             +SHARD_ID_COLUMN+" = ?"
             +" AND "+ARC_STATE_COLUMN+" = ?";
@@ -247,10 +248,11 @@ public class H2Storage {
                 return "";
             }
 
-            String fileName = rs.getString(1);                       
+            String arcID = rs.getString(1);                       
 
-            log.info("Returning next shardId:"+fileName);                                                 
-            return fileName;
+            setARCProperties(arcID, shardID, ArchonConnector.ARC_STATE.RUNNING, 5);            
+            log.info("Returning next arc:"+arcID);                                                 
+            return arcID;
 
 
         } catch (SQLException e) {
@@ -520,8 +522,9 @@ public class H2Storage {
             stmt = singleDBConnection.prepareStatement(clearIndexingStatement);
 
             stmt.setString(1, "NEW");
-            stmt.setInt(2, Integer.parseInt(shardID));
-            stmt.setString(3, "RUNNING");
+            stmt.setString(2, null);
+            stmt.setInt(3, Integer.parseInt(shardID));
+            stmt.setString(4, "RUNNING");
 
             int updated = stmt.executeUpdate();
             log.info("Cleared indexing for shardId:"+shardID +" Number of arcfiles changed status:"+updated);           

@@ -56,7 +56,7 @@ public interface ArchonConnector {
     void setARCState(String arcID, ARC_STATE state);
 
     /**
-     * Iterates all ARC files that has the given shardID and state=RUNNING and sets the state to NEW.
+     * Iterates all ARC files that has the given shardID and state=RUNNING and sets the state to NEW. It also sets the shardID to null
      * This is normally used when Arctika has crashed and needs to re-process the active ARC files.
      * @param shardID the shardID for the ARC files that must have their state cleared.
      */

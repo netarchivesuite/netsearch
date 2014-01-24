@@ -26,6 +26,38 @@
     </dependency>
 
     <!-- Third party dependencies -->
+    
+     <!--     SB -->
+              <dependency>
+                <groupId>dk.statsbiblioteket.sbutil</groupId>
+                <artifactId>sbutil-common</artifactId>
+                <version>0.5.14</version>
+            </dependency>
+  
+  
+     <!-- SOLR -->
+  <dependency>
+    <groupId>org.apache.solr</groupId>
+    <artifactId>solr-solrj</artifactId>
+    <version>4.5.1</version>
+  </dependency>
+  
+  
+  <dependency>
+     <groupId>org.apache.solr</groupId>
+     <artifactId>solr-core</artifactId>
+     <version>4.5.1</version>
+   </dependency>
+
+    <dependency>
+         <groupId>org.apache.solr</groupId>
+         <artifactId>solr-test-framework</artifactId>         
+         <version>4.5.1</version>
+         <scope>test</scope>
+     </dependency>
+     
+     
+    
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
