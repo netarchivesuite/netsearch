@@ -7,17 +7,21 @@ public class IndexWorker implements Runnable{
     
     public static enum RUN_STATUS {NEW,RUNNING, COMPLETED,RUN_ERROR} 
     private String arcFile;
-    private String memOption;
+    private String workerJarFile;
+    private int maxMemInMb;
     private String solrUrl;
     private long startTime;
     private RUN_STATUS status;
-    private long endTime;
+    
             
-    public IndexWorker(String arcFile,String solrUrl){
+    public IndexWorker(String arcFile,String solrUrl, int maxMemInMb, String workerJarFile){
         this.arcFile=arcFile;
-        startTime=System.currentTimeMillis();
+        this.startTime=System.currentTimeMillis();
         this.solrUrl=solrUrl;
+        this.maxMemInMb=maxMemInMb;
+        this.workerJarFile=workerJarFile;
         status=RUN_STATUS.NEW;    
+     
     }
         
     public String getArcFile() {
@@ -56,15 +60,16 @@ public class IndexWorker implements Runnable{
     public void run() {
         status =RUN_STATUS.RUNNING;
         System.out.println("Started indexing:"+arcFile);       
-        try{
-       
-            
-         //java -jar /media/teg/500GB/netarchive_servers/warc-discovery/warc-indexer/warc-indexer-1.0.1-SNAPSHOT-jar-with-dependencies -s "http://localhost:8983/" $I
+        
+        try{                   
+
+           //Example of final command 
+           //java -Xmx256M -jar /media/teg/500GB/netarchive_servers/warc-discovery/warc-indexer/warc-indexer-1.1.1-SNAPSHOT-jar-with-dependencies -s "http://localhost:8983/" arcFile1.arc
             
          ProcessRunner runner = new ProcessRunner("java",
-                 "-Xmx256M",                 
+                 "-Xmx"+maxMemInMb+"M", //-Xmx256M etc              
                  "-jar",
-                 "/media/teg/500GB/netarchive_servers/warc-discovery/warc-indexer/warc-indexer-1.1.1-SNAPSHOT-jar-with-dependencies.jar",
+                 workerJarFile,
                  "-s",
                  solrUrl,
                  arcFile);
@@ -75,13 +80,11 @@ public class IndexWorker implements Runnable{
 
          if (returnCode == 0){
              status= RUN_STATUS.COMPLETED;    
-             endTime=System.currentTimeMillis();
              
          }
          else{
              System.out.println("return code not expected:"+returnCode);
-             System.out.println("error output:"+runner.getProcessErrorAsString());
-             
+             System.out.println("error output:"+runner.getProcessErrorAsString());             
              status = RUN_STATUS.RUN_ERROR;             
          }
          
@@ -93,7 +96,6 @@ public class IndexWorker implements Runnable{
         }
        
     }
-
     
     // only arcFile attribute used for hashCode and equal    
     @Override

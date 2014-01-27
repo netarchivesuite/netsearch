@@ -1,7 +1,9 @@
 package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
-import java.util.ArrayList;
 import java.util.HashSet;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import dk.statsbiblioteket.netarchivesuite.arctika.builder.IndexWorker.RUN_STATUS;
 import dk.statsbiblioteket.netarchivesuite.arctika.solr.ArctikaSolrJClient;
@@ -10,70 +12,83 @@ import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
 import dk.statsbiblioteket.netarchivesuite.core.ArchonConnectorClient;
 
 public class IndexBuilder {
-
-    private static long gB = 1073741824l;
-    private static long mB = 1048576l;
-     
-    private static HashSet<IndexWorker> workers = new HashSet<IndexWorker>(); 
-               
-    private static long max_workers = 10;
     
-    private static long index_size_target = 100*mB; //300 MB for test
-    private static double optimize_limit=0.96; //96%
-    private static double index_target_limit=0.95; //95%
+    private static Log log = LogFactory.getLog(IndexBuilder.class);
+    private HashSet<IndexWorker> workers = new HashSet<IndexWorker>(); 
+    private IndexBuilderConfig config;     
+    private ArctikaSolrJClient solrClient;                        
+    private ArchonConnectorClient archonClient;
     
-    
-    private static String archon_url= "http://localhost:8080/netarchive-archon/services";
-    private static String solr_url= "http://localhost:8983/solr";
-    private static int shardId=1;
-    private static ArctikaSolrJClient solrClient = new ArctikaSolrJClient(solr_url);                
-    private static ArchonConnectorClient archonClient = new ArchonConnectorClient(archon_url);
-    
+              
+    //TODO to public method and main use method
     public static void main (String[] args) throws Exception{
-        System.out.println("IndexBuilder started");
-        System.out.println("SOLR_URL:"+solr_url);
-        System.out.println("ShardID:"+shardId);
-                
-        SolrCoreStatus status = solrClient.getStatus();
-        
-        System.out.println("Core status:"+status);
-        System.out.println("ShardID:"+shardId);           
-                        
-        //Clear shardId for old jobs that hang(status running)
-        archonClient.clearIndexing(""+shardId);
-        
-        optimizeAndExitIfSizeIsReached();//Check index is not finished before we start
-        
-        do{                                                  
-           //Cleanup in worker-pool
-           checkAndRemoveFinishedWorkers();
-           
-           //Start up new workers until pool is full
-           while (workers.size() < max_workers){
-              startNewIndexWorker();                                             
-               System.out.println("#workers:"+workers.size());
-           }
-                              
-           Thread.sleep(10*1000l); //Sleep for 10 secs before checking workers           
+       
+        String propertyFile = System.getProperty("ArtikaPropertyFile");
+        if (propertyFile == null || "".equals(propertyFile)){
+            System.out.println("Propertyfile location must be set. Use -DArtikaPropertyFile={path to file}");            
+            System.exit(1);
         }
-        while (optimizeAndExitIfSizeIsReached());
-                          
-        System.out.println("unexpected to get here");
-     
+        String log4JFile = System.getProperty("log4j.configuration");
+                
+        if (log4JFile  == null || "".equals(log4JFile )){
+            log.info("Log4j configuration not defined, using default. Use -Dlog4j.configuration={path to file}");
+            System.out.println("Log4j configuration not defined, using default. Use -Dlog4j.configuration={path to file}");                        
+        }
+                
+        IndexBuilderConfig config = new IndexBuilderConfig(propertyFile);                
+        IndexBuilder builder = new IndexBuilder(config);
+        builder.buildIndex();
     }
 
-    private static boolean optimizeAndExitIfSizeIsReached() throws Exception, InterruptedException {        
+    
+    public IndexBuilder(IndexBuilderConfig config){
+        this.config = config;
+                
+        solrClient = new ArctikaSolrJClient(config.getSolr_url());
+        archonClient =  new ArchonConnectorClient(config.getArchon_url());
+                       
+    }
+    
+    public void buildIndex() throws Exception{
+        
+      SolrCoreStatus status = solrClient.getStatus();        
+      System.out.println("Core status:"+status);
+      //Clear shardId for old jobs that hang(status running)
+      archonClient.clearIndexing(""+config.getShardId());
+      
+      optimizeAndExitIfSizeIsReached();//Check index has target size before we start indexing further
+      
+      do{                                                  
+         //Cleanup in worker-pool
+          checkAndRemoveFinishedWorkers();
+         
+         //Start up new workers until pool is full
+         while (workers.size() < config.getMax_concurrent_workers()){
+             startNewIndexWorker();                                                        
+         }
+                            
+         Thread.sleep(10*1000l); //Sleep for 10 secs before checking workers           
+      }
+      while (optimizeAndExitIfSizeIsReached());                         
+      System.out.println("unexpected to get here");
+      System.exit(1);
+    }
+    
+    
+    private boolean optimizeAndExitIfSizeIsReached() throws Exception, InterruptedException {        
         //Do we need to optimize yet?        
-        if (solrClient.getStatus().getIndexSizeBytes() < index_size_target*optimize_limit){
+      
+        
+        if (solrClient.getStatus().getIndexSizeBytes() < config.getIndex_max_sizeInBytes()*config.getOptimize_limit()){
           return true;
         }
         
         //Wait for all workers to complete. TODO, timer check for workers that hang
+        System.out.println("Waiting for all workers to complete before optimizing...");
         while (workers.size() >0){
             checkAndRemoveFinishedWorkers();
             Thread.sleep(10*1000l); //Sleep 10 secs between checks   
-        }
-        
+        }        
         
         //Do the optimize
         System.out.println(" Optimizing, size of index before optimize:"+solrClient.getStatus().getIndexSizeHumanReadable());
@@ -92,35 +107,35 @@ public class IndexBuilder {
         long indexSizeBytes = status.getIndexSizeBytes();
         
         //Too big? Stop with error
-        if (indexSizeBytes >index_size_target){
-            System.out.println("Total screw up. Index too large. Max allowed bytes="+index_size_target +" and index was:"+indexSizeBytes);
+        if (indexSizeBytes >config.getIndex_max_sizeInBytes()){
+            System.out.println("Total screw up. Index too large. Max allowed bytes="+config.getIndex_max_sizeInBytes() +" and index was:"+indexSizeBytes);
             System.exit(1);
         }
               
         //Big enough? stop with success
-        if (indexSizeBytes > index_size_target*index_target_limit){
-            float percentage= (1f*indexSizeBytes)/(1f*index_size_target)*100f;        
-            System.out.println("Building of shardId="+shardId +" completed. Index limit percentage:"+percentage);  
+        if (indexSizeBytes > config.getIndex_target_limit()*config.getIndex_max_sizeInBytes()){
+            float percentage= (1f*indexSizeBytes)/(1f*config.getIndex_max_sizeInBytes())*100f;        
+            System.out.println("Building of shardId="+config.getShardId()+" completed. Index limit percentage:"+percentage);  
             System.exit(0);            
         }
         return true;
     }
 
 
-    private static void startNewIndexWorker() {
-        String nextARC = archonClient.nextARC(""+shardId);
+    private void startNewIndexWorker() {
+        String nextARC = archonClient.nextARC(""+config.getShardId());
           if ("".equals(nextARC)){
               System.out.println("no more arc-files to index. Stopping index process. It can be continued when there are new arc-files");
               System.exit(1);
           }
                     
-           IndexWorker newWorker = new IndexWorker(nextARC,  solr_url);
+           IndexWorker newWorker = new IndexWorker(nextARC,  config.getSolr_url(),config.getWorker_maxMemInMb() ,config.getWorker_jar_file());
            workers.add(newWorker);
            new Thread(newWorker).start();
     }
     
     
-    private static void checkAndRemoveFinishedWorkers(){
+    private  void checkAndRemoveFinishedWorkers(){
      
         HashSet<IndexWorker> finishedWorkers = new HashSet<IndexWorker>();
         
