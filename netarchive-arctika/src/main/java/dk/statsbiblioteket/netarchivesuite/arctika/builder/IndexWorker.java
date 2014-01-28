@@ -7,8 +7,7 @@ import dk.statsbiblioteket.util.console.ProcessRunner;
 
 public class IndexWorker implements Runnable{
 
-    private static Log log = LogFactory.getLog(IndexWorker.class);
-    
+    private static Log log = LogFactory.getLog(IndexWorker.class);    
     public static enum RUN_STATUS {NEW,RUNNING, COMPLETED,RUN_ERROR} 
     private String arcFile;
     private String workerJarFile;

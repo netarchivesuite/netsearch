@@ -111,7 +111,9 @@ public class IndexBuilder {
         if (indexSizeBytes > config.getIndex_target_limit()*config.getIndex_max_sizeInBytes()){
             float percentage= (1f*indexSizeBytes)/(1f*config.getIndex_max_sizeInBytes())*100f;        
             log.info("Building of shardId="+config.getShardId()+" completed. Index limit percentage:"+percentage);
+            log.info("Index status:"+status);
             System.out.println("Building of shardId="+config.getShardId()+" completed. Index limit percentage:"+percentage);  
+            System.out.println("Index status:"+status);
             System.exit(0);            
         }
         return true;

@@ -1,4 +1,4 @@
-package dk.statsbiblioteket.netarchivesuite.arctika.util;
+package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
 import java.io.File;
 import java.util.ArrayList;

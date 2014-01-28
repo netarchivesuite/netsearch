@@ -1,8 +1,5 @@
 package dk.statsbiblioteket.netarchivesuite.arctika.solr;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.CoreAdminRequest;
@@ -13,12 +10,9 @@ import org.apache.solr.common.util.NamedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class ArctikaSolrJClient{
-	private static HttpSolrServer solrServer;
-	
-	private static final Logger log = LoggerFactory.getLogger(ArctikaSolrJClient.class);
-
+    private static final Logger log = LoggerFactory.getLogger(ArctikaSolrJClient.class);
+    private static HttpSolrServer solrServer;	
 	
 	public ArctikaSolrJClient(String solr_url){
 
@@ -32,26 +26,22 @@ public class ArctikaSolrJClient{
             java.util.logging.Logger.getLogger("org.apache.http.wire").setLevel(java.util.logging.Level.OFF); 
             java.util.logging.Logger.getLogger("org.apache.http.headers").setLevel(java.util.logging.Level.OFF);
 
-            solrServer = new HttpSolrServer(solr_url); //TODO factor out
-            solrServer.setRequestWriter(new BinaryRequestWriter()); //To avoid http error code 413/414, due to monster URI. (and it is faster) 
-                
+            solrServer = new HttpSolrServer(solr_url);
+            solrServer.setRequestWriter(new BinaryRequestWriter()); //To avoid http error code 413/414, due to monster URI. (and it is faster)               
         }
         catch(Exception e){
-            System.out.println("Unable to connect to netarchive indexer Solr server");
+            System.out.println("Unable to connect to netarchive indexer Solr server:"+solr_url);
             e.printStackTrace();
-            log.error("Unable to connect to netarchive indexer Solr server",e);
-        }  
-	    
+            log.error("Unable to connect to netarchive indexer Solr server:"+solr_url,e);       
+        }  	    
 	}
-	
-	
 	
 	public void optimize() throws Exception{
 	    solrServer.optimize();	       	    
 	}
-	
-	
+		
 	//http://127.0.0.1:8983/solr/admin/cores?action=STATUS
+	@SuppressWarnings("unchecked")
 	public SolrCoreStatus getStatus() throws Exception{
 	    CoreAdminRequest request = new CoreAdminRequest();
 	    request.setAction(CoreAdminAction.STATUS);
@@ -59,12 +49,10 @@ public class ArctikaSolrJClient{
 
 	    SolrCoreStatus status = new SolrCoreStatus();
 	    
-	    // List of the cores
-	    List<String> coreList = new ArrayList<String>();
-	    	   	    
-	    String coreName = cores.getCoreStatus().getName(0); // just 1 core	    
+	    //This is the solr way to represent XML/JSON. You must know attributes names
+	    String coreName = cores.getCoreStatus().getName(0); // Exactly 1 core define for index building	    
 	    NamedList<Object> namedList = cores.getCoreStatus().get(coreName);	    	    
-	    NamedList<Object> indexObj = (  NamedList<Object> ) namedList.get("index");
+	    NamedList<Object> indexObj = ( NamedList<Object> ) namedList.get("index"); //Unchecked cast
 	    
         status.setCoreName(coreName);	    	    
 	    status.setSegmentCount((Integer)indexObj.get("segmentCount"));
