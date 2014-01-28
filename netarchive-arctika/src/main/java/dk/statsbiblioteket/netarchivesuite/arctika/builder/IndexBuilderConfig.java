@@ -13,14 +13,16 @@ public class IndexBuilderConfig {
 
     private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);
 
-    private static long gB = 1073741824l;
-    private static long mB = 1048576l; // only used for test
+    private static long GB = 1073741824l;
+    private static long MB = 1048576l; 
 
     private int shardId = -1;
     private String worker_jar_file;
     private int worker_maxMemInMb = -1;
     private long max_concurrent_workers = -1;
-    private long index_max_sizeInGB = -1;
+    private long index_max_size = -1; //This will be combined with the unit below
+    private long index_max_size_unit = 0; //will point to gB or mB
+    
     private float optimize_limit = 0.96f; // 96% default value
     private float index_target_limit = 0.95f; // 95% default value
     private String archon_url;
@@ -54,16 +56,16 @@ public class IndexBuilderConfig {
         this.max_concurrent_workers = max_concurrent_workers;
     }
 
-    public long getIndex_max_sizeInGB() {
-        return index_max_sizeInGB;
+    public long getIndex_max_size() {
+        return index_max_size;
     }
 
-    public void setIndex_max_sizeInGB(long index_max_sizeInGB) {
-        this.index_max_sizeInGB = index_max_sizeInGB;
+    public void setIndex_max_size(long index_max_size) {
+        this.index_max_size = index_max_size;
     }
 
     public long getIndex_max_sizeInBytes(){
-        return mB*index_max_sizeInGB;//TODO changes        
+        return index_max_size_unit*index_max_size;        
     }
         
     public float getOptimize_limit() {
@@ -116,7 +118,23 @@ public class IndexBuilderConfig {
 
         worker_maxMemInMb = Integer.parseInt(serviceProperties.getProperty("actika.worker.maxMemInMb"));
         max_concurrent_workers = Integer.parseInt(serviceProperties.getProperty("actika.max_concurrent_workers"));
-        index_max_sizeInGB = Integer.parseInt(serviceProperties.getProperty("arctika.index_max_sizeInGB"));
+        
+        String index_max_size_str = serviceProperties.getProperty("arctika.index_max_size");
+        String unit;
+        if (index_max_size_str.indexOf("MB")>0){           
+            unit ="MB";
+            index_max_size_unit = MB;
+            index_max_size_str=index_max_size_str.replace("MB","");
+            index_max_size=Long.parseLong(index_max_size_str.trim());            
+        }
+        else if (index_max_size_str.indexOf("GB")>0){
+            unit ="GB";
+            index_max_size_unit = GB;
+            index_max_size_str=index_max_size_str.replace("B","");
+            index_max_size=Long.parseLong(index_max_size_str.trim());           
+        }
+        else throw new IllegalArgumentException("Unknown arctika.index_max_size. MB or GB not defined:"+index_max_size_str);
+        
         optimize_limit = Float.parseFloat(serviceProperties.getProperty("arctika.optimize_limit"));
         index_target_limit = Float.parseFloat(serviceProperties.getProperty("arctika.index_target_limit"));
         shardId = Integer.parseInt(serviceProperties.getProperty("arctika.shardId"));
@@ -127,7 +145,7 @@ public class IndexBuilderConfig {
         log.info("Property: worker_jar_file = " + worker_jar_file);
         log.info("Property: actika.worker.maxMemInMb = " + worker_maxMemInMb);
         log.info("Property: max_concurrent_workers = " + max_concurrent_workers);
-        log.info("Property: index_max_sizeInGB = " + index_max_sizeInGB);
+        log.info("Property: index_max_size = " + index_max_size+unit);
         log.info("Property: optimize_limit= = " + optimize_limit);
         log.info("Property: index_target_limit = " + index_target_limit);
         log.info("Property: shardId = " + shardId);
