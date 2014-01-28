@@ -130,7 +130,7 @@ public class IndexBuilderConfig {
         else if (index_max_size_str.indexOf("GB")>0){
             unit ="GB";
             index_max_size_unit = GB;
-            index_max_size_str=index_max_size_str.replace("B","");
+            index_max_size_str=index_max_size_str.replace("GB","");
             index_max_size=Long.parseLong(index_max_size_str.trim());           
         }
         else throw new IllegalArgumentException("Unknown arctika.index_max_size. MB or GB not defined:"+index_max_size_str);
