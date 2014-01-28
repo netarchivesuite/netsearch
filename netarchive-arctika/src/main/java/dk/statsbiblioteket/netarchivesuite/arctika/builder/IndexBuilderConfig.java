@@ -16,18 +16,16 @@ public class IndexBuilderConfig {
     private static long gB = 1073741824l;
     private static long mB = 1048576l; // only used for test
 
+    private int shardId = -1;
     private String worker_jar_file;
     private int worker_maxMemInMb = -1;
     private long max_concurrent_workers = -1;
-
     private long index_max_sizeInGB = -1;
     private float optimize_limit = 0.96f; // 96% default value
     private float index_target_limit = 0.95f; // 95% default value
-
     private String archon_url;
     private String solr_url;
-    private int shardId = -1;
-
+   
     public IndexBuilderConfig(String configFilePath) throws Exception {
         initProperties(configFilePath);
     }
@@ -65,7 +63,7 @@ public class IndexBuilderConfig {
     }
 
     public long getIndex_max_sizeInBytes(){
-        return mB*index_max_sizeInGB;        
+        return mB*index_max_sizeInGB;//TODO changes        
     }
         
     public float getOptimize_limit() {
@@ -125,8 +123,7 @@ public class IndexBuilderConfig {
         archon_url = serviceProperties.getProperty("arctika.archon_url");
         solr_url = serviceProperties.getProperty("arctika.solr_url");
         worker_jar_file = serviceProperties.getProperty("arctika.worker.index.jar.file");
-        
-        
+                
         log.info("Property: worker_jar_file = " + worker_jar_file);
         log.info("Property: actika.worker.maxMemInMb = " + worker_maxMemInMb);
         log.info("Property: max_concurrent_workers = " + max_concurrent_workers);
@@ -135,8 +132,7 @@ public class IndexBuilderConfig {
         log.info("Property: index_target_limit = " + index_target_limit);
         log.info("Property: shardId = " + shardId);
         log.info("Property: archon_url = " + archon_url);
-        log.info("Property: solr_url = " + solr_url);
-       
+        log.info("Property: solr_url = " + solr_url);       
     }
 
 }

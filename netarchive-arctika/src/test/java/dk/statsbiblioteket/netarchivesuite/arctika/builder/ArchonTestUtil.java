@@ -7,7 +7,7 @@ import dk.statsbiblioteket.netarchivesuite.arctika.solr.ArctikaSolrJClient;
 import dk.statsbiblioteket.netarchivesuite.arctika.solr.SolrCoreStatus;
 import dk.statsbiblioteket.netarchivesuite.core.ArchonConnectorClient;
 
-public class ArchonUtil {
+public class ArchonTestUtil {
 
     static ArchonConnectorClient client = new ArchonConnectorClient("http://localhost:8080/netarchive-archon/services");
 

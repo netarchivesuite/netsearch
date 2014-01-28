@@ -1,9 +1,13 @@
 package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import dk.statsbiblioteket.util.console.ProcessRunner;
 
 public class IndexWorker implements Runnable{
 
+    private static Log log = LogFactory.getLog(IndexWorker.class);
     
     public static enum RUN_STATUS {NEW,RUNNING, COMPLETED,RUN_ERROR} 
     private String arcFile;
@@ -12,16 +16,14 @@ public class IndexWorker implements Runnable{
     private String solrUrl;
     private long startTime;
     private RUN_STATUS status;
-    
-            
+                
     public IndexWorker(String arcFile,String solrUrl, int maxMemInMb, String workerJarFile){
         this.arcFile=arcFile;
         this.startTime=System.currentTimeMillis();
         this.solrUrl=solrUrl;
         this.maxMemInMb=maxMemInMb;
         this.workerJarFile=workerJarFile;
-        status=RUN_STATUS.NEW;    
-     
+        status=RUN_STATUS.NEW;         
     }
         
     public String getArcFile() {
@@ -55,15 +57,13 @@ public class IndexWorker implements Runnable{
     public void setStatus(RUN_STATUS status) {
         this.status = status;
     }
-
    
     public void run() {
         status =RUN_STATUS.RUNNING;
-        System.out.println("Started indexing:"+arcFile);       
+        log.info("Started indexing:"+arcFile);       
         
         try{                   
-
-           //Example of final command 
+           //Example of final command: 
            //java -Xmx256M -jar /media/teg/500GB/netarchive_servers/warc-discovery/warc-indexer/warc-indexer-1.1.1-SNAPSHOT-jar-with-dependencies -s "http://localhost:8983/" arcFile1.arc
             
          ProcessRunner runner = new ProcessRunner("java",
@@ -80,24 +80,25 @@ public class IndexWorker implements Runnable{
 
          if (returnCode == 0){
              status= RUN_STATUS.COMPLETED;    
-             
+             log.info("Completed indexing:"+arcFile);     
          }
-         else{
-             System.out.println("return code not expected:"+returnCode);
-             System.out.println("error output:"+runner.getProcessErrorAsString());             
+         else{                          
+             log.info("Error processing:"+arcFile);
+             log.info("return code not expected:"+returnCode);
+             log.info("error output:"+runner.getProcessErrorAsString());                        
              status = RUN_STATUS.RUN_ERROR;             
          }
          
         }
         catch(Exception e){
-            e.printStackTrace();
+            log.info("Error processing:"+arcFile,e);           
             status = RUN_STATUS.RUN_ERROR;
             return;
         }
        
     }
     
-    // only arcFile attribute used for hashCode and equal    
+    // only arcFile attribute used for hashCode and equal 
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -121,8 +122,5 @@ public class IndexWorker implements Runnable{
         } else if (!arcFile.equals(other.arcFile))
             return false;
         return true;
-    }
-    
-    
-    
+    }            
 }

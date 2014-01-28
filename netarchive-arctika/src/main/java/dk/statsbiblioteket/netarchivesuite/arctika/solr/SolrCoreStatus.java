@@ -7,8 +7,7 @@ public class SolrCoreStatus {
     private String indexSizeHumanReadable;
     private int segmentCount;
     private int numDocs;
-    
-    
+        
     public long getIndexSizeBytes() {
         return indexSizeBytes;
     }
@@ -20,14 +19,15 @@ public class SolrCoreStatus {
     public int getSegmentCount() {
         return segmentCount;
     }
+    
     public void setSegmentCount(int segmentCount) {
         this.segmentCount = segmentCount;
     }
-    
-    
+        
     public String getIndexSizeHumanReadable() {
         return indexSizeHumanReadable;
     }
+    
     public void setIndexSizeHumanReadable(String indexSizeHumanReadable) {
         this.indexSizeHumanReadable = indexSizeHumanReadable;
     }
@@ -44,6 +44,7 @@ public class SolrCoreStatus {
     public void setNumDocs(int numDocs) {
         this.numDocs = numDocs;
     }
+   
     // This is so far the only way to detect if index is optimized;
     public boolean isOptimized() {
         return segmentCount == 1;
@@ -53,7 +54,5 @@ public class SolrCoreStatus {
     public String toString() {
         return "SolrCoreStatus [coreName=" + coreName + ", indexSizeBytes=" + indexSizeBytes + ", indexSizeHumanReadable=" + indexSizeHumanReadable + ", segmentCount=" + segmentCount + ", numDocs="
                 + numDocs + "]";
-    }
-        
-    
+    }           
 }
