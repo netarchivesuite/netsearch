@@ -2,8 +2,8 @@ package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
 import java.util.HashSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import dk.statsbiblioteket.netarchivesuite.arctika.builder.IndexWorker.RUN_STATUS;
 import dk.statsbiblioteket.netarchivesuite.arctika.solr.ArctikaSolrJClient;
@@ -13,7 +13,7 @@ import dk.statsbiblioteket.netarchivesuite.core.ArchonConnectorClient;
 
 public class IndexBuilder {
 
-    private static Log log = LogFactory.getLog(IndexBuilder.class);
+    private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);
     private HashSet<IndexWorker> workers = new HashSet<IndexWorker>(); 
     private IndexBuilderConfig config;     
     private ArctikaSolrJClient solrClient;                        
@@ -80,7 +80,7 @@ public class IndexBuilder {
         }
 
         //Wait for all workers to complete. The native worker process is given 1 hour timeout.
-        System.out.println("Waiting for all workers to complete before optimizing...");
+        log.info("Waiting for all workers to complete before optimizing...");
         while (workers.size() >0){
             checkAndRemoveFinishedWorkers();
             Thread.sleep(10*1000l); //Sleep 10 secs between checks   
