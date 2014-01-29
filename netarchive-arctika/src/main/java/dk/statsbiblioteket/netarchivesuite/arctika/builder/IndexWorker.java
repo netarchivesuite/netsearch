@@ -5,8 +5,12 @@ import org.slf4j.LoggerFactory;
 
 import dk.statsbiblioteket.util.console.ProcessRunner;
 
-public class IndexWorker implements Runnable{
+import java.util.concurrent.Callable;
+
+public class IndexWorker implements Callable<IndexWorker> {
     private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);
+    // TODO: Make this a property
+    public static final long WORKER_TIMEOUT = 60 * 60 * 1000L;
 
     public static enum RUN_STATUS {NEW,RUNNING, COMPLETED,RUN_ERROR}
     private String arcFile;
@@ -58,7 +62,7 @@ public class IndexWorker implements Runnable{
     }
    
     @Override
-    public void run() {
+    public IndexWorker call() throws Exception {
         status = RUN_STATUS.RUNNING;
         log.info("Started indexing: "+arcFile);
         
@@ -73,7 +77,7 @@ public class IndexWorker implements Runnable{
                  "-s",
                  solrUrl,
                  arcFile);
-         runner.setTimeout(60*60*1000L); // 1 hour
+         runner.setTimeout(WORKER_TIMEOUT); // 1 hour
          
          runner.run(); //this will wait until native call returned         
          int returnCode = runner.getReturnCode();
@@ -94,6 +98,7 @@ public class IndexWorker implements Runnable{
             log.info("Error processing: "+arcFile,e);
             status = RUN_STATUS.RUN_ERROR;
         }
+        return this;
     }
     
     // only arcFile attribute used for hashCode and equal 

@@ -18,7 +18,7 @@ public class IndexBuilderConfig {
     private int shardId = -1;
     private String worker_jar_file;
     private int worker_maxMemInMb = -1;
-    private long max_concurrent_workers = -1;
+    private int max_concurrent_workers = -1;
     private long index_max_size = -1; //This will be combined with the unit below
     private long index_max_size_unit = 0; //will point to gB or mB
     
@@ -47,11 +47,11 @@ public class IndexBuilderConfig {
         this.worker_maxMemInMb = worker_maxMemInMb;
     }
 
-    public long getMax_concurrent_workers() {
+    public int getMax_concurrent_workers() {
         return max_concurrent_workers;
     }
 
-    public void setMax_concurrent_workers(long max_concurrent_workers) {
+    public void setMax_concurrent_workers(int max_concurrent_workers) {
         this.max_concurrent_workers = max_concurrent_workers;
     }
 
