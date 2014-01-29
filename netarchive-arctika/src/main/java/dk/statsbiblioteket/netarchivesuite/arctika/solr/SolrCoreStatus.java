@@ -47,7 +47,7 @@ public class SolrCoreStatus {
    
     // This is so far the only way to detect if index is optimized;
     public boolean isOptimized() {
-        return segmentCount == 1;
+        return segmentCount <= 1;
     }
 
     @Override
