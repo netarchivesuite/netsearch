@@ -10,11 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class IndexBuilderConfig {
-
     private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);
 
-    private static long GB = 1073741824l;
-    private static long MB = 1048576l; 
+    private static final long GB = 1073741824L;
+    private static final long MB = 1048576L;
 
     private int shardId = -1;
     private String worker_jar_file;
@@ -109,7 +108,6 @@ public class IndexBuilderConfig {
     }
 
     private void initProperties(String configFilePath) throws Exception {
-
         InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(configFilePath)), "ISO-8859-1");
 
         Properties serviceProperties = new Properties();
@@ -126,14 +124,13 @@ public class IndexBuilderConfig {
             index_max_size_unit = MB;
             index_max_size_str=index_max_size_str.replace("MB","");
             index_max_size=Long.parseLong(index_max_size_str.trim());            
-        }
-        else if (index_max_size_str.indexOf("GB")>0){
+        } else if (index_max_size_str.indexOf("GB")>0){
             unit ="GB";
             index_max_size_unit = GB;
             index_max_size_str=index_max_size_str.replace("GB","");
             index_max_size=Long.parseLong(index_max_size_str.trim());           
-        }
-        else throw new IllegalArgumentException("Unknown arctika.index_max_size. MB or GB not defined:"+index_max_size_str);
+        } else throw new IllegalArgumentException(
+                "Unknown arctika.index_max_size. MB or GB not defined: "+index_max_size_str);
         
         optimize_limit = Float.parseFloat(serviceProperties.getProperty("arctika.optimize_limit"));
         index_target_limit = Float.parseFloat(serviceProperties.getProperty("arctika.index_target_limit"));
