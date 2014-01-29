@@ -1,7 +1,9 @@
 package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
+import java.io.IOException;
 import java.util.HashSet;
 
+import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +95,7 @@ public class IndexBuilder {
      * Checks if the wanted index size has been reached.
      * @return true if the wanted index size has been reached.
      */
-    private boolean optimizeAndCheckIfSizeIsReached() throws Exception {
+    private boolean optimizeAndCheckIfSizeIsReached() throws IOException, SolrServerException, InterruptedException {
         //Do we need to optimize yet?        
 
         if (solrClient.getStatus().getIndexSizeBytes() < config.getIndex_max_sizeInBytes()*config.getOptimize_limit()){
@@ -159,9 +161,9 @@ public class IndexBuilder {
         //Cleanup in worker-pool
         for (IndexWorker worker : workers){
             RUN_STATUS workerStatus = worker.getStatus();
-            if (workerStatus==RUN_STATUS.RUNNING || workerStatus==RUN_STATUS.NEW){
+         //   if (workerStatus==RUN_STATUS.RUNNING || workerStatus==RUN_STATUS.NEW){
                 //do nothing
-            }
+//            }
             if (workerStatus==RUN_STATUS.COMPLETED){
                 log.info("Worker completed success: "+worker.getArcFile());
                 finishedWorkers.add(worker);

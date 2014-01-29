@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.netarchivesuite.arctika.solr;
 
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.CoreAdminRequest;
@@ -10,12 +11,13 @@ import org.apache.solr.common.util.NamedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 public class ArctikaSolrJClient{
     private static final Logger log = LoggerFactory.getLogger(ArctikaSolrJClient.class);
     private static HttpSolrServer solrServer;	
 	
 	public ArctikaSolrJClient(String solr_url){
-
         try{
             removeHttpLogSpam();
             
@@ -29,13 +31,13 @@ public class ArctikaSolrJClient{
         }  	    
 	}
 	
-	public void optimize() throws Exception{
+	public void optimize() throws IOException, SolrServerException {
 	    solrServer.optimize();	       	    
 	}
 		
 	//http://127.0.0.1:8983/solr/admin/cores?action=STATUS
 	@SuppressWarnings("unchecked")
-	public SolrCoreStatus getStatus() throws Exception{
+	public SolrCoreStatus getStatus() throws IOException, SolrServerException {
 	    CoreAdminRequest request = new CoreAdminRequest();
 	    request.setAction(CoreAdminAction.STATUS);
 	    CoreAdminResponse cores = request.process(solrServer);
