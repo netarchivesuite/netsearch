@@ -12,26 +12,37 @@ import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
 import dk.statsbiblioteket.netarchivesuite.core.ArchonConnectorClient;
 
 public class IndexBuilder {
-
     private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);
-    private HashSet<IndexWorker> workers = new HashSet<IndexWorker>(); 
-    private IndexBuilderConfig config;     
-    private ArctikaSolrJClient solrClient;                        
-    private ArchonConnectorClient archonClient;
+
+    /**
+     * The number of milliseconds to wait between each poll for index.isOptimized.
+     */
+    private static final long WAIT_OPTIMIZE = 60 * 1000L;
+
+    /**
+     * The number of milliseconds to wait between each poll for worker status..
+     */
+    private static final long WAIT_WORKER = 10 * 1000L;
+
+    private final HashSet<IndexWorker> workers = new HashSet<IndexWorker>(); 
+    private final IndexBuilderConfig config;     
+    private final ArctikaSolrJClient solrClient;                        
+    private final ArchonConnectorClient archonClient;
 
     public static void main (String[] args) throws Exception{
-
         String propertyFile = System.getProperty("ArtikaPropertyFile");
         if (propertyFile == null || "".equals(propertyFile)){
-            System.out.println("Propertyfile location must be set. Use -DArtikaPropertyFile={path to file}");            
-            log.error("Propertyfile location must be set. Use -DArtikaPropertyFile={path to file}");
+            String message = "Propertyfile location must be set. Use -DArtikaPropertyFile={path to file}";
+            System.out.println(message);
+            log.error(message);
             System.exit(1);
         }
         String log4JFile = System.getProperty("log4j.configuration");
 
         if (log4JFile  == null || "".equals(log4JFile )){
-            log.info("Log4j configuration not defined, using default. Use -Dlog4j.configuration={path to file}");
-            System.out.println("Log4j configuration not defined, using default. Use -Dlog4j.configuration={path to file}");                        
+            String message = "Log4j configuration not defined, using default. Use -Dlog4j.configuration={path to file}";
+            log.info(message);
+            System.out.println(message);
         }
 
         IndexBuilderConfig config = new IndexBuilderConfig(propertyFile);                
@@ -47,13 +58,17 @@ public class IndexBuilder {
 
     public void buildIndex() throws Exception{        
         SolrCoreStatus status = solrClient.getStatus();        
-        log.info("Starting building index for shardID:"+config.getShardId());
-        log.info("Index status:"+status);
+        log.info("Starting building index for shardID: "+config.getShardId());
+        log.info("Index status: "+status);
 
         //Clear shardId for old jobs that hang(status RUNNING)
         archonClient.clearIndexing(""+config.getShardId());
 
-        optimizeAndExitIfSizeIsReached();//Check index has target size before we start indexing further
+        //Check index has target size before we start indexing further
+        if (optimizeAndCheckIfSizeIsReached()) {
+            log.info("Exiting without any updates as index size has been reached for shardID " + config.getShardId());
+            return;
+        }
 
         do{                                                  
             //Cleanup in worker-pool
@@ -64,71 +79,75 @@ public class IndexBuilder {
                 startNewIndexWorker();                                                        
             }
 
-            Thread.sleep(10*1000l); //Sleep for 10 secs before checking workers           
-        }
-        while (optimizeAndExitIfSizeIsReached());                         
-        System.out.println("unexpected to get here");
-        System.exit(1);
+            Thread.sleep(WAIT_WORKER); //Sleep for 10 secs before checking workers
+        } while (!optimizeAndCheckIfSizeIsReached());
+
+        long indexSizeBytes = status.getIndexSizeBytes();
+        float percentage= (1f*indexSizeBytes)/(1f*config.getIndex_max_sizeInBytes())*100f;
+        log.info("Building of shardId="+config.getShardId()+" completed. Index limit percentage: "+percentage);
+        log.info("Index status: "+status);
     }
 
 
-    private boolean optimizeAndExitIfSizeIsReached() throws Exception, InterruptedException {        
+    /**
+     * Checks if the wanted index size has been reached.
+     * @return true if the wanted index size has been reached.
+     */
+    private boolean optimizeAndCheckIfSizeIsReached() throws Exception {
         //Do we need to optimize yet?        
 
         if (solrClient.getStatus().getIndexSizeBytes() < config.getIndex_max_sizeInBytes()*config.getOptimize_limit()){
-            return true; //Size not reached.. Continue
+            return false;
         }
 
         //Wait for all workers to complete. The native worker process is given 1 hour timeout.
-        log.info("Waiting for all workers to complete before optimizing...");
         while (workers.size() >0){
+            log.info("Waiting for " + workers.size() + " workers to complete before optimizing...");
             checkAndRemoveFinishedWorkers();
-            Thread.sleep(10*1000l); //Sleep 10 secs between checks   
+            Thread.sleep(10* 1000L); //Sleep 10 secs between checks
         }        
 
         //Do the optimize
-        log.info("Optimizing, size of index before optimize:"+solrClient.getStatus().getIndexSizeHumanReadable());
+        log.info("Optimizing, size of index before optimize: "+solrClient.getStatus().getIndexSizeHumanReadable());
         long start=System.currentTimeMillis();
         solrClient.optimize();
-        Thread.sleep(10*1000l);
 
-        while (!solrClient.getStatus().isOptimized()){          
-            Thread.sleep(60*1000l); //Sleep 60 secs between checks
+        while (!solrClient.getStatus().isOptimized()){
+            log.debug("Index not optimized yet. Waiting " + WAIT_OPTIMIZE + " ms before next check");
+            Thread.sleep(WAIT_OPTIMIZE); //Sleep 60 secs between checks
         }
 
         SolrCoreStatus status = solrClient.getStatus();        
-        log.info("Optimize complete. Size of index after optimize:"+status.getIndexSizeHumanReadable() +". Optimize took in millis:"+(System.currentTimeMillis()-start));
+        log.info("Optimize complete. Size of index after optimize: "+status.getIndexSizeHumanReadable()
+                 + ". Optimize took "+(System.currentTimeMillis()-start) + " ms");
         long indexSizeBytes = status.getIndexSizeBytes();
 
         //Too big? Stop with error
         if (indexSizeBytes >config.getIndex_max_sizeInBytes()){
-            log.error("Total screw up. Index too large. Max allowed bytes="+config.getIndex_max_sizeInBytes() +" and index was:"+indexSizeBytes);
-            System.out.println("Total screw up. Index too large. Max allowed bytes="+config.getIndex_max_sizeInBytes() +" and index was:"+indexSizeBytes);
-            System.exit(1);
+            String message = "Total screw up. Index too large. Max allowed bytes="+config.getIndex_max_sizeInBytes()
+                             +" but index was: "+indexSizeBytes;
+            log.error(message);
+            System.err.println(message);
+            throw new IllegalStateException(message);
         }
 
-        //Big enough? stop with success
-        if (indexSizeBytes > config.getIndex_target_limit()*config.getIndex_max_sizeInBytes()){
-            float percentage= (1f*indexSizeBytes)/(1f*config.getIndex_max_sizeInBytes())*100f;        
-            log.info("Building of shardId="+config.getShardId()+" completed. Index limit percentage:"+percentage);
-            log.info("Index status:"+status);
-            System.out.println("Building of shardId="+config.getShardId()+" completed. Index limit percentage:"+percentage);  
-            System.out.println("Index status:"+status);
-            System.exit(0);            
-        }
-        return true;
+        //Big enough?
+        return (indexSizeBytes > config.getIndex_target_limit()*config.getIndex_max_sizeInBytes());
     }
 
 
     private void startNewIndexWorker() {
         String nextARC = archonClient.nextARC(""+config.getShardId());
         if ("".equals(nextARC)){
-            log.error("no more arc-files to index. Stopping index process. It can be continued when there are new arc-files");
-            System.out.println("no more arc-files to index. Stopping index process. It can be continued when there are new arc-files");
+            String message = "No more arc-files to index. Stopping index process. " +
+                                  "It can be continued when there are new arc-files";
+            log.warn(message);
+            System.out.println(message);
             System.exit(1);
         }
 
-        IndexWorker newWorker = new IndexWorker(nextARC,config.getSolr_url(),config.getWorker_maxMemInMb(),config.getWorker_jar_file());
+        IndexWorker newWorker = new IndexWorker(
+                nextARC,config.getSolr_url(),config.getWorker_maxMemInMb(),config.getWorker_jar_file());
         workers.add(newWorker);
         new Thread(newWorker).start();
     }
@@ -144,13 +163,13 @@ public class IndexBuilder {
                 //do nothing
             }
             if (workerStatus==RUN_STATUS.COMPLETED){
-                log.info("Worker completed success:"+worker.getArcFile());
+                log.info("Worker completed success: "+worker.getArcFile());
                 finishedWorkers.add(worker);
                 archonClient.setARCState(worker.getArcFile(), ArchonConnector.ARC_STATE.COMPLETED);
 
             }
             if (workerStatus==RUN_STATUS.RUN_ERROR){
-                log.info("Worker FAIL:"+worker.getArcFile());
+                log.info("Worker FAIL: "+worker.getArcFile());
                 finishedWorkers.add(worker);
                 archonClient.setARCState(worker.getArcFile(), ArchonConnector.ARC_STATE.REJECTED);
             }                                             
