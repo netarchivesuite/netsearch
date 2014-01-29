@@ -5,7 +5,7 @@
   <parent>
     <groupId>dk.statsbiblioteket.netarchivesuite</groupId>
     <artifactId>search</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.6</version>
     <relativePath>../</relativePath>
   </parent>
 
@@ -90,32 +90,54 @@
 
 
   <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
+  <plugins>
+  
+   
+   
+  <plugin>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <executions>
+      <execution>
+        <id>unpack-dependencies</id>
+        <phase>prepare-package</phase>
+        <goals>
+          <goal>unpack-dependencies</goal>
+        </goals>
         <configuration>
-          <archive>
-            <manifest>
-              <mainClass>dk.statsbiblioteket.netarchivesuite.arctika.Arctika</mainClass>
-            </manifest>
-            <manifestEntries>
-              <mode>development</mode>
-              <url>${project.url}</url>
-            </manifestEntries>
-          </archive>
+        <excludes>**/*.RSA,**/*.DSA,**/*.SF</excludes>
+          <outputDirectory>${project.build.directory}/classes</outputDirectory>
         </configuration>
-      </plugin>
-    </plugins>
-    <resources>
-      <!-- This is Open Source; just deliver the source along with the binaries -->
-      <resource>
-        <directory>${basedir}/src/main/java</directory>
-        <includes>
-          <include>**/*.java</include>
-        </includes>
-      </resource>
-    </resources>
+      </execution>
+
+    </executions>
+  </plugin>
+
+
+  <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-jar-plugin</artifactId>
+    <executions>
+      <execution>
+        <id>unpack-dependencies</id>
+        <phase>package</phase>
+      </execution>
+    </executions>
+    <configuration>
+     
+      <archive>
+        <manifest>
+          <addClasspath>true</addClasspath>
+          <classpathPrefix>lib/</classpathPrefix>
+          <mainClass>dk.statsbiblioteket.netarchivesuite.arctika.builder.IndexBuilder</mainClass>
+        </manifest>
+      </archive>
+    </configuration>
+  </plugin>
+      
+ </plugins>
+
+
+
   </build>
 
 
