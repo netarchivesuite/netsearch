@@ -5,10 +5,14 @@ import org.slf4j.LoggerFactory;
 
 import dk.statsbiblioteket.util.console.ProcessRunner;
 
-public class IndexWorker implements Runnable{
+import java.util.concurrent.Callable;
 
-    private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);    
-    public static enum RUN_STATUS {NEW,RUNNING, COMPLETED,RUN_ERROR} 
+public class IndexWorker implements Callable<IndexWorker> {
+    private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);
+    // TODO: Make this a property
+    public static final long WORKER_TIMEOUT = 60 * 60 * 1000L;
+
+    public static enum RUN_STATUS {NEW,RUNNING, COMPLETED,RUN_ERROR}
     private String arcFile;
     private String workerJarFile;
     private int maxMemInMb;
@@ -57,9 +61,10 @@ public class IndexWorker implements Runnable{
         this.status = status;
     }
    
-    public void run() {
-        status =RUN_STATUS.RUNNING;
-        log.info("Started indexing:"+arcFile);       
+    @Override
+    public IndexWorker call() throws Exception {
+        status = RUN_STATUS.RUNNING;
+        log.info("Started indexing: "+arcFile);
         
         try{                   
            //Example of final command: 
@@ -72,29 +77,28 @@ public class IndexWorker implements Runnable{
                  "-s",
                  solrUrl,
                  arcFile);
-         runner.setTimeout(60*60*1000l); // 1 hour
+         runner.setTimeout(WORKER_TIMEOUT); // 1 hour
          
          runner.run(); //this will wait until native call returned         
          int returnCode = runner.getReturnCode();
 
          if (returnCode == 0){
              status= RUN_STATUS.COMPLETED;    
-             log.info("Completed indexing:"+arcFile);     
+             log.info("Completed indexing: "+arcFile);
          }
          else{                          
-             log.info("Error processing:"+arcFile);
-             log.info("return code not expected:"+returnCode);
-             log.info("error output:"+runner.getProcessErrorAsString());                        
+             log.info("Error processing: "+arcFile);
+             log.info("return code not expected: "+returnCode);
+             log.info("Error output: "+runner.getProcessErrorAsString());
              status = RUN_STATUS.RUN_ERROR;             
          }
          
         }
         catch(Exception e){
-            log.info("Error processing:"+arcFile,e);           
+            log.info("Error processing: "+arcFile,e);
             status = RUN_STATUS.RUN_ERROR;
-            return;
         }
-       
+        return this;
     }
     
     // only arcFile attribute used for hashCode and equal 
