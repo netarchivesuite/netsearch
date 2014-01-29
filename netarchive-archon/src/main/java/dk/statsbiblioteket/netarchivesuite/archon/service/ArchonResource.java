@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.statsbiblioteket.netarchivesuite.archon.ArchonPropertiesLoader;
 import dk.statsbiblioteket.netarchivesuite.archon.persistence.H2Storage;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.ArchonServiceException;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.InternalServiceException;
@@ -156,6 +157,26 @@ public class ArchonResource {
            throw handleServiceExceptions(e);
        }
     }
+    
+    /*
+     * This method is not called from frontend. It creates a backup of
+     * the database.  dbBackupfolder must defined in the property-file
+     *   
+     */
+    @POST
+    @Path("system/backup_database")
+    public void backupDatabase() throws ArchonServiceException  {
+       // MonitorCache.registerNewRestMethodCall("backupDatabase");
+        String file = ArchonPropertiesLoader.DBBACKUPFOLDER+"/"+System.currentTimeMillis()+".zip";           
+        log.info("Making DB backup to:"+ file);
+        try {
+            H2Storage.getInstance().backupDatabase(file);   
+        } catch (Exception e) {
+            throw handleServiceExceptions(e);
+        }
+        log.info("DB backup succeeded:"+ file);
+    }
+    
 
     //This avoids have each method trying to catch 2+ exceptions with a lot of waste of code-lines
     private ArchonServiceException handleServiceExceptions(Exception e){
