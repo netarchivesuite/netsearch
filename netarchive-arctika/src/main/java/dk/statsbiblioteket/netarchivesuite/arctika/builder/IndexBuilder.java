@@ -60,7 +60,15 @@ public class IndexBuilder {
         archonClient =  new ArchonConnectorClient(config.getArchon_url());
         executor = new ThreadPoolExecutor(
                 config.getMax_concurrent_workers(), config.getMax_concurrent_workers(), 10, TimeUnit.MINUTES,
-                new ArrayBlockingQueue<Runnable>(config.getMax_concurrent_workers()));
+                new ArrayBlockingQueue<Runnable>(config.getMax_concurrent_workers()),
+                new ThreadFactory() {
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        Thread t = new Thread(r);
+                        t.setDaemon(true);
+                        return t;
+                    }
+                });
         completor = new ExecutorCompletionService<IndexWorker>(executor);
     }
 
