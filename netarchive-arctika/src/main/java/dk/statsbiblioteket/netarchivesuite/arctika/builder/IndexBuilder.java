@@ -81,13 +81,13 @@ public class IndexBuilder {
         archonClient.clearIndexing(""+config.getShardId());
 
         //Check index has target size before we start indexing further
-        if (isOptimizedLimitReached()) {
+        if (isIndexingFinished()) {
             log.info("Exiting without any updates as index size has been reached for shardID " + config.getShardId());
             return;
         }
 
         out: do {
-            while (!isBuildLimitReached()) {
+            while (!isOptimizeLimitReached()) {
                 // Start up new workers until pool is full
                 while (executor.getActiveCount() < config.getMax_concurrent_workers() && startNewIndexWorker());
                 if (executor.getActiveCount() == 0 && activeWorkers == 0) { // Ran out of ARCs
@@ -96,7 +96,7 @@ public class IndexBuilder {
                 }
                 Thread.sleep(WAIT_WORKER); //Sleep for 10 secs before checking workers
             }
-        } while (!isOptimizedLimitReached());
+        } while (!isIndexingFinished());
 
         long indexSizeBytes = status.getIndexSizeBytes();
         float percentage= (1f*indexSizeBytes)/(1f*config.getIndex_max_sizeInBytes())*100f;
@@ -104,12 +104,18 @@ public class IndexBuilder {
         log.info("Index status: "+status);
     }
 
-    private boolean isBuildLimitReached() throws ExecutionException, InterruptedException, IOException, SolrServerException {
-        return solrClient.getStatus().getIndexSizeBytes() >
-               config.getIndex_max_sizeInBytes()*config.getOptimize_limit();
+    private boolean isOptimizeLimitReached() throws ExecutionException, InterruptedException, IOException, SolrServerException {
+        long indexSizeBytes = solrClient.getStatus().getIndexSizeBytes();
+        boolean limitReached= indexSizeBytes > config.getIndex_max_sizeInBytes()*config.getOptimize_limit();
+        
+        if (limitReached){
+            log.info("index size over optimize limit, size:"+indexSizeBytes);
+        }
+        
+        return limitReached;
     }
 
-    private boolean isOptimizedLimitReached() throws ExecutionException, InterruptedException, IOException, SolrServerException {
+    private boolean isIndexingFinished() throws ExecutionException, InterruptedException, IOException, SolrServerException {
         popAll();
         long start=System.currentTimeMillis();
         if (solrClient.getStatus().isOptimized()) {
