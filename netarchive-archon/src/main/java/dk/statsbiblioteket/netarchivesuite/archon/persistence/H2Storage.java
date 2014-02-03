@@ -393,6 +393,8 @@ public class H2Storage {
 
     //synchronized since we are writing.
     public synchronized void setARCState(String arcID, ArchonConnector.ARC_STATE arcState) throws Exception{
+        
+        log.info("setARCState: " + arcID +" new state:"+arcState);
         PreparedStatement stmt = null;
         try {                   
             boolean aRCIDExist = aRCIDExist(arcID);
