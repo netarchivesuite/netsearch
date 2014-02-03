@@ -114,9 +114,11 @@ public class IndexBuilder {
         double percentage= (1d*indexSizeBytes)/(1d*config.getIndex_max_sizeInBytes())*100d;
         log.info("Building of shardId="+config.getShardId()+" completed. Index limit percentage: "+percentage);
         
-        log.info(String.format("Index status: %s. Processed ARCs: %d (%d failed) with average time %s seconds/ARC. " +
+        log.info(String.format("Index status: %s. Processed ARCs: %d (%d failed) with average processing time " +
+                               "%s seconds/ARC and average clock time %s seconds/ARC. " +
                                "Optimizations: %d with average time %s seconds/optimize. Total time spend: %s",
-                               status, jobProfiler.getBeats(), failedWorkers, toFinalTime(jobProfiler, false),
+                               status, jobProfiler.getBeats(), failedWorkers, IndexWorker.timeStats(),
+                               toFinalTime(jobProfiler, false),
                                optimizeProfiler.getBeats(), toFinalTime(optimizeProfiler, false),
                                fullProfiler.getSpendTime()));
     }

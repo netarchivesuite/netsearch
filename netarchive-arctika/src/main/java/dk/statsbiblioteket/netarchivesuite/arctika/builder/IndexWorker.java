@@ -6,11 +6,20 @@ import org.slf4j.LoggerFactory;
 import dk.statsbiblioteket.util.console.ProcessRunner;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class IndexWorker implements Callable<IndexWorker> {
     private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);
     // TODO: Make this a property
     public static final long WORKER_TIMEOUT = 60 * 60 * 1000L;
+
+    // A bit ugly with globals...
+    public static final AtomicInteger workerCount = new AtomicInteger(0);
+    public static final AtomicLong workerTime = new AtomicLong(0);
+    public static String timeStats() {
+        return workerCount.get() == 0 ? "N/A" : String.format("%.1f", workerTime.get() / workerCount.get() / 1000.0);
+    }
 
     public static enum RUN_STATUS {NEW,RUNNING, COMPLETED,RUN_ERROR}
     private String arcFile;
@@ -64,7 +73,8 @@ public class IndexWorker implements Callable<IndexWorker> {
     @Override
     public IndexWorker call() throws Exception {
         status = RUN_STATUS.RUNNING;
-        log.info("Started indexing: "+arcFile);
+        final long startTime = System.currentTimeMillis();
+        log.info("Started indexing: "+arcFile + " with worker #" + workerCount.incrementAndGet());
         
         try{                   
            //Example of final command: 
@@ -93,11 +103,11 @@ public class IndexWorker implements Callable<IndexWorker> {
              status = RUN_STATUS.RUN_ERROR;             
          }
          
-        }
-        catch(Exception e){
+        } catch(Exception e){
             log.info("Error processing: "+arcFile,e);
             status = RUN_STATUS.RUN_ERROR;
         }
+        workerTime.addAndGet(System.currentTimeMillis() - startTime);
         return this;
     }
     
