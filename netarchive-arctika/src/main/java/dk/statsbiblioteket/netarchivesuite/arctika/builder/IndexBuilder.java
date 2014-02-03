@@ -151,6 +151,7 @@ public class IndexBuilder {
                 sleeptime = sleeptime >= WAIT_OPTIMIZE >> 1 ? WAIT_OPTIMIZE : sleeptime << 1;
             }
             optimizeProfiler.beat();
+            optimizeProfiler.pause();
             SolrCoreStatus status = solrClient.getStatus();
             log.info(String.format("Optimize %d complete. Size of index after optimize: %s. Optimize took %d ms",
                                    optimizeProfiler.getBeats(), status.getIndexSizeHumanReadable(),
