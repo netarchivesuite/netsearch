@@ -114,12 +114,12 @@ public class IndexBuilder {
         
         log.info(String.format("Index status: %s. Processed ARCs: %d (%d failed) with average time %s seconds/ARC. " +
                                "Optimizations: %d with average time %s seconds/optimize. Total time spend: %s",
-                               status, jobProfiler.getBeats(), failedWorkers, toFinalTime(jobProfiler),
-                               optimizeProfiler.getBeats(), toFinalTime(optimizeProfiler),
+                               status, jobProfiler.getBeats(), failedWorkers, toFinalTime(jobProfiler, false),
+                               optimizeProfiler.getBeats(), toFinalTime(optimizeProfiler, false),
                                fullProfiler.getSpendTime()));
     }
-    private String toFinalTime(Profiler profiler) {
-        return profiler.getBeats() == 0 ? "N/A" : Integer.toString((int) (1/profiler.getBps()));
+    private String toFinalTime(Profiler profiler, boolean useCurrentSpeed) {
+        return profiler.getBeats() == 0 ? "N/A" : String.format("%.1f", 1 / profiler.getBps());
     }
 
     private boolean isOptimizeLimitReached() throws ExecutionException, InterruptedException, IOException, SolrServerException {
@@ -204,7 +204,7 @@ public class IndexBuilder {
             IndexWorker worker = completor.poll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS).get();
             jobProfiler.beat();
             String progress = String.format("Finished ARCs: %d. Current speed: %s seconds/ARC",
-                                            jobProfiler.getBeats(), 1/jobProfiler.getBps(true));
+                                            jobProfiler.getBeats(), toFinalTime(jobProfiler, true));
             activeWorkers--;
             RUN_STATUS workerStatus = worker.getStatus();
             if (workerStatus==RUN_STATUS.COMPLETED){
