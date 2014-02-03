@@ -97,6 +97,8 @@ public class IndexBuilder {
 
         out: do {
             while (!isOptimizeLimitReached()) {
+                // Cleanup finished workers
+                popFinishedWorkers();
                 // Start up new workers until pool is full
                 while (executor.getActiveCount() < config.getMax_concurrent_workers() && startNewIndexWorker());
                 if (executor.getActiveCount() == 0 && activeWorkers == 0) { // Ran out of ARCs
