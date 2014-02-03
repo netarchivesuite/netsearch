@@ -22,8 +22,8 @@ public class IndexBuilderConfig {
     private long index_max_size = -1; //This will be combined with the unit below
     private long index_max_size_unit = 0; //will point to gB or mB
     
-    private float optimize_limit = 0.96f; // 96% default value
-    private float index_target_limit = 0.95f; // 95% default value
+    private double optimize_limit = 0.96d; // 96% default value
+    private double index_target_limit = 0.95d; // 95% default value
     private String archon_url;
     private String solr_url;
    
@@ -67,19 +67,19 @@ public class IndexBuilderConfig {
         return index_max_size_unit*index_max_size;        
     }
         
-    public float getOptimize_limit() {
+    public double getOptimize_limit() {
         return optimize_limit;
     }
 
-    public void setOptimize_limit(float optimize_limit) {
+    public void setOptimize_limit(double optimize_limit) {
         this.optimize_limit = optimize_limit;
     }
 
-    public float getIndex_target_limit() {
+    public double getIndex_target_limit() {
         return index_target_limit;
     }
 
-    public void setIndex_target_limit(float index_target_limit) {
+    public void setIndex_target_limit(double index_target_limit) {
         this.index_target_limit = index_target_limit;
     }
 
@@ -132,8 +132,8 @@ public class IndexBuilderConfig {
         } else throw new IllegalArgumentException(
                 "Unknown arctika.index_max_size. MB or GB not defined: "+index_max_size_str);
         
-        optimize_limit = Float.parseFloat(serviceProperties.getProperty("arctika.optimize_limit"));
-        index_target_limit = Float.parseFloat(serviceProperties.getProperty("arctika.index_target_limit"));
+        optimize_limit = Double.parseDouble(serviceProperties.getProperty("arctika.optimize_limit"));
+        index_target_limit = Double.parseDouble(serviceProperties.getProperty("arctika.index_target_limit"));
         shardId = Integer.parseInt(serviceProperties.getProperty("arctika.shardId"));
         archon_url = serviceProperties.getProperty("arctika.archon_url");
         solr_url = serviceProperties.getProperty("arctika.solr_url");

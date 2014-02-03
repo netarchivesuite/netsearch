@@ -81,8 +81,7 @@
   <plugins>
   
    
-   
-  <plugin>
+<plugin>
     <artifactId>maven-dependency-plugin</artifactId>
     <executions>
       <execution>
@@ -92,7 +91,6 @@
           <goal>unpack-dependencies</goal>
         </goals>
         <configuration>
-        <excludes>**/*.RSA,**/*.DSA,**/*.SF</excludes>
           <outputDirectory>${project.build.directory}/classes</outputDirectory>
         </configuration>
       </execution>
@@ -111,7 +109,6 @@
       </execution>
     </executions>
     <configuration>
-     
       <archive>
         <manifest>
           <addClasspath>true</addClasspath>
@@ -121,7 +118,7 @@
       </archive>
     </configuration>
   </plugin>
-      
+  
  </plugins>
 
 

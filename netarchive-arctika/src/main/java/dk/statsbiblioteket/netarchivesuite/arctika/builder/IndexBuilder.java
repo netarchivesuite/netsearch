@@ -98,9 +98,11 @@ public class IndexBuilder {
             }
         } while (!isIndexingFinished());
 
+        status = solrClient.getStatus();
         long indexSizeBytes = status.getIndexSizeBytes();
-        float percentage= (1f*indexSizeBytes)/(1f*config.getIndex_max_sizeInBytes())*100f;
+        double percentage= (1d*indexSizeBytes)/(1d*config.getIndex_max_sizeInBytes())*100d;
         log.info("Building of shardId="+config.getShardId()+" completed. Index limit percentage: "+percentage);
+        
         log.info("Index status: "+status);
     }
 
