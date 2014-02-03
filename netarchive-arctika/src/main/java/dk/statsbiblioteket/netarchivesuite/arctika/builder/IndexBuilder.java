@@ -141,6 +141,7 @@ public class IndexBuilder {
         } else {
             //Do the optimize
             log.info("Optimizing, size of index before optimize: " + solrClient.getStatus().getIndexSizeHumanReadable());
+            jobProfiler.pause();
             optimizeProfiler.unpause();
             solrClient.optimize();
 
@@ -152,6 +153,7 @@ public class IndexBuilder {
             }
             optimizeProfiler.beat();
             optimizeProfiler.pause();
+            jobProfiler.unpause();
             SolrCoreStatus status = solrClient.getStatus();
             log.info(String.format("Optimize %d complete. Size of index after optimize: %s. Optimize took %d ms",
                                    optimizeProfiler.getBeats(), status.getIndexSizeHumanReadable(),
