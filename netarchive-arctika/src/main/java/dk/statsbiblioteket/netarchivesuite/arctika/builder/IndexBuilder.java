@@ -119,7 +119,7 @@ public class IndexBuilder {
                                fullProfiler.getSpendTime()));
     }
     private String toFinalTime(Profiler profiler, boolean useCurrentSpeed) {
-        return profiler.getBeats() == 0 ? "N/A" : String.format("%.1f", 1 / profiler.getBps());
+        return profiler.getBeats() == 0 ? "N/A" : String.format("%.1f", 1 / profiler.getBps(useCurrentSpeed));
     }
 
     private boolean isOptimizeLimitReached() throws ExecutionException, InterruptedException, IOException, SolrServerException {
