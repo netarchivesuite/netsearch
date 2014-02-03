@@ -3,6 +3,7 @@ package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 import java.io.IOException;
 import java.util.concurrent.*;
 
+import dk.statsbiblioteket.util.Profiler;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,14 @@ public class IndexBuilder {
     private final IndexBuilderConfig config;
     private final ArctikaSolrJClient solrClient;
     private final ArchonConnectorClient archonClient;
+
+    private final Profiler fullProfiler = new Profiler();
+    private final Profiler optimizeProfiler = new Profiler(100); // Unrealistically high to ensure full stats
+    {
+        optimizeProfiler.pause();
+    }
+    private final Profiler jobProfiler = new Profiler(9999, 10); // 9999 as expected ARCS is unknown (unusable ETA)
+    private int failedWorkers = 0;
 
     public static void main (String[] args) throws Exception {
         String propertyFile = System.getProperty("ArtikaPropertyFile");
@@ -103,7 +112,14 @@ public class IndexBuilder {
         double percentage= (1d*indexSizeBytes)/(1d*config.getIndex_max_sizeInBytes())*100d;
         log.info("Building of shardId="+config.getShardId()+" completed. Index limit percentage: "+percentage);
         
-        log.info("Index status: "+status);
+        log.info(String.format("Index status: %s. Processed ARCs: %d (%d failed) with average time %s seconds/ARC. " +
+                               "Optimizations: %d with average time %s seconds/optimize. Total time spend: %s",
+                               status, jobProfiler.getBeats(), failedWorkers, toFinalTime(jobProfiler),
+                               optimizeProfiler.getBeats(), toFinalTime(optimizeProfiler),
+                               fullProfiler.getSpendTime()));
+    }
+    private String toFinalTime(Profiler profiler) {
+        return profiler.getBeats() == 0 ? "N/A" : Integer.toString((int) (1/profiler.getBps()));
     }
 
     private boolean isOptimizeLimitReached() throws ExecutionException, InterruptedException, IOException, SolrServerException {
@@ -111,7 +127,7 @@ public class IndexBuilder {
         boolean limitReached= indexSizeBytes > config.getIndex_max_sizeInBytes()*config.getOptimize_limit();
         
         if (limitReached){
-            log.info("index size over optimize limit, size:"+indexSizeBytes);
+            log.info("index size over optimize limit, size: "+indexSizeBytes);
         }
         
         return limitReached;
@@ -124,16 +140,21 @@ public class IndexBuilder {
             log.debug("isOptimizedLimitReached: Index already optimized");
         } else {
             //Do the optimize
-            log.info("Optimizing, size of index before optimize: "+solrClient.getStatus().getIndexSizeHumanReadable());
+            log.info("Optimizing, size of index before optimize: " + solrClient.getStatus().getIndexSizeHumanReadable());
+            optimizeProfiler.unpause();
             solrClient.optimize();
 
+            long sleeptime = 500;
             while (!solrClient.getStatus().isOptimized()){
-                log.debug("Index not optimized yet. Waiting " + WAIT_OPTIMIZE + " ms before next check");
-                Thread.sleep(WAIT_OPTIMIZE); //Sleep 60 secs between checks
+                log.debug("Index not optimized yet. Waiting " + sleeptime + " ms before next check");
+                Thread.sleep(sleeptime);
+                sleeptime = sleeptime >= WAIT_OPTIMIZE >> 1 ? WAIT_OPTIMIZE : sleeptime << 1;
             }
+            optimizeProfiler.beat();
             SolrCoreStatus status = solrClient.getStatus();
-            log.info("Optimize complete. Size of index after optimize: "+status.getIndexSizeHumanReadable()
-                     + ". Optimize took "+(System.currentTimeMillis()-start) + " ms");
+            log.info(String.format("Optimize %d complete. Size of index after optimize: %s. Optimize took %d ms",
+                                   optimizeProfiler.getBeats(), status.getIndexSizeHumanReadable(),
+                                   System.currentTimeMillis()-start));
         }
         SolrCoreStatus status = solrClient.getStatus();
         long indexSizeBytes = status.getIndexSizeBytes();
@@ -180,15 +201,19 @@ public class IndexBuilder {
         int popped = 0;
         while (activeWorkers > executor.getActiveCount()) {
             IndexWorker worker = completor.poll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS).get();
+            jobProfiler.beat();
+            String progress = String.format("Finished ARCs: %d. Current speed: %s seconds/ARC",
+                                            jobProfiler.getBeats(), 1/jobProfiler.getBps(true));
             activeWorkers--;
             RUN_STATUS workerStatus = worker.getStatus();
             if (workerStatus==RUN_STATUS.COMPLETED){
-                log.info("Worker completed success: " + worker.getArcFile());
+                log.info("Worker completed success: " + worker.getArcFile() + " " + progress);
                 archonClient.setARCState(worker.getArcFile(), ArchonConnector.ARC_STATE.COMPLETED);
 
             }
             if (workerStatus==RUN_STATUS.RUN_ERROR){
-                log.info("Worker FAIL: " + worker.getArcFile());
+                log.info("Worker FAIL: " + worker.getArcFile() + " " + progress);
+                failedWorkers++;
                 archonClient.setARCState(worker.getArcFile(), ArchonConnector.ARC_STATE.REJECTED);
             }
             popped++;
