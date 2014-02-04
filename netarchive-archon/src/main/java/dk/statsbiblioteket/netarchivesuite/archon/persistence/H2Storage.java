@@ -44,12 +44,14 @@ public class H2Storage {
     // Table and column names
     private static final String ARCHON_TABLE = "ARCHON";
 
-    private static final String FILENAME_COLUMN = "FILENAME";
+    private static final String ARC_FILE_ID_COLUMN = "ARC_FILE_ID";
     private static final String CREATED_TIME_COLUMN = "CREATED_TIME";
     private static final String PRIORITY_COLUMN = "PRIORITY";
     private static final String ARC_STATE_COLUMN = "ARC_STATE";
     private static final String SHARD_ID_COLUMN = "SHARD_ID";
-    private static final String MODIFIED_TIME_COLUMN = "MODIFIED_TIME";
+    private static final String MODIFIED_TIME_COLUMN = "MODIFIED_TIME";    
+    private static final String FOLDER_COLUMN = "FOLDER";
+
 
     //private static final String ID_COLUMN = "ID"; // ID used for all tables
 
@@ -58,45 +60,55 @@ public class H2Storage {
 
     //select FILENAME from ARCHON where status ='NEW' AND ( SHARD_ID = 10 OR SHARD_ID is null) order by shard_ID desc, priority desc, filename asc limit  1
     private final static String selectNextArcQuery =
-            "SELECT "+FILENAME_COLUMN +" FROM " + ARCHON_TABLE            
-            +" WHERE "+ ARC_STATE_COLUMN+"  = 'NEW'"
-            +"  AND ("+SHARD_ID_COLUMN+" = ?  OR "+ SHARD_ID_COLUMN +" IS NULL )"
-            +" ORDER BY "
-            +" "+SHARD_ID_COLUMN +" DESC,"
-            +" "+PRIORITY_COLUMN +" DESC,"
-            +" "+FILENAME_COLUMN +" ASC"
-            +" LIMIT 1";
+            "SELECT *"+            
+                    " FROM " + ARCHON_TABLE            
+                    +" WHERE "+ ARC_STATE_COLUMN+"  = 'NEW'"
+                    +"  AND ("+SHARD_ID_COLUMN+" = ?  OR "+ SHARD_ID_COLUMN +" IS NULL )"
+                    +" ORDER BY "
+                    +" "+SHARD_ID_COLUMN +" DESC,"
+                    +" "+PRIORITY_COLUMN +" DESC,"
+                    +" "+ARC_FILE_ID_COLUMN +" ASC"
+                    +" LIMIT 1";
 
 
     private final static String selectNewest1000Query =
             "SELECT * FROM " + ARCHON_TABLE            
             +" ORDER BY "+CREATED_TIME_COLUMN +" DESC"
             +" LIMIT 1000";
-    
+
     private final static String selectAllRunningQuery =
             "SELECT * FROM " + ARCHON_TABLE         
             +" WHERE "+ ARC_STATE_COLUMN+"  = 'RUNNING'"
             +" ORDER BY "+CREATED_TIME_COLUMN +" DESC";
-            
-    
+
+
 
     private final static String addArcStatement = 
             "INSERT INTO " +ARCHON_TABLE
             + " ("
-            + FILENAME_COLUMN + ","
+            + ARC_FILE_ID_COLUMN + ","
+            + FOLDER_COLUMN + ","
             + CREATED_TIME_COLUMN + "," 
             + PRIORITY_COLUMN + ","
             + ARC_STATE_COLUMN  + ","
             + MODIFIED_TIME_COLUMN  + ","
-            + ") VALUES (?,?,?,?,?)"; // #|?|=5
+            + ") VALUES (?,?,?,?,?,?)"; // #|?|=6
 
     private final static String setArcStateStatement = "UPDATE "+ ARCHON_TABLE 
             +" SET "+ARC_STATE_COLUMN+ " = ? ,"
-             + MODIFIED_TIME_COLUMN + " = ? " 
+            + MODIFIED_TIME_COLUMN + " = ? " 
             +" WHERE "
-            +FILENAME_COLUMN+" = ?";
+            +ARC_FILE_ID_COLUMN+" = ?";
 
 
+    private final static String changeArcFolderStatement = "UPDATE "+ ARCHON_TABLE 
+            +" SET "+FOLDER_COLUMN+ " = ? ,"
+            + MODIFIED_TIME_COLUMN + " = ? " 
+            +" WHERE "
+            +ARC_FILE_ID_COLUMN+" = ?";
+
+
+    
     private final static String setShardStateStatement = "UPDATE "+ ARCHON_TABLE 
             +" SET "+ARC_STATE_COLUMN+ " = ? , " 
             + PRIORITY_COLUMN + " = ? ,"
@@ -111,7 +123,7 @@ public class H2Storage {
             + PRIORITY_COLUMN + " = ? ,"
             + MODIFIED_TIME_COLUMN + " = ? " 
             +" WHERE "
-            +FILENAME_COLUMN+" = ?";
+            +ARC_FILE_ID_COLUMN+" = ?";
 
     //SELECT DISTINCT (SHARD_ID) from ARCHON WHERE SHARD_ID IS NOT NULL
     private final static String selectShardIDsQuery =
@@ -119,19 +131,19 @@ public class H2Storage {
 
 
     private final static String getArcsByShardIDQuery =
-            "SELECT "+FILENAME_COLUMN+" FROM " + ARCHON_TABLE +" WHERE "+SHARD_ID_COLUMN +" = ?" ;            
+            "SELECT "+ARC_FILE_ID_COLUMN+" FROM " + ARCHON_TABLE +" WHERE "+SHARD_ID_COLUMN +" = ?" ;            
 
 
     private final static String getArcByIDQuery =
-            "SELECT * FROM " + ARCHON_TABLE +" WHERE "+FILENAME_COLUMN +" = ?" ;            
+            "SELECT * FROM " + ARCHON_TABLE +" WHERE "+ARC_FILE_ID_COLUMN +" = ?" ;            
 
     private final static String deleteArcByIDQuery =
-            "DELETE FROM " + ARCHON_TABLE +" WHERE "+FILENAME_COLUMN +" = ?" ;   
+            "DELETE FROM " + ARCHON_TABLE +" WHERE "+ARC_FILE_ID_COLUMN +" = ?" ;   
 
 
     private final static String clearIndexingStatement =  "UPDATE "+ ARCHON_TABLE 
             +" SET "+ARC_STATE_COLUMN+ " = ?  ,"
-                   + SHARD_ID_COLUMN + " = ? "
+            + SHARD_ID_COLUMN + " = ? "
             +" WHERE "
             +SHARD_ID_COLUMN+" = ?"
             +" AND "+ARC_STATE_COLUMN+" = ?";
@@ -154,7 +166,7 @@ public class H2Storage {
     }
 
 
-    
+
     public int nextShardId() throws Exception{
         PreparedStatement stmt = null;
         try {
@@ -178,34 +190,90 @@ public class H2Storage {
         }
     }
 
-    
-    //synchronized since we are writing.
-    public synchronized void addARC(String arcID) throws Exception {
 
-   
-        log.info("Persisting new arc-file: " + arcID);
-         boolean aRCIDExist = aRCIDExist(arcID);
+    //synchronized since we are writing.
+    public synchronized void addARC(String arcPath) throws Exception {
+
+
+        log.info("Persisting new arc-file: " + arcPath);
+        String[] splitPath = splitPath(arcPath); 
+        String folder = splitPath[0];
+        String arcId = splitPath[1];
+
+        boolean aRCIDExist = aRCIDExist(arcId);
         if (aRCIDExist){
-           throw new IllegalArgumentException("ArcID already exist:"+arcID);            
+            throw new IllegalArgumentException("ArcID already exist:"+arcId);            
         }
-        
+
         PreparedStatement stmt = null;
         try {					
             stmt = singleDBConnection.prepareStatement(addArcStatement);
 
+
             long now = System.currentTimeMillis();
-            
-            stmt.setString(1, arcID);
-            stmt.setLong(2, now);
-            stmt.setInt(3,1);  //priority 1
-            stmt.setString(4,"NEW");					
-            stmt.setLong(5,now);
+
+            stmt.setString(1, arcId);
+            stmt.setString(2, folder);
+            stmt.setLong(3, now);
+            stmt.setInt(4,1);  //priority 1
+            stmt.setString(5,"NEW");					
+            stmt.setLong(6,now);
             //Shardid is not set. Will be null
             stmt.execute();
 
             singleDBConnection.commit(); 
         } catch (Exception e) {
             log.error("SQL Exception in addFile:" + e.getMessage());								
+            throw e;
+        } finally {
+            closeStatement(stmt);
+        }
+    }
+
+
+    //synchronized since we are writing.
+    public synchronized void addOrUpdateARC(String arcPath) throws Exception {
+
+
+        log.info("AddOrUpdateARC arc-file: " + arcPath);
+        String[] splitPath = splitPath(arcPath); 
+        String folder = splitPath[0];
+        String arcId = splitPath[1];
+
+        boolean aRCIDExist = aRCIDExist(arcId);
+
+        PreparedStatement stmt = null;
+        try {
+            if (aRCIDExist){ //update
+                log.info("Updating folder for arc-file: " + arcPath);
+                stmt = singleDBConnection.prepareStatement(changeArcFolderStatement);
+                stmt.setString(1, folder);
+                stmt.setLong(2, System.currentTimeMillis());
+                stmt.setString(3, arcId);
+                int updated = stmt.executeUpdate();
+                if (updated == 0){ //arcfile not found
+                    throw new IllegalArgumentException("Arcfile not found with id:"+arcId);
+                }                
+                
+            }
+            else{ //create new
+                log.info("Persisting new arc-file: " + arcPath);
+                stmt = singleDBConnection.prepareStatement(addArcStatement);
+
+                long now = System.currentTimeMillis();
+
+                stmt.setString(1, arcId);
+                stmt.setString(2, folder);
+                stmt.setLong(3, now);
+                stmt.setInt(4,1);  //priority 1
+                stmt.setString(5,"NEW");                    
+                stmt.setLong(6,now);
+                //Shardid is not set. Will be null
+                stmt.execute();
+            }
+            singleDBConnection.commit(); 
+        } catch (Exception e) {
+            log.error("SQL Exception in addFile:" + e.getMessage());                                
             throw e;
         } finally {
             closeStatement(stmt);
@@ -248,11 +316,13 @@ public class H2Storage {
                 return "";
             }
 
-            String arcID = rs.getString(1);                       
+            String arcID = rs.getString(ARC_FILE_ID_COLUMN);
+            String folder = rs.getString(FOLDER_COLUMN);
 
+            String fullPath = folder+arcID;
             setARCProperties(arcID, shardID, ArchonConnector.ARC_STATE.RUNNING, 5);            
-            log.info("Returning next arc:"+arcID);                                                 
-            return arcID;
+            log.info("Returning next arc:"+fullPath);                                                 
+            return fullPath;
 
 
         } catch (SQLException e) {
@@ -273,7 +343,7 @@ public class H2Storage {
             ResultSet rs = stmt.executeQuery();
 
             while(rs.next()){
-                String arc= rs.getString(FILENAME_COLUMN);
+                String arc= rs.getString(ARC_FILE_ID_COLUMN);
                 arcs.add(arc);                              
             }
             return arcs;
@@ -286,8 +356,10 @@ public class H2Storage {
 
 
     }
-   
+
+    //This is the arc-file-name only
     public ArcVO getArcByID(String arcID) throws Exception{
+
         PreparedStatement stmt = null;
         try {
             stmt = singleDBConnection.prepareStatement(getArcByIDQuery);
@@ -299,12 +371,12 @@ public class H2Storage {
             }
 
             ArcVO arc = new ArcVO();
-            arc.setFileName(rs.getString(FILENAME_COLUMN));
+            arc.setFileName(rs.getString(FOLDER_COLUMN)+rs.getString(ARC_FILE_ID_COLUMN));           
             arc.setCreatedTime(rs.getLong(CREATED_TIME_COLUMN));            
             arc.setArcState(rs.getString(ARC_STATE_COLUMN)); 
             arc.setPriority(rs.getInt(PRIORITY_COLUMN));            
             arc.setModifiedTime(rs.getLong(MODIFIED_TIME_COLUMN));
-            
+
             //Can be NULL
             String shardIdStr= rs.getString(SHARD_ID_COLUMN);            
             if (shardIdStr != null){
@@ -332,12 +404,12 @@ public class H2Storage {
 
             while (rs.next()){        
                 ArcVO arc = new ArcVO();
-                arc.setFileName(rs.getString(FILENAME_COLUMN));
+                arc.setFileName(rs.getString(FOLDER_COLUMN)+rs.getString(ARC_FILE_ID_COLUMN));
                 arc.setCreatedTime(rs.getLong(CREATED_TIME_COLUMN));            
                 arc.setArcState(rs.getString(ARC_STATE_COLUMN)); 
                 arc.setPriority(rs.getInt(PRIORITY_COLUMN));            
                 arc.setModifiedTime(rs.getLong(MODIFIED_TIME_COLUMN));
-                
+
                 //Can be NULL
                 String shardIdStr= rs.getString(SHARD_ID_COLUMN);            
                 if (shardIdStr != null){
@@ -367,12 +439,12 @@ public class H2Storage {
 
             while (rs.next()){        
                 ArcVO arc = new ArcVO();
-                arc.setFileName(rs.getString(FILENAME_COLUMN));
+                arc.setFileName(rs.getString(FOLDER_COLUMN)+rs.getString(ARC_FILE_ID_COLUMN));
                 arc.setCreatedTime(rs.getLong(CREATED_TIME_COLUMN));            
                 arc.setArcState(rs.getString(ARC_STATE_COLUMN)); 
                 arc.setPriority(rs.getInt(PRIORITY_COLUMN));            
                 arc.setModifiedTime(rs.getLong(MODIFIED_TIME_COLUMN));
-                
+
                 //Can be NULL
                 String shardIdStr= rs.getString(SHARD_ID_COLUMN);            
                 if (shardIdStr != null){
@@ -392,24 +464,27 @@ public class H2Storage {
 
 
     //synchronized since we are writing.
-    public synchronized void setARCState(String arcID, ArchonConnector.ARC_STATE arcState) throws Exception{
-        
-        log.info("setARCState: " + arcID +" new state:"+arcState);
+    public synchronized void setARCState(String arcPath, ArchonConnector.ARC_STATE arcState) throws Exception{
+        String[] splitPath = splitPath(arcPath); 
+        String folder = splitPath[0];
+        String arcId = splitPath[1];
+
+        log.info("setARCState: " + arcId +" new state:"+arcState);
         PreparedStatement stmt = null;
         try {                   
-            boolean aRCIDExist = aRCIDExist(arcID);
+            boolean aRCIDExist = aRCIDExist(arcId);
             if (!aRCIDExist){
-               throw new IllegalArgumentException("ArcID does not exist:"+arcID);            
+                throw new IllegalArgumentException("ArcID does not exist:"+arcId);            
             }
-            
+
             stmt = singleDBConnection.prepareStatement(setArcStateStatement);
 
             stmt.setString(1, arcState.toString());
             stmt.setLong(2, System.currentTimeMillis());
-            stmt.setString(3, arcID);
+            stmt.setString(3, arcId);
             int updated = stmt.executeUpdate();
             if (updated == 0){ //arcfile not found
-                throw new IllegalArgumentException("Arcfile not found with id:"+arcID);
+                throw new IllegalArgumentException("Arcfile not found with id:"+arcId);
             }
 
             singleDBConnection.commit(); 
@@ -431,8 +506,8 @@ public class H2Storage {
 
         PreparedStatement stmt = null;
         try {                   
-          
-            
+
+
             stmt = singleDBConnection.prepareStatement(setShardStateStatement);
 
             stmt.setString(1, state.toString());
@@ -457,25 +532,30 @@ public class H2Storage {
     //synchronized since we are writing. 
     //TODO vil gerne returnere antallet af ændrede filer
     //Supposed to change all data for the given arcID
-    public synchronized void setARCProperties(String arcID, String shardID,ArchonConnector.ARC_STATE state, int priority) throws Exception{
+    public synchronized void setARCProperties(String fullPath, String shardID,ArchonConnector.ARC_STATE state, int priority) throws Exception{
+
+        String[] splitPath = splitPath(fullPath); 
+        String folder = splitPath[0];
+        String arcId = splitPath[1];
+
         PreparedStatement stmt = null;
         try {                   
-            boolean aRCIDExist = aRCIDExist(arcID);
+            boolean aRCIDExist = aRCIDExist(arcId);
             if (!aRCIDExist){
-               throw new IllegalArgumentException("ArcID does not exist:"+arcID);            
+                throw new IllegalArgumentException("ArcID does not exist:"+arcId);            
             }
-            
+
             stmt = singleDBConnection.prepareStatement(setArcPropertiesStatement);
 
             stmt.setInt(1, Integer.parseInt(shardID));
             stmt.setString(2, state.toString());
             stmt.setInt(3, priority);            
             stmt.setLong(4, System.currentTimeMillis());
-            stmt.setString(5, arcID);
+            stmt.setString(5, arcId);
             int updated = stmt.executeUpdate();
 
             if (updated == 0){ //arcfile not found
-                throw new IllegalArgumentException("Arcfile not found with id:"+arcID);
+                throw new IllegalArgumentException("Arcfile not found with id:"+arcId);
             }
 
             singleDBConnection.commit(); 
@@ -491,12 +571,12 @@ public class H2Storage {
     public synchronized void removeARC(String arcID) throws Exception{
         PreparedStatement stmt = null;
         try {                   
-         
+
             boolean aRCIDExist = aRCIDExist(arcID);
             if (!aRCIDExist){
-               throw new IllegalArgumentException("ArcID does not exist:"+arcID);            
+                throw new IllegalArgumentException("ArcID does not exist:"+arcID);            
             }
-            
+
             stmt = singleDBConnection.prepareStatement(deleteArcByIDQuery);
 
             stmt.setString(1, arcID);
@@ -540,7 +620,9 @@ public class H2Storage {
 
     }
 
+    //This is the filename only, not the full path
     private boolean aRCIDExist(String arcID) throws Exception{
+
         PreparedStatement stmt = null;
         try {
             stmt = singleDBConnection.prepareStatement(getArcByIDQuery);
@@ -555,7 +637,7 @@ public class H2Storage {
         } finally {
             closeStatement(stmt);
         } 
-        
+
     }
     /*
      * Will create a zip-file with a backup of the database.
@@ -658,6 +740,15 @@ public class H2Storage {
             log.error("shutdown failed", e);
         }
     }
-    
+
+    // /test1/test2/arcfile.arc ville be split in "/test1/test2/" and "arcfile.arc"
+    private String[] splitPath(String fullFilePath){
+
+        String[] split = new String[2];                        
+        int lastSlash=fullFilePath.lastIndexOf("/");            
+        split[0]=fullFilePath.substring(0,lastSlash+1);
+        split[1]=fullFilePath.substring(lastSlash+1,fullFilePath.length());            
+        return split;                            
+    }
 
 }

@@ -40,8 +40,8 @@ public class H2StorageTest {
 
     private static H2Storage storage = null;
 
-    private static final String arcFile1 ="arcfile1";
-    private static final String arcFile2 ="arcfile2";
+    private static final String arcFile1 ="folder1/folder2/arcfile1";
+    private static final String arcFile2 ="folder3/arcfile2";
 
     /*
      * Delete database file if it exists. Create database with tables
@@ -104,6 +104,9 @@ public class H2StorageTest {
 
     }
 
+
+      
+    
     @Test
     public void testNextARC() throws Exception {
         String nextArc = storage.nextARC("10");
@@ -218,7 +221,7 @@ public class H2StorageTest {
         
         storage.addARC(arcFile1);
 
-        arc = storage.getArcByID(arcFile1);
+        arc = storage.getArcByID("arcfile1");
         assertEquals(arcFile1, arc.getFileName());
         assertEquals("NEW", arc.getArcState());   
         assertEquals(1, arc.getPriority());
@@ -240,7 +243,7 @@ public class H2StorageTest {
         storage.addARC(arcFile1);
         storage.setARCState(arcFile1,ArchonConnector.ARC_STATE.RUNNING);        
         //Check status has been set to running.
-        ArcVO arc = storage.getArcByID(arcFile1); 
+        ArcVO arc = storage.getArcByID("arcfile1"); 
         assertEquals("RUNNING",arc.getArcState());                
     }
 
@@ -271,7 +274,7 @@ public class H2StorageTest {
         storage.addARC(arcFile1);          
         storage.setARCProperties(arcFile1, "1", ArchonConnector.ARC_STATE.RUNNING, 9); //This should succeed
 
-        ArcVO arc = storage.getArcByID(arcFile1); 
+        ArcVO arc = storage.getArcByID("arcfile1"); 
         assertEquals("RUNNING",arc.getArcState());    
         assertEquals(9,arc.getPriority());
     }
@@ -287,8 +290,8 @@ public class H2StorageTest {
         storage.clearIndexing("1");
         
         //check status is running.
-        ArcVO arc1 = storage.getArcByID(arcFile1);   
-        ArcVO arc2 = storage.getArcByID(arcFile2);
+        ArcVO arc1 = storage.getArcByID("arcfile1");   
+        ArcVO arc2 = storage.getArcByID("arcfile2");
         assertEquals("NEW",arc1.getArcState());
         assertEquals("NEW",arc2.getArcState());                       
         
@@ -308,14 +311,14 @@ public class H2StorageTest {
             //Expected            
         }
         storage.addARC(arcFile1);          
-        ArcVO arc = storage.getArcByID(arcFile1); 
+        ArcVO arc = storage.getArcByID("arcfile1"); 
         assertEquals(arcFile1, arc.getFileName());
         
         //now remove it
-        storage.removeARC(arcFile1);
+        storage.removeARC("arcfile1");
         
         try{
-        arc = storage.getArcByID(arcFile1);
+        arc = storage.getArcByID("arcfile1");
          fail();
         }
         catch(Exception e){
@@ -344,6 +347,23 @@ public class H2StorageTest {
         storage.setARCProperties(arcFile1, "1", ArchonConnector.ARC_STATE.RUNNING, 9);
         allRunningArcs = storage.getAllRunningArcs();
         assertEquals(1, allRunningArcs.size());       
+    }
+    
+    
+    @Test
+    public void testAddOrUpdateArc() throws Exception {
+        storage.addOrUpdateARC(arcFile1);
+        ArcVO arc = storage.getArcByID("arcfile1");
+        assertEquals(arcFile1, arc.getFileName());
+        
+        storage.addOrUpdateARC("folder3/folder4/arcfile1");
+        arc = storage.getArcByID("arcfile1");
+        assertEquals("folder3/folder4/arcfile1", arc.getFileName());
+    }
+    
+    @Test
+    public void testCreateEmptyDB() throws Exception {
+        
     }
     
     // file.delete does not work for a directory unless it is empty. hence this method
