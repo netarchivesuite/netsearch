@@ -30,7 +30,7 @@
               <dependency>
                 <groupId>dk.statsbiblioteket.sbutil</groupId>
                 <artifactId>sbutil-common</artifactId>
-                <version>0.5.15</version>
+                <version>0.5.16</version>
             </dependency>
   
   
