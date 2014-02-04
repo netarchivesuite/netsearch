@@ -184,7 +184,7 @@
             <webResource>
               <directory>${basedir}/src/main/webapp/</directory>
               <includes>
-                <include>rest_api.jsp</include>
+                <include>api.jsp</include>
               </includes>
               <targetPath></targetPath>
               <filtering>true</filtering>
