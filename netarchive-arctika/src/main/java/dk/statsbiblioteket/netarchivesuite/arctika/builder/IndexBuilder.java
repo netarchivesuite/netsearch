@@ -16,7 +16,7 @@ import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
 import dk.statsbiblioteket.netarchivesuite.core.ArchonConnectorClient;
 
 public class IndexBuilder {
-    private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(IndexBuilder.class);
 
     /**
      * The number of milliseconds to wait between each poll for index.isOptimized.
