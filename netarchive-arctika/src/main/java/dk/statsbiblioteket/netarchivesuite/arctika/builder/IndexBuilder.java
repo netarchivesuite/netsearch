@@ -219,9 +219,20 @@ public class IndexBuilder {
 
             }
             if (workerStatus==RUN_STATUS.RUN_ERROR){
-                log.info("Worker FAIL: " + worker.getArcFile() + " " + progress);
-                failedWorkers++;
-                archonClient.setARCState(worker.getArcFile(), ArchonConnector.ARC_STATE.REJECTED);
+                
+                if (worker.getNumberOfErrors()< 3 ){
+                    log.info("Worker failed. Will re-try. Error count: " + worker.getNumberOfErrors() +" arcfile:"   + worker.getArcFile() + " " + progress);                    
+                    worker.increaseErrorCount();
+                    worker.setStatus(IndexWorker.RUN_STATUS.NEW);                   
+                    completor.submit(worker);
+                    activeWorkers++;
+                    
+                }
+                else{                 
+                  log.info("Worker FAIL: Error count: " + worker.getNumberOfErrors() +" arcfile: "+ worker.getArcFile() + " " + progress);
+                  failedWorkers++;
+                  archonClient.setARCState(worker.getArcFile(), ArchonConnector.ARC_STATE.REJECTED);
+                }
             }
             popped++;
         }

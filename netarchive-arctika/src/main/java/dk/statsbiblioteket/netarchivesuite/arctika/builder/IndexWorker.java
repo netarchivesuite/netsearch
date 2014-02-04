@@ -13,7 +13,7 @@ public class IndexWorker implements Callable<IndexWorker> {
     private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);
     // TODO: Make this a property
     public static final long WORKER_TIMEOUT = 60 * 60 * 1000L;
-
+    
     // A bit ugly with globals...
     public static final AtomicInteger workerCount = new AtomicInteger(0);
     public static final AtomicLong workerTime = new AtomicLong(0);
@@ -22,6 +22,7 @@ public class IndexWorker implements Callable<IndexWorker> {
     }
 
     public static enum RUN_STATUS {NEW,RUNNING, COMPLETED,RUN_ERROR}
+    private int numberOfErrors = 0;
     private String arcFile;
     private String workerJarFile;
     private int maxMemInMb;
@@ -38,6 +39,14 @@ public class IndexWorker implements Callable<IndexWorker> {
         status=RUN_STATUS.NEW;         
     }
         
+    public int getNumberOfErrors() {
+        return numberOfErrors;
+    }
+
+    public void increaseErrorCount() {
+        numberOfErrors++;
+    }
+
     public String getArcFile() {
         return arcFile;
     }
