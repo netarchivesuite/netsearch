@@ -3,6 +3,7 @@ package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 import java.io.IOException;
 import java.util.concurrent.*;
 
+import dk.statsbiblioteket.util.JobController;
 import dk.statsbiblioteket.util.Profiler;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -22,14 +23,7 @@ public class IndexBuilder {
      */
     private static final long WAIT_OPTIMIZE = 60 * 1000L;
 
-    /**
-     * The number of milliseconds to wait between each poll for worker status..
-     */
-    private static final long WAIT_WORKER = 10 * 1000L;
-
-    private final ThreadPoolExecutor executor;
-    private final ExecutorCompletionService<IndexWorker> completor;
-    private int activeWorkers = 0;
+    private final JobController<IndexWorker> jobController;
     private final IndexBuilderConfig config;
     private final ArctikaSolrJClient solrClient;
     private final ArchonConnectorClient archonClient;
@@ -67,19 +61,15 @@ public class IndexBuilder {
         this.config = config;
         solrClient = new ArctikaSolrJClient(config.getSolr_url());
         archonClient =  new ArchonConnectorClient(config.getArchon_url());
-        executor = new ThreadPoolExecutor(
-                config.getMax_concurrent_workers(), config.getMax_concurrent_workers(), 10, TimeUnit.MINUTES,
-                new ArrayBlockingQueue<Runnable>(config.getMax_concurrent_workers()),
-                new ThreadFactory() {
-                    @Override
-                    public Thread newThread(Runnable r) {
-                        Thread t = new Thread(r);
-                        t.setDaemon(true);
-                        return t;
-                    }
-                });
-        completor = new ExecutorCompletionService<IndexWorker>(executor);
+        jobController = new JobController<IndexWorker>(config.getMax_concurrent_workers(), true, true) {
+            @Override
+            protected void afterExecute(Future<IndexWorker> finished) {
+                super.afterExecute(finished);
+                IndexBuilder.this.taskFinished(finished);
+            }
+        };
     }
+
 
     @SuppressWarnings("StatementWithEmptyBody")
     public void buildIndex() throws Exception{
@@ -96,18 +86,30 @@ public class IndexBuilder {
         }
 
         out: do {
-            while (!isOptimizeLimitReached()) {
-                // Cleanup finished workers
-                popFinishedWorkers();
-                // Start up new workers until pool is full
-                while (executor.getActiveCount() < config.getMax_concurrent_workers() && startNewIndexWorker());
-                if (executor.getActiveCount() == 0 && activeWorkers == 0) { // Ran out of ARCs
-                    log.info("No active jobs (probably due to no more un-indexed ARCs");
-                    break out; // No need to optimize when there are no more ARCs
+            while (!isOptimizeLimitReached()) { // Contract: #activeWorkers < max
+                // Start up new workers until pool is full or there are no more ARCs
+                while (jobController.getActiveCount() < config.getMax_concurrent_workers()) {
+                    if (!startNewIndexWorker()) {
+                        log.info("Could not start new worker (probably due to no more un-indexed ARCs");
+                        break out;
+                    }
                 }
-                Thread.sleep(WAIT_WORKER); //Sleep for 10 secs before checking workers
+                // Wait for at least one worker to finish or timeout
+                if (jobController.poll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS) == null) {
+                    log.error("Time exceeded " + IndexWorker.WORKER_TIMEOUT + " while waiting for any worker to finish."
+                              + " Exiting");
+                    break out;
+                }
             }
         } while (!isIndexingFinished());
+
+        // TODO: Avoid double timeout from isIndexingFinished in case of problems
+        jobController.popAll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS);
+        int active = jobController.getActiveCount();
+        if (active > 0) {
+            log.warn("There are still " + active + " workers after popAll with timeout " + IndexWorker.WORKER_TIMEOUT
+                     + " ms. The shutdown will leave some ARCs in Archon marked as currently being indexed");
+        }
 
         status = solrClient.getStatus();
         long indexSizeBytes = status.getIndexSizeBytes();
@@ -132,8 +134,14 @@ public class IndexBuilder {
     }
 
     private boolean isIndexingFinished() throws ExecutionException, InterruptedException, IOException, SolrServerException {
-        popAll();
-        long start=System.currentTimeMillis();
+        jobController.popAll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS);
+        int active = jobController.getActiveCount();
+        if (active > 0) {
+            log.error("There are still " + active + " workers after popAll with timeout " + IndexWorker.WORKER_TIMEOUT
+                      + " ms. Optimization will not be run and index building will exit");
+            return true;
+        }
+        long start = System.currentTimeMillis();
         if (solrClient.getStatus().isOptimized()) {
             log.debug("isOptimizedLimitReached: Index already optimized");
         } else {
@@ -184,57 +192,50 @@ public class IndexBuilder {
             return false;
         }
 
-        IndexWorker newWorker = new IndexWorker(
-                nextARC,config.getSolr_url(), config.getWorker_maxMemInMb(), config.getWorker_jar_file());
-        completor.submit(newWorker);
-        activeWorkers++;
+        jobController.submit(new IndexWorker(
+                nextARC, config.getSolr_url(), config.getWorker_maxMemInMb(), config.getWorker_jar_file()));
         return true;
     }
 
-    private int popAll() throws ExecutionException, InterruptedException {
-        int popped = 0;
-        while (activeWorkers > 0) {
-            popped += popFinishedWorkers();
+    private void taskFinished(Future<IndexWorker> finished)  {
+        IndexWorker worker;
+        try {
+            worker = finished.get();
+        } catch (InterruptedException e) {
+            log.warn("taskFinished: Interrupted while getting IndexWorker", e);
+            return;
+        } catch (ExecutionException e) {
+            log.error("taskFinished: ExecutionException while getting IndexWorker", e);
+            return;
         }
-        return popped;
-    }
 
-    private synchronized int popFinishedWorkers() throws InterruptedException, ExecutionException {
-        int popped = 0;
-        while (activeWorkers > executor.getActiveCount()) {
-            IndexWorker worker = completor.poll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS).get();
-            jobProfiler.beat();
-            String progress = String.format(
-                    "Finished ARC: %d (%s) in %d ms. Average worker processing speed: %s seconds/ARC. " +
-                    "Average clock speed: %s seconds/ARC",
-                    jobProfiler.getBeats(), worker.getArcFile(), worker.getRuntime(),
-                    IndexWorker.timeStats(), toFinalTime(jobProfiler, true));
-            activeWorkers--;
-            RUN_STATUS workerStatus = worker.getStatus();
-            if (workerStatus==RUN_STATUS.COMPLETED){
-                log.info("Worker completed success: " + worker.getArcFile() + " " + progress);
-                archonClient.setARCState(worker.getArcFile(), ArchonConnector.ARC_STATE.COMPLETED);
+        jobProfiler.beat();
+        String progress = String.format(
+                "Finished ARC: %d (%s) in %d ms. Average worker processing speed: %s seconds/ARC. " +
+                "Average clock speed: %s seconds/ARC",
+                jobProfiler.getBeats(), worker.getArcFile(), worker.getRuntime(),
+                IndexWorker.timeStats(), toFinalTime(jobProfiler, true));
+        RUN_STATUS workerStatus = worker.getStatus();
+        if (workerStatus==RUN_STATUS.COMPLETED){
+            log.info("Worker completed success: " + worker.getArcFile() + " " + progress);
+            archonClient.setARCState(worker.getArcFile(), ArchonConnector.ARC_STATE.COMPLETED);
 
-            }
-            if (workerStatus==RUN_STATUS.RUN_ERROR){
+        }
+        if (workerStatus==RUN_STATUS.RUN_ERROR){
                 
-                if (worker.getNumberOfErrors()< 3 ){
-                    log.info("Worker failed. Will re-try. Error count: " + worker.getNumberOfErrors() +" arcfile:"   + worker.getArcFile() + " " + progress);                    
-                    worker.increaseErrorCount();
-                    worker.setStatus(IndexWorker.RUN_STATUS.NEW);                   
-                    completor.submit(worker);
-                    activeWorkers++;
-                    
-                }
-                else{                 
-                  log.info("Worker FAIL: Error count: " + worker.getNumberOfErrors() +" arcfile: "+ worker.getArcFile() + " " + progress);
-                  failedWorkers++;
-                  archonClient.setARCState(worker.getArcFile(), ArchonConnector.ARC_STATE.REJECTED);
-                }
+            if (worker.getNumberOfErrors()< 3 ){
+                log.info("Worker failed. Will re-try. Error count: " + worker.getNumberOfErrors() +" arcfile: "
+                         + worker.getArcFile() + " " + progress);
+                worker.increaseErrorCount();
+                worker.setStatus(IndexWorker.RUN_STATUS.NEW);
+                jobController.submit(worker);
+            } else {
+                log.info("Worker FAIL: Error count: " + worker.getNumberOfErrors() + " arcfile: "
+                         + worker.getArcFile() + " " + progress);
+                failedWorkers++;
+                archonClient.setARCState(worker.getArcFile(), ArchonConnector.ARC_STATE.REJECTED);
             }
-            popped++;
         }
-        return popped;
     }
 
     public String getStatus() throws IOException, SolrServerException {
