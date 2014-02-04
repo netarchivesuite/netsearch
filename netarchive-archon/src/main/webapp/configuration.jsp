@@ -33,6 +33,7 @@
 <ul class="nav nav-tabs" id="configTab">
     <li class="active"><a href="#latest">Latest ARCs added</a></li>
     <li><a href="#running">All Running</a></li>
+    <li><a href="#api">Rest API</a></li>
 </ul>
 
 <%@ include file="message.jsp" %>
@@ -47,7 +48,10 @@
         </div>
         <div class="tab-pane" id="running">
             <%@ include file="running.jsp" %>
-        </div>       
+        </div>
+         <div class="tab-pane" id="api">
+            <%@ include file="api.jsp" %>
+        </div>            
     </div>
 </form>
 
