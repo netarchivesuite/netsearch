@@ -114,13 +114,7 @@ public class IndexBuilder {
         double percentage= (1d*indexSizeBytes)/(1d*config.getIndex_max_sizeInBytes())*100d;
         log.info("Building of shardId="+config.getShardId()+" completed. Index limit percentage: "+percentage);
         
-        log.info(String.format("Index status: %s. Processed ARCs: %d (%d failed) with average processing time " +
-                               "%s seconds/ARC and average clock time %s seconds/ARC. " +
-                               "Optimizations: %d with average time %s seconds/optimize. Total time spend: %s",
-                               status, jobProfiler.getBeats(), failedWorkers, IndexWorker.timeStats(),
-                               toFinalTime(jobProfiler, false),
-                               optimizeProfiler.getBeats(), toFinalTime(optimizeProfiler, false),
-                               fullProfiler.getSpendTime()));
+        log.info(getStatus());
     }
     private String toFinalTime(Profiler profiler, boolean useCurrentSpeed) {
         return profiler.getBeats() == 0 ? "N/A" : String.format("%.1f", 1 / profiler.getBps(useCurrentSpeed));
@@ -171,6 +165,7 @@ public class IndexBuilder {
             String message = "Total screw up. Index too large. Max allowed bytes="+config.getIndex_max_sizeInBytes()
                              +" but index was: "+indexSizeBytes;
             log.error(message);
+            log.info(getStatus());
             System.err.println(message);
             throw new IllegalStateException(message);
         }
@@ -209,8 +204,11 @@ public class IndexBuilder {
         while (activeWorkers > executor.getActiveCount()) {
             IndexWorker worker = completor.poll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS).get();
             jobProfiler.beat();
-            String progress = String.format("Finished ARCs: %d. Current speed: %s seconds/ARC",
-                                            jobProfiler.getBeats(), toFinalTime(jobProfiler, true));
+            String progress = String.format(
+                    "Finished ARC: %d (%s) in %d ms. Average worker processing speed: %s seconds/ARC. " +
+                    "Average clock speed: %s seconds/ARC",
+                    jobProfiler.getBeats(), worker.getArcFile(), worker.getRuntime(),
+                    IndexWorker.timeStats(), toFinalTime(jobProfiler, true));
             activeWorkers--;
             RUN_STATUS workerStatus = worker.getStatus();
             if (workerStatus==RUN_STATUS.COMPLETED){
@@ -237,5 +235,20 @@ public class IndexBuilder {
             popped++;
         }
         return popped;
+    }
+
+    public String getStatus() throws IOException, SolrServerException {
+        SolrCoreStatus status = solrClient.getStatus();
+        long indexSizeBytes = status.getIndexSizeBytes();
+        double percentage= (1d*indexSizeBytes)/(1d*config.getIndex_max_sizeInBytes())*100d;
+        log.info("Building of shardId="+config.getShardId()+" completed. Index limit percentage: "+percentage);
+
+        return String.format("Index status: %s. Processed ARCs: %d (%d failed) with average processing time " +
+                             "%s seconds/ARC and average clock time %s seconds/ARC. " +
+                             "Optimizations: %d with average time %s seconds/optimize. Total time spend: %s",
+                             status, jobProfiler.getBeats(), failedWorkers, IndexWorker.timeStats(),
+                             toFinalTime(jobProfiler, false),
+                             optimizeProfiler.getBeats(), toFinalTime(optimizeProfiler, false),
+                             fullProfiler.getSpendTime());
     }
 }

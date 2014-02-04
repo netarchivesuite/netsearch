@@ -27,12 +27,11 @@ public class IndexWorker implements Callable<IndexWorker> {
     private String workerJarFile;
     private int maxMemInMb;
     private String solrUrl;
-    private long startTime;
     private RUN_STATUS status;
+    private long runtimeMS = 0;
                 
     public IndexWorker(String arcFile,String solrUrl, int maxMemInMb, String workerJarFile){
         this.arcFile=arcFile;
-        this.startTime=System.currentTimeMillis();
         this.solrUrl=solrUrl;
         this.maxMemInMb=maxMemInMb;
         this.workerJarFile=workerJarFile;
@@ -63,14 +62,6 @@ public class IndexWorker implements Callable<IndexWorker> {
         this.solrUrl = solrUrl;
     }
 
-    public long getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(long startTime) {
-        this.startTime = startTime;
-    }
-
     public RUN_STATUS getStatus() {
         return status;
     }
@@ -78,7 +69,14 @@ public class IndexWorker implements Callable<IndexWorker> {
     public void setStatus(RUN_STATUS status) {
         this.status = status;
     }
-   
+
+    /**
+     * @return the number of MS the job took. Calling this before the job has been finished will return 0.
+     */
+    public long getRuntime() {
+        return runtimeMS;
+    }
+
     @Override
     public IndexWorker call() throws Exception {
         status = RUN_STATUS.RUNNING;
@@ -116,7 +114,8 @@ public class IndexWorker implements Callable<IndexWorker> {
             log.info("Error processing: "+arcFile,e);
             status = RUN_STATUS.RUN_ERROR;
         }
-        workerTime.addAndGet(System.currentTimeMillis() - startTime);
+        runtimeMS = System.currentTimeMillis() - startTime;
+        workerTime.addAndGet(runtimeMS);
         return this;
     }
     
