@@ -112,10 +112,7 @@ public class IndexBuilder {
         }
 
         status = solrClient.getStatus();
-        long indexSizeBytes = status.getIndexSizeBytes();
-        double percentage= (1d*indexSizeBytes)/(1d*config.getIndex_max_sizeInBytes())*100d;
-        log.info("Building of shardId="+config.getShardId()+" completed. Index limit percentage: "+percentage);
-        
+                
         log.info(getStatus());
     }
     private String toFinalTime(Profiler profiler, boolean useCurrentSpeed) {
@@ -149,14 +146,20 @@ public class IndexBuilder {
             log.info("Optimizing, size of index before optimize: " + solrClient.getStatus().getIndexSizeHumanReadable());
             jobProfiler.pause();
             optimizeProfiler.unpause();
-            solrClient.optimize();
-
-            long sleeptime = 500;
-            while (!solrClient.getStatus().isOptimized()){
-                log.debug("Index not optimized yet. Waiting " + sleeptime + " ms before next check");
-                Thread.sleep(sleeptime);
-                sleeptime = sleeptime >= WAIT_OPTIMIZE >> 1 ? WAIT_OPTIMIZE : sleeptime << 1;
+            //Sometimes solr will automerge segments. Optimize is very time expensive, so check if it is really necessary.
+            if (isOptimizeLimitReached()){               
+              solrClient.optimize();
+              long sleeptime = 500;
+              while (!solrClient.getStatus().isOptimized()){
+                  log.debug("Index not optimized yet. Waiting " + sleeptime + " ms before next check");
+                  Thread.sleep(sleeptime);
+                  sleeptime = sleeptime >= WAIT_OPTIMIZE / 2 ? WAIT_OPTIMIZE : sleeptime * 2;
+              }            
             }
+            else{
+                log.info("Skipping optimize as index-size is currently below the optimize limit.");  
+            }            
+           
             optimizeProfiler.beat();
             optimizeProfiler.pause();
             jobProfiler.unpause();
