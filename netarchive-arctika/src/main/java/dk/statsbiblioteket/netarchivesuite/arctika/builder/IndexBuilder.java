@@ -23,6 +23,11 @@ public class IndexBuilder {
      */
     private static final long WAIT_OPTIMIZE = 60 * 1000L;
 
+    /**
+     * If a worker fails it retries its job. This limits the total number of attempts.
+     */
+    private int MAX_WORKER_TRIES = 3;
+
     private final JobController<IndexWorker> jobController;
     private final IndexBuilderConfig config;
     private final ArctikaSolrJClient solrClient;
@@ -111,8 +116,6 @@ public class IndexBuilder {
                      + " ms. The shutdown will leave some ARCs in Archon marked as currently being indexed");
         }
 
-        status = solrClient.getStatus();
-                
         log.info(getStatus());
     }
     private String toFinalTime(Profiler profiler, boolean useCurrentSpeed) {
@@ -131,8 +134,11 @@ public class IndexBuilder {
     }
 
     private boolean isIndexingFinished() throws ExecutionException, InterruptedException, IOException, SolrServerException {
-        jobController.popAll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS);
-        int active = jobController.getActiveCount();
+        int emptyRun = 0;
+        int active = 0;
+        while (emptyRun++ < MAX_WORKER_TRIES && (active = jobController.getActiveCount()) > 0) {
+            jobController.popAll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS);
+        }
         if (active > 0) {
             log.error("There are still " + active + " workers after popAll with timeout " + IndexWorker.WORKER_TIMEOUT
                       + " ms. Optimization will not be run and index building will exit");
@@ -226,7 +232,7 @@ public class IndexBuilder {
         }
         if (workerStatus==RUN_STATUS.RUN_ERROR){
                 
-            if (worker.getNumberOfErrors()< 3 ){
+            if (worker.getNumberOfErrors()< MAX_WORKER_TRIES){
                 log.info("Worker failed. Will re-try. Error count: " + worker.getNumberOfErrors() +" arcfile: "
                          + worker.getArcFile() + " " + progress);
                 worker.increaseErrorCount();
