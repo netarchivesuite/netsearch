@@ -86,8 +86,8 @@ public class IndexWorker implements Callable<IndexWorker> {
         log.info("Started indexing: "+arcFile + " with worker #" + workerCount.incrementAndGet());
         
         try{                   
-           //Example of final command: 
-           //java -Xmx256M -jar /media/teg/500GB/netarchive_servers/warc-discovery/warc-indexer/warc-indexer-1.1.1-SNAPSHOT-jar-with-dependencies -s "http://localhost:8983/" arcFile1.arc
+           //Example of final command (Belinda): 
+           //java -Xmx256M -Djava.io.tmpdir=/home/summanet/arctika/arctica_tmp -jar /home/summanet/arctika/warc-indexer-1.1.1-SNAPSHOT-jar-with-dependencies.jar  -s "http://localhost:9731/solr" /netarkiv/0001/filedir/152829-166-20120605115157-00187-kb-prod-har-004.kb.dk.arc 
             
          ProcessRunner runner = new ProcessRunner("java",
                  "-Xmx"+maxMemInMb+"M", //-Xmx256M etc              
