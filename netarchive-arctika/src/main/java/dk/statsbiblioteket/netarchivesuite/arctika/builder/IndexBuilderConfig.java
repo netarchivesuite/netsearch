@@ -26,7 +26,8 @@ public class IndexBuilderConfig {
     private double index_target_limit = 0.95d; // 95% default value
     private String archon_url;
     private String solr_url;
-   
+    private String worker_temp_dir="/tmp"; 
+    
     public IndexBuilderConfig(String configFilePath) throws Exception {
         initProperties(configFilePath);
     }
@@ -41,6 +42,14 @@ public class IndexBuilderConfig {
 
     public int getWorker_maxMemInMb() {
         return worker_maxMemInMb;
+    }
+    
+    public String getWorker_temp_dir() {
+        return worker_temp_dir;
+    }
+
+    public void setWorker_temp_dir(String worker_temp_dir) {
+        this.worker_temp_dir = worker_temp_dir;
     }
 
     public void setWorker_maxMemInMb(int worker_maxMemInMb) {
@@ -107,6 +116,8 @@ public class IndexBuilderConfig {
         this.shardId = shardId;
     }
 
+    
+    
     private void initProperties(String configFilePath) throws Exception {
         InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(configFilePath)), "ISO-8859-1");
 
@@ -138,8 +149,10 @@ public class IndexBuilderConfig {
         archon_url = serviceProperties.getProperty("arctika.archon_url");
         solr_url = serviceProperties.getProperty("arctika.solr_url");
         worker_jar_file = serviceProperties.getProperty("arctika.worker.index.jar.file");
+        worker_temp_dir = serviceProperties.getProperty("arctika.worker.tmp.dir");         
                 
         log.info("Property: worker_jar_file = " + worker_jar_file);
+        log.info("Property: arctika.worker.tmp.dir = " +  worker_temp_dir);
         log.info("Property: actika.worker.maxMemInMb = " + worker_maxMemInMb);
         log.info("Property: max_concurrent_workers = " + max_concurrent_workers);
         log.info("Property: index_max_size = " + index_max_size+unit);

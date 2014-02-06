@@ -196,7 +196,10 @@ public class IndexBuilder {
         }
 
         jobController.submit(new IndexWorker(
-                nextARC, config.getSolr_url(), config.getWorker_maxMemInMb(), config.getWorker_jar_file()));
+                nextARC, config.getSolr_url(),
+                config.getWorker_maxMemInMb(),
+                config.getWorker_jar_file(),
+                config.getWorker_temp_dir()));                
         return true;
     }
 

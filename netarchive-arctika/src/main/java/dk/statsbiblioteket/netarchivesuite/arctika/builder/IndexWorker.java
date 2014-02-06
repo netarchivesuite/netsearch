@@ -29,12 +29,14 @@ public class IndexWorker implements Callable<IndexWorker> {
     private String solrUrl;
     private RUN_STATUS status;
     private long runtimeMS = 0;
-                
-    public IndexWorker(String arcFile,String solrUrl, int maxMemInMb, String workerJarFile){
+    private String tmpDir;            
+    
+    public IndexWorker(String arcFile,String solrUrl, int maxMemInMb, String workerJarFile, String tmpDir){
         this.arcFile=arcFile;
         this.solrUrl=solrUrl;
         this.maxMemInMb=maxMemInMb;
         this.workerJarFile=workerJarFile;
+        this.tmpDir=tmpDir;
         status=RUN_STATUS.NEW;         
     }
         
@@ -89,6 +91,7 @@ public class IndexWorker implements Callable<IndexWorker> {
             
          ProcessRunner runner = new ProcessRunner("java",
                  "-Xmx"+maxMemInMb+"M", //-Xmx256M etc              
+                 "-Djava.io.tmpdir="+tmpDir,                                   
                  "-jar",
                  workerJarFile,
                  "-s",
