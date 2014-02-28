@@ -53,7 +53,7 @@ public class ArchonResource {
     }
     
     @POST            
-    @Path("addOrUpdateARC/{arcID}")               
+    @Path("/{arcID}")               
     public void addOrUpdateARC(@PathParam("arcID") String arcID) throws ArchonServiceException  {                                     
         try {
             H2Storage.getInstance().addOrUpdateARC(arcID); 

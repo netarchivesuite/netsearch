@@ -188,7 +188,7 @@ public class IndexBuilder {
         }
 
         //Big enough?
-        return (indexSizeBytes > config.getIndex_target_limit()*config.getIndex_max_sizeInBytes());
+        return (solrClient.getStatus().isOptimized() && indexSizeBytes > config.getIndex_target_limit()*config.getIndex_max_sizeInBytes());
     }
 
     private boolean startNewIndexWorker() {
