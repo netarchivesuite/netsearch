@@ -61,6 +61,10 @@ public class IndexBuilder {
         IndexBuilderConfig config = new IndexBuilderConfig(propertyFile);
         IndexBuilder builder = new IndexBuilder(config);
         builder.buildIndex();
+         
+        log.info("Index build job finished.");
+        System.out.println("Index build job finished.");
+        
     }
 
     public IndexBuilder(IndexBuilderConfig config){

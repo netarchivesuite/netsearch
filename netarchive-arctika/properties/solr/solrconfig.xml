@@ -753,8 +753,8 @@
     <searchComponent name="exposed" class="org.apache.solr.exposed.ExposedFacetQueryComponent">
       <lst name="poolfactory">
         <int name="pools">10</int>
-        <int name="filled">5</int>
-        <int name="fresh">5</int>
+        <int name="filled">0</int>
+        <int name="fresh">0</int>
       </lst>
     </searchComponent>
     
