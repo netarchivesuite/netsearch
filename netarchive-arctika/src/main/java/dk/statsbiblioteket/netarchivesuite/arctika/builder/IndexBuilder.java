@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.*;
 
@@ -200,7 +201,19 @@ public class IndexBuilder {
             System.out.println(message);
             return false;
         }
-
+ 
+        //Check file exist, or exit! Something is serious wrong.
+        File f = new File(nextARC);
+        if (f.isFile()){
+            String message = "Arc-file does not exist. Indexing will exit. Missing file:"+nextARC;
+            log.error(message);
+            System.out.println(message);
+            System.exit(1);
+            
+        }
+        
+        
+        
         jobController.submit(new IndexWorker(
                 nextARC, config.getSolr_url(),
                 config.getWorker_maxMemInMb(),
