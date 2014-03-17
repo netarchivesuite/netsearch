@@ -102,8 +102,7 @@
        configuration.
     -->
   <dataDir>${solr.data.dir:}</dataDir>
-
-  <codecFactory name="CodecFactory" class="solr.SchemaCodecFactory" /> <!-- Because we use docvalues of field 'url'--> 
+  <codecFactory class="solr.SchemaCodecFactory"/>
 
   <!-- The DirectoryFactory to use for indexes.
        
@@ -149,8 +148,8 @@
          before flushing.
          If both ramBufferSizeMB and maxBufferedDocs is set, then
          Lucene will flush based on whichever limit is hit first.  -->
-     <ramBufferSizeMB>320</ramBufferSizeMB> 
-     <maxBufferedDocs>10000</maxBufferedDocs> 
+     <ramBufferSizeMB>960</ramBufferSizeMB> 
+     <maxBufferedDocs>100000</maxBufferedDocs> 
 
     <!-- Expert: Merge Policy 
          The Merge Policy in Lucene controls how merging of segments is done.
@@ -173,9 +172,9 @@
          will be allowed before they are merged into one.
          Default is 10 for both merge policies.
       -->
-    <!-- 
-    <mergeFactor>10</mergeFactor>
-      -->
+     
+    <mergeFactor>40</mergeFactor>
+    
 
     <!-- Expert: Merge Scheduler
          The Merge Scheduler in Lucene controls how merges are
@@ -183,9 +182,9 @@
          can perform merges in the background using separate threads.
          The SerialMergeScheduler (Lucene 2.2 default) does not.
      -->
-    <!-- 
+     
        <mergeScheduler class="org.apache.lucene.index.ConcurrentMergeScheduler"/>
-       -->
+    
 
     <!-- LockFactory 
 
@@ -224,7 +223,7 @@
     <!-- Expert: Controls how often Lucene loads terms into memory
          Default is 128 and is likely good for most everyone.
       -->
-    <!-- <termIndexInterval>128</termIndexInterval> -->
+    <termIndexInterval>1024</termIndexInterval> 
 
     <!-- If true, IndexReaders will be reopened (often more efficient)
          instead of closed and then opened. Default: true
@@ -747,17 +746,6 @@
        of SearchComponents (see below) and supports distributed
        queries across multiple shards
     -->
-    
-    
-     <!-- Component developed by Statsbiblioteket for (hierarchical) faceting -->   
-    <searchComponent name="exposed" class="org.apache.solr.exposed.ExposedFacetQueryComponent">
-      <lst name="poolfactory">
-        <int name="pools">10</int>
-        <int name="filled">0</int>
-        <int name="fresh">0</int>
-      </lst>
-    </searchComponent>
-    
   <requestHandler name="/select" class="solr.SearchHandler">
     <!-- default values for query parameters can be specified, these
          will be overridden by parameters in the request
@@ -813,10 +801,6 @@
          list can either be overridden completely, or components can be
          prepended or appended to the default list.  (see below)
       -->
-   
-    <arr name="last-components">
-        <str>exposed</str>
-    </arr>
     <!--
        <arr name="components">
          <str>nameOfCustomComponent1</str>
@@ -1231,7 +1215,7 @@
       <!-- maximum threshold of documents a query term can appear to be considered for correction -->
       <float name="maxQueryFrequency">0.01</float>
       <!-- uncomment this to require suggestions to occur in 1% of the documents
-      	<float name="thresholdTokenFrequency">.01</float>
+              <float name="thresholdTokenFrequency">.01</float>
       -->
     </lst>
     
