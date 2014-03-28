@@ -329,6 +329,51 @@
       -->
     <httpCaching never304="true" />
    </requestDispatcher>
+    
+    
+    
+    
+        
+<requestHandler name="/edismax" default="true" class="solr.SearchHandler">
+   <lst name="defaults">
+     <str name="echoParams">explicit</str>
+     <!-- Query settings -->
+     <str name="defType">edismax</str>
+     <str name="rows">10</str>
+     <str name="q.op">AND</str>    
+     <!-- This we probably have to tune a lot -->         
+     <str name="mm">100%</str>
+
+     <str name="qf">
+     title
+     author
+     description
+     url         
+     content_text     
+     text                                            
+     </str>
+     <!--Phrase fields, read SOLR book page 154. Performance can be improved by shingling common-grams -->
+     <str name="pf">
+      text
+     </str>     
+     <str name="fl">*,score</str>
+     <str name="lowercaseOperators">false</str>
+     <str name="facet">on</str>
+     <str name="facet.mincount">1</str>
+     <str name="facet.limit">25</str>
+        
+     <str name="facet.field">url</str>
+     <str name="facet.field">domain</str>
+     <str name="facet.field">crawl_year</str>
+     <str name="facet.field">public_suffix</str>
+     <str name="facet.field">content_type_norm</str>
+     <str name="facet.field">host</str>   
+   </lst>
+
+</requestHandler>
+    
+    
+    
         
      <!-- Component developed by Statsbiblioteket for (hierarchical) faceting -->   
     <searchComponent name="exposed" class="org.apache.solr.exposed.ExposedFacetQueryComponent">
@@ -728,7 +773,6 @@
       </fragmentsBuilder>
       
       <boundaryScanner name="default" 
-                       default="true"
                        class="solr.highlight.SimpleBoundaryScanner">
         <lst name="defaults">
           <str name="hl.bs.maxScan">10</str>
