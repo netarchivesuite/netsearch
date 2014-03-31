@@ -327,9 +327,9 @@
     -->
 
     <!-- The StrField type is not analyzed, but indexed/stored verbatim. -->
+    
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
-
-     <fieldType name="string_disk" class="solr.StrField" sortMissingLast="true" docValuesFormat="Disk" />
+    <fieldType name="string_disk" class="solr.StrField" sortMissingLast="true" docValuesFormat="Disk" />
 
     <!-- boolean type: "true" or "false" -->
     <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
