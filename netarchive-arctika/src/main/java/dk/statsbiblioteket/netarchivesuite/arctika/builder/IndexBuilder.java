@@ -209,7 +209,7 @@ public class IndexBuilder {
         //Check file exist, or exit! Something is serious wrong.
         File f = new File(nextARC);
         if (f.isFile()){
-            String message = "Arc-file does not exist. Indexing will exit. Missing file:"+nextARC;
+            String message = "Arc-file does not exist. Indexing will exit when workers are finished. Missing file:"+nextARC;
             log.error(message);
             System.out.println(message);
             return false;            
