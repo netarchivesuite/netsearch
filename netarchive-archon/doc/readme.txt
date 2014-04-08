@@ -16,6 +16,8 @@ Example script that register all arc files from a folder (/netarkiv/01/0003/file
 Notice this will also register the meta-data files, and this should be kept out. But nothing happens
 if they are added.  
 
+Regarding the ARC-priority: The default priority is 5. The higher priority means these will be returned
+first when asking for new ARC files to process.
 
 
 
