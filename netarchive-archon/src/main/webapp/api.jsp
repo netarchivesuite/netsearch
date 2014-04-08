@@ -24,7 +24,7 @@ An ARC-file unique identifier is only the filename and not the full file-path.<b
             <td>services/addARC/{arcPath}</td>  
             <td>
             Will add a new arc-fil to Archon. Will throw exception if the arc-id already exist<br>
-            example: services/addARC/folder1%2Ffolder2%2F/arcfile1.arc  
+            example: services/addARC/folder1%2Ffolder2%2Farcfile1.arc  
             </td>  
             <td>
              (none) 
@@ -34,16 +34,50 @@ An ARC-file unique identifier is only the filename and not the full file-path.<b
             <td>services/addOrUpdateARC/{arcPath}</td>  
             <td>
             Will add a new file if it does not exist. If it exist the folder-path will be updated<br>
-            example: services/addOrUpdateARC/folder1%2Ffolder2%2F/arcfile1.arc  
+            example: services/addOrUpdateARC/folder1%2Ffolder2%2Farcfile1.arc  
             </td>  
             <td>
              (none) 
             </td>
-          </tr>                       
+          </tr>
+             <tr>  
+            <td>services/setArcPriority/{arcPath}/{priority}</td>  
+            <td>
+            Change the priority for the given arc-file<br>
+            example: services/setARCPriority/folder1%2Ffolder2%2Farcfile1.arc/3  
+            </td>  
+            <td>
+             (none) 
+            </td>
+          </tr>
         </tbody>  
 </table>    
-<br>
 
+<br>
+<table class="table" border="1">  
+       <caption><strong>HTTP GET</strong></caption>
+        <thead>  
+          <tr>  
+            <th>URL</th>  
+            <th>Description</th>                
+            <th>Output</th>
+          </tr>  
+        </thead>  
+        <tbody>                     
+            <tr>  
+            <td>services/getShardIDs</td>  
+            <td>
+            List all shardIDs (completed and still runnning)<br>
+            example: services/getShardIDs 
+            </td>  
+            <td>
+             (none) 
+            </td>
+          </tr>                                                           
+        </tbody>  
+</table>    
+        
+        <br>
 
 
 <table class="table" border="1">  

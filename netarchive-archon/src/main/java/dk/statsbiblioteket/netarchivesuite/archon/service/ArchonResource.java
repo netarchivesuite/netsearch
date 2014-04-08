@@ -53,7 +53,7 @@ public class ArchonResource {
     }
     
     @POST            
-    @Path("/{arcID}")               
+    @Path("addOrUpdateARC/{arcID}")               
     public void addOrUpdateARC(@PathParam("arcID") String arcID) throws ArchonServiceException  {                                     
         try {
             H2Storage.getInstance().addOrUpdateARC(arcID); 
@@ -156,6 +156,20 @@ public class ArchonResource {
     }
 
     @POST            
+    @Path("setARCPriority/{arcID}/{priority}")              
+    public void setARCProperties(@PathParam("arcID") String arcID,            
+            @PathParam("priority") int priority) throws ArchonServiceException  {                                     
+  
+        try {            
+             H2Storage.getInstance().setARCPriority(arcID, priority);            
+        } catch (Exception e) {
+            throw handleServiceExceptions(e);
+        }
+    
+    }
+    
+    
+    @POST            
     @Path("setShardState/{shardID}/{state}/{priority}")              
     public void setShardState(@PathParam("shardID") String shardID,
             @PathParam("state") String state,
@@ -168,6 +182,8 @@ public class ArchonResource {
            throw handleServiceExceptions(e);
        }
     }
+    
+    
     
     /*
      * This method is not called from frontend. It creates a backup of

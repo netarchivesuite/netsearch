@@ -280,6 +280,15 @@ public class H2StorageTest {
     }
 
     @Test
+    public void testSetARCPriority() throws Exception {          
+        storage.addARC(arcFile1);          
+        storage.setARCPriority(arcFile1, 7); //This should succeed
+        ArcVO arc = storage.getArcByID("arcfile1");            
+        assertEquals(7,arc.getPriority());
+    }
+
+    
+    @Test
     public void testClearIndexing() throws Exception {    
         
         storage.addARC(arcFile1);          
