@@ -212,11 +212,8 @@ public class IndexBuilder {
             String message = "Arc-file does not exist. Indexing will exit. Missing file:"+nextARC;
             log.error(message);
             System.out.println(message);
-            System.exit(1);
-            
+            return false;            
         }
-        
-        
         
         jobController.submit(new IndexWorker(
                 nextARC, config.getSolr_url(),
