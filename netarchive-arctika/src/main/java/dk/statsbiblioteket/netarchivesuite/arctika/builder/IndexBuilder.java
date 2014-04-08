@@ -100,7 +100,7 @@ public class IndexBuilder {
                 // Start up new workers until pool is full or there are no more ARCs
                 while (jobController.getActiveCount() < config.getMax_concurrent_workers()) {
                     if (!startNewIndexWorker()) {
-                        log.info("Could not start new worker (probably due to no more un-indexed ARCs");
+                        log.info("Could not start new worker (probably due to no more un-indexed ARCs or an ARC-file does not exist");
                         break out;
                     }
                 }
@@ -208,7 +208,7 @@ public class IndexBuilder {
  
         //Check file exist, or exit! Something is serious wrong.
         File f = new File(nextARC);
-        if (f.isFile()){
+        if (!f.exists()){
             String message = "Arc-file does not exist. Indexing will exit when workers are finished. Missing file:"+nextARC;
             log.error(message);
             System.out.println(message);

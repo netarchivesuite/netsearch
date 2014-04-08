@@ -222,7 +222,7 @@ public class H2Storage {
             stmt.setString(1, arcId);
             stmt.setString(2, folder);
             stmt.setLong(3, now);
-            stmt.setInt(4,1);  //priority 1
+            stmt.setInt(4,5);  //priority 5
             stmt.setString(5,"NEW");					
             stmt.setLong(6,now);
             //Shardid is not set. Will be null
@@ -272,7 +272,7 @@ public class H2Storage {
                 stmt.setString(1, arcId);
                 stmt.setString(2, folder);
                 stmt.setLong(3, now);
-                stmt.setInt(4,1);  //priority 1
+                stmt.setInt(4,5);  //priority 5
                 stmt.setString(5,"NEW");                    
                 stmt.setLong(6,now);
                 //Shardid is not set. Will be null

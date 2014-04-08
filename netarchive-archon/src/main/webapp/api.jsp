@@ -41,7 +41,7 @@ An ARC-file unique identifier is only the filename and not the full file-path.<b
             </td>
           </tr>
              <tr>  
-            <td>services/setArcPriority/{arcPath}/{priority}</td>  
+            <td>services/setARCPriority/{arcPath}/{priority}</td>  
             <td>
             Change the priority for the given arc-file<br>
             example: services/setARCPriority/folder1%2Ffolder2%2Farcfile1.arc/3  

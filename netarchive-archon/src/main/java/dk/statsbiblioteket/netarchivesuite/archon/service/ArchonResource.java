@@ -59,8 +59,7 @@ public class ArchonResource {
             H2Storage.getInstance().addOrUpdateARC(arcID); 
         } catch (Exception e) {
             throw handleServiceExceptions(e);
-        }        
-    
+        }            
     }
 
     @GET            
