@@ -12,8 +12,8 @@ Rest-interface.
 An nice API page can be seen at: http://belinda:9721/netarchive-archon/   (API tab)
 There are more methods that will be described later, but they are only necessary in case of something goes wrong.
 
-Example script that registre all arc files from a folder (/netarkiv/01/0003/filedir/) in archon:
-Notice this will also registre the meta-data files, and this should be kept out. But nothing happens
+Example script that register all arc files from a folder (/netarkiv/01/0003/filedir/) in archon:
+Notice this will also register the meta-data files, and this should be kept out. But nothing happens
 if they are added.  
 
 
