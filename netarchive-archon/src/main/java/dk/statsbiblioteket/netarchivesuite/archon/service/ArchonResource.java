@@ -72,9 +72,7 @@ public class ArchonResource {
             return nextARC;
         } catch (Exception e) {
             throw handleServiceExceptions(e);
-        }        
-    
-        
+        }                
     }
 
     @POST            
