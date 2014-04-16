@@ -18,6 +18,10 @@
 
   <dependencies>
 
+<!--
+TO BUILD THE JAR WITH DEPENDENCIES USE:
+ mvn install assembly:assembly
+-->
     <!-- Local dependencies -->
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -81,23 +85,17 @@
   <plugins>
   
    
+
+
 <plugin>
-    <artifactId>maven-dependency-plugin</artifactId>
-    <executions>
-      <execution>
-        <id>unpack-dependencies</id>
-        <phase>prepare-package</phase>
-        <goals>
-          <goal>unpack-dependencies</goal>
-        </goals>
-        <configuration>
-          <outputDirectory>${project.build.directory}/classes</outputDirectory>
-        </configuration>
-      </execution>
-
-    </executions>
-  </plugin>
-
+  <artifactId>maven-assembly-plugin</artifactId>
+  <version>2.3</version>
+  <configuration>
+    <descriptorRefs>
+      <descriptorRef>jar-with-dependencies</descriptorRef>
+    </descriptorRefs>
+  </configuration>
+</plugin>
 
   <plugin>
     <groupId>org.apache.maven.plugins</groupId>
@@ -119,10 +117,10 @@
     </configuration>
   </plugin>
   
+                
  </plugins>
 
-
-
+  
   </build>
 
 
