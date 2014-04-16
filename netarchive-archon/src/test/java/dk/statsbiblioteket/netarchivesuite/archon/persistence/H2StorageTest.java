@@ -104,8 +104,6 @@ public class H2StorageTest {
 
     }
 
-
-      
     
     @Test
     public void testNextARC() throws Exception {
