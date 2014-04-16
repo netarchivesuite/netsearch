@@ -69,9 +69,8 @@ public class H2Storage {
                     +" WHERE "+ ARC_STATE_COLUMN+"  = 'NEW'"
                     +"  AND ("+SHARD_ID_COLUMN+" = ?  OR "+ SHARD_ID_COLUMN +" IS NULL )"
                     +" ORDER BY "
-                    +" "+SHARD_ID_COLUMN +" DESC,"
                     +" "+PRIORITY_COLUMN +" DESC,"
-                    +" "+ARC_FILE_ID_COLUMN +" ASC"
+                    +" "+SHARD_ID_COLUMN +" DESC"                    
                     +" LIMIT 1";
 
 
@@ -317,6 +316,9 @@ public class H2Storage {
         int shardIdInt =  Integer.parseInt(shardID);
 
         try {
+            
+            System.out.println(selectNextArcQuery);
+            
             stmt = singleDBConnection.prepareStatement(selectNextArcQuery);
             stmt.setInt(1, shardIdInt);
             ResultSet rs = stmt.executeQuery();
