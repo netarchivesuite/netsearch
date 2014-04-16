@@ -3,7 +3,7 @@
 for ARC_DIR in $(ls -d /netarkiv/*/*/filedir /netarkiv/*/filedir 2>/dev/null)
 do
   echo "processing directory: $ARC_DIR"
-  for f in $(find $ARC_DIR -maxdepth 1 -type f -name '*.arc' 2>/dev/null)
+  for f in $(find $ARC_DIR -maxdepth 1 -type f -name '*arc' 2>/dev/null)
   do
     full_path=$f
     echo "processing arc-file: $full_path"

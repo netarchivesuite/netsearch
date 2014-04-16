@@ -1,8 +1,11 @@
-Latest 1000 arcs added:
-
 <%     
    List<ArcVO> latest1000Arcs = storage.getLatest1000Arcs();
+   int totalNumberOfArcFiles = storage.getArcCount();
 %>
+
+<Strong>TotalNumber of Arc-files: <%=totalNumberOfArcFiles%>  </Strong>
+<br>
+Latest 1000 arcs added:<br>
 
   <table class="table table-striped table-condensed table-hover">
    <thead>

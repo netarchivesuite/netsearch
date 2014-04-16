@@ -57,6 +57,10 @@ public class H2Storage {
 
     private final static String selectNextShardIdQuery = 
             " SELECT MAX("+SHARD_ID_COLUMN+") FROM " + ARCHON_TABLE;
+    
+    private final static String selectCountArcsQuery = 
+            " SELECT COUNT(*) AS COUNT FROM " + ARCHON_TABLE;
+    
 
     //select FILENAME from ARCHON where status ='NEW' AND ( SHARD_ID = 10 OR SHARD_ID is null) order by shard_ID desc, priority desc, filename asc limit  1
     private final static String selectNextArcQuery =
@@ -401,6 +405,27 @@ public class H2Storage {
     }
 
 
+
+    public int getArcCount() throws Exception{
+
+        PreparedStatement stmt = null;
+        try {
+            stmt = singleDBConnection.prepareStatement(selectCountArcsQuery);
+
+            ResultSet rs = stmt.executeQuery();
+            rs.next();
+                                   
+            return rs.getInt("COUNT"); 
+
+
+        } catch (SQLException e) {
+            log.error("SQL Exception in getArcCount():" + e.getMessage());
+            throw e;
+        } finally {
+            closeStatement(stmt);
+        }
+    }
+    
     public List<ArcVO> getLatest1000Arcs() throws Exception{
         PreparedStatement stmt = null;
 

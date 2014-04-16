@@ -224,9 +224,14 @@ public class H2StorageTest {
         arc = storage.getArcByID("arcfile1");
         assertEquals(arcFile1, arc.getFileName());
         assertEquals("NEW", arc.getArcState());   
-        assertEquals(1, arc.getPriority());
+        assertEquals(5, arc.getPriority());
         assertEquals(null, arc.getShardId());
 
+        
+          int arcCount = storage.getArcCount();
+          assertEquals(1,arcCount);
+         
+        
     }
 
     @Test
