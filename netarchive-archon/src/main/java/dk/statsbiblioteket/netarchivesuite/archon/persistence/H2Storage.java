@@ -69,8 +69,8 @@ public class H2Storage {
                     +" WHERE "+ ARC_STATE_COLUMN+"  = 'NEW'"
                     +"  AND ("+SHARD_ID_COLUMN+" = ?  OR "+ SHARD_ID_COLUMN +" IS NULL )"
                     +" ORDER BY "
-                    +" "+PRIORITY_COLUMN +" DESC,"
-                    +" "+SHARD_ID_COLUMN +" DESC"                    
+                    +" "+SHARD_ID_COLUMN +" DESC"
+                    +" "+PRIORITY_COLUMN +" DESC,"                                        
                     +" LIMIT 1";
 
 
@@ -331,9 +331,10 @@ public class H2Storage {
 
             String arcID = rs.getString(ARC_FILE_ID_COLUMN);
             String folder = rs.getString(FOLDER_COLUMN);
-
+            int priority = rs.getInt(PRIORITY_COLUMN);
+                        
             String fullPath = folder+arcID;
-            setARCProperties(arcID, shardID, ArchonConnector.ARC_STATE.RUNNING, 5);            
+            setARCProperties(arcID, shardID, ArchonConnector.ARC_STATE.RUNNING, priority);            
             log.info("Returning next arc:"+fullPath);                                                 
             return fullPath;
 
