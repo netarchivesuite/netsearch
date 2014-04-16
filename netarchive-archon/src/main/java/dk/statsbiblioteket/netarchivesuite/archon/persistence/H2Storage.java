@@ -69,8 +69,8 @@ public class H2Storage {
                     +" WHERE "+ ARC_STATE_COLUMN+"  = 'NEW'"
                     +"  AND ("+SHARD_ID_COLUMN+" = ?  OR "+ SHARD_ID_COLUMN +" IS NULL )"
                     +" ORDER BY "
-                    +" "+SHARD_ID_COLUMN +" DESC"
-                    +" "+PRIORITY_COLUMN +" DESC,"                                        
+                    +" "+SHARD_ID_COLUMN +" DESC,"
+                    +" "+PRIORITY_COLUMN +" DESC"                                        
                     +" LIMIT 1";
 
 
