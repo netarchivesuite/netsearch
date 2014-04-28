@@ -327,11 +327,11 @@ public class H2Storage {
             while(rs.next()){
                 list.add(createArcVOFromRS(rs));
             }            
-            log.info("New cache size:"+list.size());
+
             return list;
         }
      catch (SQLException e) {
-        log.error("SQL Exception in nextARC:" + e.getMessage());
+        log.error("SQL Exception in getNextArcIdsToCache:" + e.getMessage());
         throw e;
     } finally {
         closeStatement(stmt);
