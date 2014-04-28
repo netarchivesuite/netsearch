@@ -54,15 +54,15 @@ public class H2Storage {
     private static final String FOLDER_COLUMN = "FOLDER";
     private static HashMap<String,ArrayList<ArcVO>> nextArcIdsCached= new HashMap<String,ArrayList<ArcVO>>();
 
-    
+
     //private static final String ID_COLUMN = "ID"; // ID used for all tables
 
     private final static String selectNextShardIdQuery = 
             " SELECT MAX("+SHARD_ID_COLUMN+") FROM " + ARCHON_TABLE;
-    
+
     private final static String selectCountArcsQuery = 
             " SELECT COUNT(*) AS COUNT FROM " + ARCHON_TABLE;
-    
+
 
     //select FILENAME from ARCHON where status ='NEW' AND ( SHARD_ID = 10 OR SHARD_ID is null) order by shard_ID desc, priority desc, filename asc limit  1
     private final static String selectNextArcQuery =
@@ -113,7 +113,7 @@ public class H2Storage {
             +ARC_FILE_ID_COLUMN+" = ?";
 
 
-    
+
     private final static String setShardStateStatement = "UPDATE "+ ARCHON_TABLE 
             +" SET "+ARC_STATE_COLUMN+ " = ? , " 
             + PRIORITY_COLUMN + " = ? ,"
@@ -130,13 +130,13 @@ public class H2Storage {
             +" WHERE "
             +ARC_FILE_ID_COLUMN+" = ?";
 
-    
+
     private final static String setArcPriorityStatement = "UPDATE "+ ARCHON_TABLE 
             +" SET "+PRIORITY_COLUMN+ " = ? , "             
             + MODIFIED_TIME_COLUMN + " = ? " 
             +" WHERE "
             +ARC_FILE_ID_COLUMN+" = ?";
-    
+
     //SELECT DISTINCT (SHARD_ID) from ARCHON WHERE SHARD_ID IS NOT NULL
     private final static String selectShardIDsQuery =
             "SELECT DISTINCT("+SHARD_ID_COLUMN+") FROM " + ARCHON_TABLE +" WHERE "+SHARD_ID_COLUMN +"  IS NOT NULL" ;            
@@ -266,7 +266,7 @@ public class H2Storage {
                 if (updated == 0){ //arcfile not found
                     throw new IllegalArgumentException("Arcfile not found with id:"+arcId);
                 }                
-                
+
             }
             else{ //create new
                 log.info("Persisting new arc-file: " + arcPath);
@@ -313,7 +313,7 @@ public class H2Storage {
         return ids;
     }
 
-    
+
     private ArrayList<ArcVO> getNextArcIdsToCache(String shardID)  throws Exception{  
         PreparedStatement stmt = null;
         int shardIdInt =  Integer.parseInt(shardID);
@@ -330,22 +330,22 @@ public class H2Storage {
 
             return list;
         }
-     catch (SQLException e) {
-        log.error("SQL Exception in getNextArcIdsToCache:" + e.getMessage());
-        throw e;
-    } finally {
-        closeStatement(stmt);
-    }   
-        
-        
+        catch (SQLException e) {
+            log.error("SQL Exception in getNextArcIdsToCache:" + e.getMessage());
+            throw e;
+        } finally {
+            closeStatement(stmt);
+        }   
+
+
     }
-    
+
     public synchronized String nextARC(String shardID) throws Exception{
-        
+
         PreparedStatement stmt = null;
 
         try {
-                        
+
             //Update cache if needed
             ArrayList<ArcVO> nextArcIdsCachedForShard = nextArcIdsCached.get(shardID);
             if (nextArcIdsCachedForShard == null || nextArcIdsCachedForShard.size() == 0){ //init if empty
@@ -354,14 +354,14 @@ public class H2Storage {
                 log.info("initialized nextArcIdCache for shardID:"+shardID);
             }
 
-            
+
             nextArcIdsCachedForShard = nextArcIdsCached.get(shardID);
             if (nextArcIdsCachedForShard.size() == 0){                        
                 log.info("No ARC files with status NEW are ready to process.");                                                
                 return "";
             }
             ArcVO nextArc = nextArcIdsCachedForShard.remove(0);
-                                                        
+
             String fullPath = nextArc.getFileName();
             setARCProperties(nextArc.getFileName(), shardID, ArchonConnector.ARC_STATE.RUNNING, nextArc.getPriority());            
             log.info("Returning next arc:"+fullPath);                                                 
@@ -374,10 +374,10 @@ public class H2Storage {
         } finally {
             closeStatement(stmt);
         }   
-        
-        
+
+
     }
-   
+
 
     public List<String> getARCFiles(String shardID) throws Exception{
         PreparedStatement stmt = null;
@@ -438,7 +438,7 @@ public class H2Storage {
 
             ResultSet rs = stmt.executeQuery();
             rs.next();
-                                   
+
             return rs.getInt("COUNT"); 
 
 
@@ -449,7 +449,7 @@ public class H2Storage {
             closeStatement(stmt);
         }
     }
-    
+
     public List<ArcVO> getLatest1000Arcs() throws Exception{
         PreparedStatement stmt = null;
 
@@ -601,7 +601,7 @@ public class H2Storage {
         }               
     }
 
-    
+
     //synchronized since we are writing.     
     public synchronized void setARCPriority(String fullPath, int priority) throws Exception{
 
@@ -635,7 +635,7 @@ public class H2Storage {
             closeStatement(stmt);
         }               
     }
-    
+
     //synchronized since we are writing.
     public synchronized void removeARC(String arcID) throws Exception{
         PreparedStatement stmt = null;
@@ -708,11 +708,11 @@ public class H2Storage {
         } 
 
     }
-    
-    
+
+
     private static ArcVO createArcVOFromRS(ResultSet rs) throws SQLException {
         ArcVO arc = new ArcVO();
-       
+
         arc.setFileId(rs.getString(ARC_FILE_ID_COLUMN));
         arc.setFolderName(rs.getString(FOLDER_COLUMN));        
         arc.setFileName(rs.getString(FOLDER_COLUMN)+rs.getString(ARC_FILE_ID_COLUMN));
@@ -728,11 +728,11 @@ public class H2Storage {
         }                                                                   
         return arc;
     }
-    
+
     protected void clearCachedArcs(){
-         nextArcIdsCached= new HashMap<String,ArrayList<ArcVO>>();
+        nextArcIdsCached= new HashMap<String,ArrayList<ArcVO>>();
     }
-    
+
     /*
      * Will create a zip-file with a backup of the database.
      * 
