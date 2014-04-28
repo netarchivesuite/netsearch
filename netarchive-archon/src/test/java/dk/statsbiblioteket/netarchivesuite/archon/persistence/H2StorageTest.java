@@ -134,6 +134,8 @@ public class H2StorageTest {
         nextArc = storage.nextARC("10");
         assertEquals(arcFile3Shard10Priority3,nextArc); // must be the one with highest priority
 
+        storage.clearCachedArcs();
+        
         //Test Lexicographical sorting
         //add another with priority 3, but name aaarcfile5 and this must be returned    
         String arcFile5Shard10Priority3= "aaarcfile5";      

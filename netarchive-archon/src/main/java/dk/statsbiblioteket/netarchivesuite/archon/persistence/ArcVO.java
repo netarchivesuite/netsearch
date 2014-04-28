@@ -2,6 +2,9 @@ package dk.statsbiblioteket.netarchivesuite.archon.persistence;
 
 public class ArcVO {
 
+    
+    private String fileId;
+    private String folderName;
     private String fileName;
     private long createdTime;
     private int priority;
@@ -9,10 +12,25 @@ public class ArcVO {
     private Integer shardId;
     private long modifiedTime;
     
-    public ArcVO(){
-        
-    }
+    public ArcVO(){        
+    }    
     
+    public String getFileId() {
+        return fileId;
+    }
+
+    public void setFileId(String fileId) {
+        this.fileId = fileId;
+    }
+
+    public String getFolderName() {
+        return folderName;
+    }
+
+    public void setFolderName(String folderName) {
+        this.folderName = folderName;
+    }
+
     public String getFileName() {
         return fileName;
     }

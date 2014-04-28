@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -51,8 +52,9 @@ public class H2Storage {
     private static final String SHARD_ID_COLUMN = "SHARD_ID";
     private static final String MODIFIED_TIME_COLUMN = "MODIFIED_TIME";    
     private static final String FOLDER_COLUMN = "FOLDER";
+    private static HashMap<String,ArrayList<ArcVO>> nextArcIdsCached= new HashMap<String,ArrayList<ArcVO>>();
 
-
+    
     //private static final String ID_COLUMN = "ID"; // ID used for all tables
 
     private final static String selectNextShardIdQuery = 
@@ -71,7 +73,7 @@ public class H2Storage {
                     +" ORDER BY "
                     +" "+SHARD_ID_COLUMN +" DESC,"
                     +" "+PRIORITY_COLUMN +" DESC"                                        
-                    +" LIMIT 1";
+                    +" LIMIT 10";
 
 
     private final static String selectNewest1000Query =
@@ -311,30 +313,57 @@ public class H2Storage {
         return ids;
     }
 
-    public String nextARC(String shardID) throws Exception{
+    
+    private ArrayList<ArcVO> getNextArcIdsToCache(String shardID)  throws Exception{  
         PreparedStatement stmt = null;
         int shardIdInt =  Integer.parseInt(shardID);
-
+        ArrayList<ArcVO> list = new  ArrayList<ArcVO>();
         try {
-            
-            System.out.println(selectNextArcQuery);
-            
+            log.info("Reloading cache for shardID:"+shardID);
             stmt = singleDBConnection.prepareStatement(selectNextArcQuery);
             stmt.setInt(1, shardIdInt);
             ResultSet rs = stmt.executeQuery();
 
+            while(rs.next()){
+                list.add(createArcVOFromRS(rs));
+            }            
+            log.info("New cache size:"+list.size());
+            return list;
+        }
+     catch (SQLException e) {
+        log.error("SQL Exception in nextARC:" + e.getMessage());
+        throw e;
+    } finally {
+        closeStatement(stmt);
+    }   
+        
+        
+    }
+    
+    public synchronized String nextARC(String shardID) throws Exception{
+        
+        PreparedStatement stmt = null;
 
-            if (!rs.next()){                        
+        try {
+                        
+            //Update cache is empty
+            ArrayList<ArcVO> nextArcIdsCachedForShard = nextArcIdsCached.get(shardID);
+            if (nextArcIdsCachedForShard == null || nextArcIdsCachedForShard.size() == 0){ //init if empty
+                ArrayList<ArcVO> nextArcIds = getNextArcIdsToCache(shardID);
+                nextArcIdsCached.put(shardID, nextArcIds);
+                log.info("initialized nextArcIdCache for shardID:"+shardID);
+            }
+
+            
+            nextArcIdsCachedForShard = nextArcIdsCached.get(shardID);
+            if (nextArcIdsCachedForShard.size() == 0){                        
                 log.info("No ARC files with status NEW are ready to process.");                                                
                 return "";
             }
-
-            String arcID = rs.getString(ARC_FILE_ID_COLUMN);
-            String folder = rs.getString(FOLDER_COLUMN);
-            int priority = rs.getInt(PRIORITY_COLUMN);
-                        
-            String fullPath = folder+arcID;
-            setARCProperties(arcID, shardID, ArchonConnector.ARC_STATE.RUNNING, priority);            
+            ArcVO nextArc = nextArcIdsCachedForShard.remove(0);
+                                                        
+            String fullPath = nextArc.getFileName();
+            setARCProperties(nextArc.getFileName(), shardID, ArchonConnector.ARC_STATE.RUNNING, nextArc.getPriority());            
             log.info("Returning next arc:"+fullPath);                                                 
             return fullPath;
 
@@ -345,7 +374,10 @@ public class H2Storage {
         } finally {
             closeStatement(stmt);
         }   
+        
+        
     }
+   
 
     public List<String> getARCFiles(String shardID) throws Exception{
         PreparedStatement stmt = null;
@@ -384,18 +416,7 @@ public class H2Storage {
                 throw new IllegalArgumentException("No arc with id:"+arcID);
             }
 
-            ArcVO arc = new ArcVO();
-            arc.setFileName(rs.getString(FOLDER_COLUMN)+rs.getString(ARC_FILE_ID_COLUMN));           
-            arc.setCreatedTime(rs.getLong(CREATED_TIME_COLUMN));            
-            arc.setArcState(rs.getString(ARC_STATE_COLUMN)); 
-            arc.setPriority(rs.getInt(PRIORITY_COLUMN));            
-            arc.setModifiedTime(rs.getLong(MODIFIED_TIME_COLUMN));
-
-            //Can be NULL
-            String shardIdStr= rs.getString(SHARD_ID_COLUMN);            
-            if (shardIdStr != null){
-                arc.setShardId(new Integer(shardIdStr));                
-            }                                                                   
+            ArcVO arc = createArcVOFromRS(rs);
             return arc; 
 
 
@@ -438,19 +459,7 @@ public class H2Storage {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()){        
-                ArcVO arc = new ArcVO();
-                arc.setFileName(rs.getString(FOLDER_COLUMN)+rs.getString(ARC_FILE_ID_COLUMN));
-                arc.setCreatedTime(rs.getLong(CREATED_TIME_COLUMN));            
-                arc.setArcState(rs.getString(ARC_STATE_COLUMN)); 
-                arc.setPriority(rs.getInt(PRIORITY_COLUMN));            
-                arc.setModifiedTime(rs.getLong(MODIFIED_TIME_COLUMN));
-
-                //Can be NULL
-                String shardIdStr= rs.getString(SHARD_ID_COLUMN);            
-                if (shardIdStr != null){
-                    arc.setShardId(new Integer(shardIdStr));                
-                }                                                                   
-                latestArcs.add(arc);
+                latestArcs.add(createArcVOFromRS(rs));
             }
             return latestArcs; 
 
@@ -473,19 +482,7 @@ public class H2Storage {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()){        
-                ArcVO arc = new ArcVO();
-                arc.setFileName(rs.getString(FOLDER_COLUMN)+rs.getString(ARC_FILE_ID_COLUMN));
-                arc.setCreatedTime(rs.getLong(CREATED_TIME_COLUMN));            
-                arc.setArcState(rs.getString(ARC_STATE_COLUMN)); 
-                arc.setPriority(rs.getInt(PRIORITY_COLUMN));            
-                arc.setModifiedTime(rs.getLong(MODIFIED_TIME_COLUMN));
-
-                //Can be NULL
-                String shardIdStr= rs.getString(SHARD_ID_COLUMN);            
-                if (shardIdStr != null){
-                    arc.setShardId(new Integer(shardIdStr));                
-                }                                                                   
-                latestArcs.add(arc);
+                latestArcs.add(createArcVOFromRS(rs));
             }
             return latestArcs; 
 
@@ -496,6 +493,8 @@ public class H2Storage {
             closeStatement(stmt);
         }
     }
+
+
 
 
     //synchronized since we are writing.
@@ -709,6 +708,31 @@ public class H2Storage {
         } 
 
     }
+    
+    
+    private static ArcVO createArcVOFromRS(ResultSet rs) throws SQLException {
+        ArcVO arc = new ArcVO();
+       
+        arc.setFileId(rs.getString(ARC_FILE_ID_COLUMN));
+        arc.setFolderName(rs.getString(FOLDER_COLUMN));        
+        arc.setFileName(rs.getString(FOLDER_COLUMN)+rs.getString(ARC_FILE_ID_COLUMN));
+        arc.setCreatedTime(rs.getLong(CREATED_TIME_COLUMN));            
+        arc.setArcState(rs.getString(ARC_STATE_COLUMN)); 
+        arc.setPriority(rs.getInt(PRIORITY_COLUMN));            
+        arc.setModifiedTime(rs.getLong(MODIFIED_TIME_COLUMN));
+
+        //Can be NULL
+        String shardIdStr= rs.getString(SHARD_ID_COLUMN);            
+        if (shardIdStr != null){
+            arc.setShardId(new Integer(shardIdStr));                
+        }                                                                   
+        return arc;
+    }
+    
+    protected void clearCachedArcs(){
+         nextArcIdsCached= new HashMap<String,ArrayList<ArcVO>>();
+    }
+    
     /*
      * Will create a zip-file with a backup of the database.
      * 
