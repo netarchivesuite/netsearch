@@ -73,7 +73,7 @@ public class H2Storage {
                     +" ORDER BY "
                     +" "+SHARD_ID_COLUMN +" DESC,"
                     +" "+PRIORITY_COLUMN +" DESC"                                        
-                    +" LIMIT 10";
+                    +" LIMIT 100";
 
 
     private final static String selectNewest1000Query =
