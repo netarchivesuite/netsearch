@@ -346,7 +346,7 @@ public class H2Storage {
 
         try {
                         
-            //Update cache is empty
+            //Update cache if needed
             ArrayList<ArcVO> nextArcIdsCachedForShard = nextArcIdsCached.get(shardID);
             if (nextArcIdsCachedForShard == null || nextArcIdsCachedForShard.size() == 0){ //init if empty
                 ArrayList<ArcVO> nextArcIds = getNextArcIdsToCache(shardID);
