@@ -160,6 +160,11 @@ public class H2Storage {
             +SHARD_ID_COLUMN+" = ?"
             +" AND "+ARC_STATE_COLUMN+" = ?";
 
+    private final static String resetShardIDStatement =  "UPDATE "+ ARCHON_TABLE 
+            +" SET "+ARC_STATE_COLUMN+ " = 'NEW'"
+            +" WHERE "
+            +SHARD_ID_COLUMN+" = ?";
+
 
 
     public H2Storage(String dbFilePath) throws SQLException {
@@ -689,6 +694,24 @@ public class H2Storage {
 
     }
 
+
+    //synchronized since we are writing.
+    public synchronized void resetShardId(String shardID) throws Exception{
+        PreparedStatement stmt = null;
+        try {                               
+            stmt = singleDBConnection.prepareStatement(resetShardIDStatement);
+            stmt.setInt(1, Integer.parseInt(shardID));
+            int updated = stmt.executeUpdate();
+            log.info("resetShardId:"+shardID +" Number of arcfiles changed status:"+updated);           
+            singleDBConnection.commit(); 
+        } catch (Exception e) {
+            log.error("SQL Exception in resetShardId:" + e.getMessage());                                
+            throw e;
+        } finally {
+            closeStatement(stmt);
+        }                       
+    }
+    
     //This is the filename only, not the full path
     private boolean aRCIDExist(String arcID) throws Exception{
 

@@ -97,6 +97,16 @@ public class ArchonResource {
     }
 
     @POST            
+    @Path("resetShardID/{shardID}")              
+    public void resetShardID(@PathParam("shardID") String shardID) throws ArchonServiceException  {                                     
+        try {
+             H2Storage.getInstance().resetShardId(shardID);            
+        } catch (Exception e) {
+            throw handleServiceExceptions(e);
+        }        
+    }
+    
+    @POST            
     @Path("removeARC/{arcID}")           
     public void removeARC(@PathParam("arcID") String arcID) throws ArchonServiceException  {                                     
         try {

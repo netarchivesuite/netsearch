@@ -315,6 +315,26 @@ public class H2StorageTest {
         
 
     @Test
+    public void testResetShardIDs() throws Exception {    
+        
+        storage.addARC(arcFile1);          
+        storage.addARC(arcFile2);
+        storage.setARCProperties(arcFile1, "1", ArchonConnector.ARC_STATE.COMPLETED, 9);  
+        storage.setARCProperties(arcFile2, "1", ArchonConnector.ARC_STATE.RUNNING, 9);
+        //Now clearIndexing and check status
+        storage.resetShardId("1");
+        
+        //check status is running.
+        ArcVO arc1 = storage.getArcByID("arcfile1");   
+        ArcVO arc2 = storage.getArcByID("arcfile2");
+        assertEquals("NEW",arc1.getArcState());
+        assertEquals("NEW",arc2.getArcState());                       
+        
+        assertEquals(new Integer(1),arc1.getShardId());
+    }
+    
+
+    @Test
     public void testRemoveARC() throws Exception {    
 
         try{
