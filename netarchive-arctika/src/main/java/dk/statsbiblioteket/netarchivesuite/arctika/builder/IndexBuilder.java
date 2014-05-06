@@ -98,7 +98,8 @@ public class IndexBuilder {
         out: do {
             while (!isOptimizeLimitReached()) { // Contract: #activeWorkers < max
                 // Start up new workers until pool is full or there are no more ARCs
-                while (jobController.getActiveCount() < config.getMax_concurrent_workers()) {
+                int newJobs = 0;
+                while (jobController.getActiveCount() < config.getMax_concurrent_workers() && newJobs++ < 10) {
                     if (!startNewIndexWorker()) {
                         log.info("Could not start new worker (probably due to no more un-indexed ARCs or an ARC-file does not exist");
                         break out;
