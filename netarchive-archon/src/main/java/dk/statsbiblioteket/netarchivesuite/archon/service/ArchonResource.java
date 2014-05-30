@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.statsbiblioteket.netarchivesuite.archon.ArchonPropertiesLoader;
+import dk.statsbiblioteket.netarchivesuite.archon.persistence.ArcVO;
 import dk.statsbiblioteket.netarchivesuite.archon.persistence.H2Storage;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.ArchonServiceException;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.InternalServiceException;
@@ -41,6 +42,17 @@ public class ArchonResource {
         }           
     }
 
+    @GET           
+    @Path("find/{arcID}")        
+    @Produces({MediaType.APPLICATION_JSON}) 
+    public ArcVO find(@PathParam("arcID") String arcID) throws ArchonServiceException  {                                        
+        try {
+            return H2Storage.getInstance().getArcByID(arcID);    
+        } catch (Exception e) {
+            throw handleServiceExceptions(e);
+        }           
+    }
+    
     @POST            
     @Path("addARC/{arcID}")               
     public void addARC(@PathParam("arcID") String arcID) throws ArchonServiceException  {                                     
