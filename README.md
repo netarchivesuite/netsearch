@@ -51,6 +51,10 @@ https://github.com/netarchivesuite/netsearch/releases
 Each folder has an install guide. You only need to git clone and build the warc-indexer project for a jar-file, the rest
 is included in the release package.
 
+**Performance test**
+https://plus.google.com/+TokeEskildsen/posts/4yPvzrQo8A7
+
+
 Thomas Egense
 2014-06-06
 
