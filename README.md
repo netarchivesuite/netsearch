@@ -1,24 +1,26 @@
 Netsearch
 ==========
 
-**Abstract:**
+**Abstract**
+
 Netarchive is a open source Maven project that can process a very large number of arc/warc-files (Web ARChive file format) and make the content of the archive
 searchable in a Solr-server cluster (SolrCloud). The search-results can then be shown in the WebArchive viewer.
 
-**Scalability**:
+**Scalability**
+
 The solution is scalable with growing index-size without reducing the search performance. More specific we require non-faceted/grouping search times to be very fast &lt; 200ms
 and faceted/grouping search time &lt; 2000ms.
 
-
 **Software components**
+
 1. Archon. WAR-application that keeps track of the arc/warc files book keeping. Uses a DB (H2) for persistence.
 2. Arctika: Java program that builds a given index(shard) and manage a worker pool of jobs that each process a arc/warc-file and submits the extracted meta-data to solr. The workers uses (https://github.com/ukwa/webarchive-discovery) for reading the arc-files using Tika for text extraction.
 3. A Solr-Cloud cluster where you can add new servers(shards). Each index is put into a Solr server instance(shard) in the cluster.  A zookeeper emsemble monitors the clusters.
 4. Front-end server for searching and showing the results. We use the open source project SolrAjax for this. This will likely be replaced with a better front-end solution later.
 5. WebArchive server (Front-end server for displaying the websites)
 
-
 **Hardware configuration**
+
 1. Index-builder server
   * This server runs a single instance of Solr with the solely purpose of producing optimised indexes of a given size, which are then feed to the solr-cluster. The Solr server require 32 GB ram if you are building 1 TB index and (probably) ram requirement scales with index-size. The Archon application also runs on this server for simplicity, but Archon could be running on a completely different server if needed. The webserver running archon will perform better with more ram allocated due to the H2 database memory cache, we have started the web server with 4 GB. The Arctika process is also running on this server and starts a given number of worker pools.  Each worker needs 1 GB ram for the Tika process, this can maybe be reduced, but better safe than sorry. Each worker require 1 core(hypertthreaded) to run 'optimally'. When running 40 workers it takes 1 week to build  a 1 TB  optimized index. Again (as with Archon) the Arctika process can run on a different server than the index-builder Solr instance. 
   * Spec:
@@ -35,11 +37,15 @@ If you are not using facetting/grouping each Solr instance only require 4 GB ram
 
 
 **Arcfiles/index ration**
-100000 arc/warc files (100MB each) produces ~1 TB index (optimized)
+
+3100000 arc/warc files (100MB each) produces ~1 TB index (optimized)
 
 
 **Netsearch on GitHub**
+
 https://github.com/netarchivesuite/netsearch
+
+**Releases**
 
 
 
