@@ -1,14 +1,13 @@
 Netsearch
 ==========
 
-**Abstract:**
+**Abstract**
 Netarchive is a open source Maven project that can process a very large number of arc/warc-files (Web ARChive file format) and make the content of the archive
 searchable in a Solr-server cluster (SolrCloud). The search-results can then be shown in the WebArchive viewer.
 
-**Scalability**:
+**Scalability**
 The solution is scalable with growing index-size without reducing the search performance. More specific we require non-faceted/grouping search times to be very fast &lt; 200ms
 and faceted/grouping search time &lt; 2000ms.
-
 
 **Software components**
 1. Archon. WAR-application that keeps track of the arc/warc files book keeping. Uses a DB (H2) for persistence.
@@ -16,7 +15,6 @@ and faceted/grouping search time &lt; 2000ms.
 3. A Solr-Cloud cluster where you can add new servers(shards). Each index is put into a Solr server instance(shard) in the cluster.  A zookeeper emsemble monitors the clusters.
 4. Front-end server for searching and showing the results. We use the open source project SolrAjax for this. This will likely be replaced with a better front-end solution later.
 5. WebArchive server (Front-end server for displaying the websites)
-
 
 **Hardware configuration**
 1. Index-builder server
