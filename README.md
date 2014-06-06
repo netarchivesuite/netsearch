@@ -38,7 +38,7 @@ If you are not using facetting/grouping each Solr instance only require 4 GB ram
 
 **Arcfiles/index ration**
 
-3100000 arc/warc files (100MB each) produces ~1 TB index (optimized)
+100000 arc/warc files (100MB each) produces ~1 TB index (optimized)
 
 
 **Netsearch on GitHub**
