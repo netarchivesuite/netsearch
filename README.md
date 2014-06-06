@@ -45,6 +45,8 @@ If you are not using facetting/grouping each Solr instance only require 4 GB ram
 
 https://github.com/netarchivesuite/netsearch
 
+**Releases**
+
 
 
 
