@@ -46,12 +46,14 @@ If you are not using facetting/grouping each Solr instance only require 4 GB ram
 https://github.com/netarchivesuite/netsearch
 
 **Releases**
+
 For a full install of Arctika,Archon,SolrCloud and Zookeeper you can download the full release package here:
 https://github.com/netarchivesuite/netsearch/releases 
 Each folder has an install guide. You only need to git clone and build the warc-indexer project for a jar-file, the rest
 is included in the release package.
 
 **Performance test**
+
 https://plus.google.com/+TokeEskildsen/posts/4yPvzrQo8A7
 
 
