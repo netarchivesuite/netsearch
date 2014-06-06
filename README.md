@@ -21,7 +21,7 @@ The workers uses (https://github.com/ukwa/webarchive-discovery) for reading the 
 
 **Hardware configuration:**
 1. Index-builder server.
-This server runs a single instance of Solr with the solely purpose of producing optimised indexes of a given size, which are then feed to the solr-cluster.
+⋅⋅* This server runs a single instance of Solr with the solely purpose of producing optimised indexes of a given size, which are then feed to the solr-cluster.
 The Solr server require 32 GB ram if you are building 1 TB index and (probably) ram requirement scales with index-size.
 The Archon application also runs on this server for simplicity, but Archon could be running on a completely different server if needed. The webserver running archon will perform better
 with more ram allocated due to the H2 database memory cache, we have started the web server with 4 GB.
@@ -34,7 +34,7 @@ Spec:
 So if you are building a 1 TB index you need at least 4 TB device space.
 
 2. Solr-Cluster server(s):
-Runs a zookeeper ensemble (3 zookeeper instances) and a SolrCloud cluster. The SolrCloud have a solr master and a number of shards. Each solr-instance runs a index stored on a seperated SSD disc.
+⋅⋅* Runs a zookeeper ensemble (3 zookeeper instances) and a SolrCloud cluster. The SolrCloud have a solr master and a number of shards. Each solr-instance runs a index stored on a seperated SSD disc.
 If you are not using SSD disc the performance will suffer by a factor 10+. Each shard only consist of a single server, but using replica servers for each index is a very easy to configure. 
 You can run the zookeeper  ensemble on a difference machine to avoid single point of failure, but so far we have had no stability issues what so ever with SolrCloud and Zookeeper.
 When we are using 1 TB index and facetting on 6 fields, each Solr instance require a minimum of 8GB ram. Using 2 TB indexes probably require 12-16 GB ram for each Solr instance.
