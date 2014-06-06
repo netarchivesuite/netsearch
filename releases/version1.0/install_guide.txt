@@ -1,0 +1,5 @@
+Follow the install-guides in the 4 folders:
+archon
+arctika
+solr
+zookeeper
