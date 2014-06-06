@@ -49,7 +49,7 @@ All servers should have been started and the picture you will see should look li
 SolrCloud_Cluster_State.png in this folder
 
 Remember when you are changing the cluster state(number of servers/ports etc.) you need to delete the zookeeper data.
-
+Also it will be helpf
   
  
  
