@@ -1,27 +1,26 @@
 Netsearch
 ==========
 
-Abstract:
+**Abstract:**
 Netarchive is a open source Maven project that can process a very large number of arc/warc-files (Web ARChive file format) and make the content of the archive
 searchable in a Solr-server cluster (SolrCloud). The search-results can then be shown in the WebArchive viewer.
 
-Scalability:
+**Scalability**:
 The solution is scalable with growing index-size without reducing the search performance. More specific we require non-faceted/grouping search times to be very fast &lt; 200ms
 and faceted/grouping search time &lt; 2000ms.
 
 
-Software components:
-1) Archon. WAR-application that keeps track of the arc/warc files book keeping. Uses a DB (H2) for persistence.
-2) Arctika: Java program that builds a given index(shard) and manage a worker pool of jobs that each process a arc/warc-file and submits the extracted meta-data to solr.
+**Software components**:
+1. Archon. WAR-application that keeps track of the arc/warc files book keeping. Uses a DB (H2) for persistence.
+2. Arctika: Java program that builds a given index(shard) and manage a worker pool of jobs that each process a arc/warc-file and submits the extracted meta-data to solr.
 The workers uses (https://github.com/ukwa/webarchive-discovery) for reading the arc-files using Tika for text extraction.
-3) A Solr-Cloud cluster where you can add new servers(shards). Each index is put into a Solr server instance(shard) in the cluster.  A zookeeper emsemble monitors the clusters.
-4) Front-end server for searching and showing the results. We use the open source project SolrAjax for this. This will likely be replaced with a better front-end solution later.
-5) WebArchive server (Front-end server for displaying the websites)
+3. A Solr-Cloud cluster where you can add new servers(shards). Each index is put into a Solr server instance(shard) in the cluster.  A zookeeper emsemble monitors the clusters.
+4. Front-end server for searching and showing the results. We use the open source project SolrAjax for this. This will likely be replaced with a better front-end solution later.
+5. WebArchive server (Front-end server for displaying the websites)
 
 
-Hardware configuration:
-
-1) Index-builder server.
+**Hardware configuration:**
+1. Index-builder server.
 This server runs a single instance of Solr with the solely purpose of producing optimised indexes of a given size, which are then feed to the solr-cluster.
 The Solr server require 32 GB ram if you are building 1 TB index and (probably) ram requirement scales with index-size.
 The Archon application also runs on this server for simplicity, but Archon could be running on a completely different server if needed. The webserver running archon will perform better
@@ -34,7 +33,7 @@ Spec:
 5+ TB SSH storage for the index location and tika-temp folder. When optimizing the index, it can teoretically grow to three times the size.  Also the Tika-temp folder can grow to 500MB when building a 1 TB index.
 So if you are building a 1 TB index you need at least 4 TB device space.
 
-2) Solr-Cluster server(s):
+2. Solr-Cluster server(s):
 Runs a zookeeper ensemble (3 zookeeper instances) and a SolrCloud cluster. The SolrCloud have a solr master and a number of shards. Each solr-instance runs a index stored on a seperated SSD disc.
 If you are not using SSD disc the performance will suffer by a factor 10+. Each shard only consist of a single server, but using replica servers for each index is a very easy to configure. 
 You can run the zookeeper  ensemble on a difference machine to avoid single point of failure, but so far we have had no stability issues what so ever with SolrCloud and Zookeeper.
@@ -42,17 +41,11 @@ When we are using 1 TB index and facetting on 6 fields, each Solr instance requi
 If you are not using facetting/grouping each Solr instance only require 4 GB ram.
 
 
-
-1) Every Solr-index must be on a seperate SSD disk. This limits of size of each index(solr-shard). Not using SSD disks will multiply responsetimes with a factor 10.
-2) Book-keeping of which arc/warc files has been process and in which index.
-3) Managing a large amount of seperate worker processes that are responsible for indexing the arc/warc files and only building each index(shard) up to a given maximum size so it can fit on the SSD disk.
-4) Configuring the SolrCloud cluster with an zookeeper ensemble for this setup.
-
-Arcfiles/index ration:
+**Arcfiles/index ration:**
 100000 arc/warc files (100MB each) produces ~1 TB index (optimized)
 
 
-Netsearch on GitHub:
+**Netsearch on GitHub:**
 https://github.com/netarchivesuite/netsearch
 
 
