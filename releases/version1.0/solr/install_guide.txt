@@ -1,0 +1,62 @@
+SolrCloud install guide:
+Solr download: http://lucene.apache.org/solr/downloads.html  (you only want the war-file).
+Download Solr and install  solr-servers matching your expected number of indexes.
+Just install more Solr servers that you initial requirement and leave them with an empty index , but still
+be a part of the cluster. That way you only have to copy a new build index into one of the empty index without changing the cluster
+setup.
+Remember the newest Solr versions require Java 7!
+
+In all solr-instances you must replace the 3 files:
+schema.xml : no changes needed
+solrconfig.xml : only change if you need more or less facets etc. Remember to use docvalues for facets.
+stopwords.txt : this is for our danish version. You can use the default solr or make your own custom file, or just 
+use an empty stopwords.txt file. 
+
+One of the Solr servers must be the 'master' . It is most convenient  to name the servers(and install folders)
+shard1, shard2,shard3... etc and have shard1 be the master.
+Each server must know it shard number and this is done by the file core.properties.
+For each solr-server copy the core.properties to
+/solr_cluster/shard1/solr/collection1  and remember to edit the file and change the shardid.
+
+Configuration of the servers:
+For indexes of 1 TB every Solr-servers needs 8GB RAM. I estimate 12-16GB RAM for 2TB index.
+The servers needs the following properties defined, the master needs more properties and must be started
+first before the rest of the cluster is started.
+
+This is the jetty configuration:
+
+Solr master server:
+java -Dbootstrap_conf=true -Dbootstrap_confdir=./solr/collection1/conf -Dcollection.configName=myconf  -DnumShards=25 -Djetty.port=52301  -DzkHost=localhost:52001,localhost:52002,localhost:52003 -jar start.jar
+(Master runs on port 52301) 
+
+Rest of solr servers (shard02 example):
+java  -Djetty.port=52302  -DzkHost=localhost:52001,localhost:52002,localhost:52003 -jar start.jar
+(Shard02 runs on port 52302)
+
+If you are  using T picture SolrCloud.png omcat instead of jetty, you have remove the -jetty.port property and specify the tomcat port in server.xml
+Also you can set the properties for Tomcat in the setenv.sh file.
+
+And if you are not using jetty and the example installation you need to configure an additional port (I suggest using default solr port 8983) that must be the same
+all solr instances. In solr.xml you must change the following line  
+<int name="hostPort">${jetty.port:8983}</int>    
+to a hardcoded port or a new property given to all Solr instances at startup.
+Or you can just change it to 
+<int name="hostPort">${hostPort:8983}</int>  
+ 
+When you have configured everything correct you can see the SolrCloud cluster status in a browser:
+http://172.16.206.20:52301/solr/#/~cloud
+All servers should have been started and the picture you will see should look like the
+SolrCloud_Cluster_State.png in this folder
+
+Remember when you are changing the cluster state(number of servers/ports etc.) you need to delete the zookeeper data.
+
+  
+ 
+ 
+ 
+ 
+
+
+ 
+ 
+ 

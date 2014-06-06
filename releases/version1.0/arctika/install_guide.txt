@@ -1,0 +1,17 @@
+Arctika install guide:
+
+Copy the entire folder (the index build-server is an obvious choice).
+Arctika.properties:
+Change the port/server names to match your setup.
+The property 'actika.max_concurrent_workers' should match the number of CPUs in the server.
+The property 'arctika.shardId' must be manually increased when an index has been completed. Also remember
+to delete the index before starting a index build with a new shardid.
+
+In 'start_indexer.sh' just change the folder locations to match your setup.
+When you start the indexer both the  Archon and Solr-server must be up an running.
+If you stop this process you can just restart it and will continue from where it left.
+When the index has reached the given index-size, the process will terminate and log (indexer.log)
+that the index build has completed.
+  
+ 
+
