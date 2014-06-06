@@ -30,7 +30,7 @@ and faceted/grouping search time &lt; 2000ms.
 
 2. Solr-Cluster server(s)
  * Runs a zookeeper ensemble (3 zookeeper instances) and a SolrCloud cluster. The SolrCloud have a solr master and a number of shards. Each solr-instance runs a index stored on a seperated SSD disc.
-If you are not using SSD disc the performance will suffer by a factor 10+. Each shard only consist of a single server, but using replica servers for each index is a very easy to configure. 
+If you are not using SSD disc the performance will suffer by a factor 10+. Each shard only consist of a single server, but using replica servers for a shard is a very easy to configure. 
 You can run the zookeeper  ensemble on a difference machine to avoid single point of failure, but so far we have had no stability issues what so ever with SolrCloud and Zookeeper.
 When we are using 1 TB index and facetting on 6 fields, each Solr instance require a minimum of 8GB ram. Using 2 TB indexes probably require 12-16 GB ram for each Solr instance.
 If you are not using facetting/grouping each Solr instance only require 4 GB ram.
