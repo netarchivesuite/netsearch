@@ -49,6 +49,7 @@ https://github.com/netarchivesuite/netsearch
 
 For a full install of Arctika,Archon,SolrCloud and Zookeeper you can download the full release package here:
 https://github.com/netarchivesuite/netsearch/tree/master/releases/version1.0
+
 Each folder has an install guide. You only need to git clone and build the warc-indexer project for a jar-file, the rest
 is included in the release package.
 
