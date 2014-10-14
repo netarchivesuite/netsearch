@@ -18,5 +18,21 @@ rake db:migrate
 
 That should install all the needed parts for Blacklight and setup its database.
 
+Edit `config/solr.yml` to point to your Netarchive Solr instance.
+
 Now to run the server do `rails server` and open [http://localhost:3000/](http://localhost:3000/)
 
+## Configuration
+Configuration of fields and facets to be shown, Solr params, etc. can be found in `app/controllers/catalog_controller.rb`.
+
+Individual methods can be overwritten in `app/helpers/blacklight_helper.rb` (as has for instance been done with `link_to_document`in order to make it point to our Wayback instance).
+
+## TODO
+[ ] Simplify config
+[ ] Cleanup unneeded things from templates
+  [ ] Bookmarks
+  [ ] Sort dropdown
+  [ ] Search field dropdown
+  [ ] Login
+  [ ] History
+[ ] Adjust logo
