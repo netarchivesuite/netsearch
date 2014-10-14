@@ -3,3 +3,15 @@
 @import 'bootstrap';
 
 @import 'blacklight/blacklight';
+
+.navbar-right {
+  display: none;
+}
+
+.toggle_bookmark {
+  display: none;
+}
+
+.input-group-addon {
+  display: none;
+}
