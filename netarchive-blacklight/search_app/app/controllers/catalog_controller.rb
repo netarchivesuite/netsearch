@@ -31,6 +31,9 @@ class CatalogController < ApplicationController
     config.add_facet_field 'domain', :label => 'Domain'
     config.add_facet_field 'crawl_year', :label => 'Crawl Year', :single => true, sort: 'index'
     config.add_facet_field 'content_type_norm', :label => 'Content Type' 
+    config.add_facet_field 'host', :label => 'Host'
+    config.add_facet_field 'public_suffix', :label => 'Public Suffix'
+    config.add_facet_field 'url', :label => 'URL'
 
     # Have BL send all facet field names to Solr, which has been the default
     # previously. Simply remove these lines if you'd rather use Solr request
