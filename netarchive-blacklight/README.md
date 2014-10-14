@@ -13,9 +13,10 @@ To install these on Fedora do the following
 ```
 cd search_app
 bundle install
+rake db:migrate
 ```
 
-That should install all the needed parts for Blacklight.
+That should install all the needed parts for Blacklight and setup its database.
 
 Now to run the server do `rails server` and open [http://localhost:3000/](http://localhost:3000/)
 
