@@ -54,6 +54,7 @@ class CatalogController < ApplicationController
 
     # solr fields to be displayed in the index (search results) view
     # The ordering of the field names is the order of the display 
+    config.add_index_field 'url', :label => 'URL', :helper_method => :get_url_link
     config.add_index_field 'content_type', :label => 'Content Type'
     config.add_index_field 'crawl_date', :label => 'Crawl Date'
     config.add_index_field 'content_text', :label => 'Content', :highlight => true
