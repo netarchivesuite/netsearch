@@ -37,6 +37,6 @@ Read more about [configuring Blacklight](https://github.com/projectblacklight/bl
   - [x] Search field dropdown (hidden in CSS)
   - [x] Login (hidden in CSS)
   - [x] History (hidden in CSS)
-- [ ] Adjust logo
+- [x] Adjust logo
 - [x] Hit highlighting on the content_text field
 - [ ] Some form of grouping on url (see notes in `app/controllers/catalog_controller.rb`)
