@@ -9,10 +9,10 @@ class CatalogController < ApplicationController
     ## Default parameters to send to solr for all search-like requests. See also SolrHelper#solr_search_params
     config.default_solr_params = { 
       :qt => 'search',
-      :rows => 10 
+      :rows => 10, 
       
-      #:hl => 'true',
-      #:hl.field => 'content_text'
+      :hl => true,
+      :'hl.field' => 'content_text'
 
       #:group => true,
       #:'group.field' => 'url',
@@ -50,7 +50,7 @@ class CatalogController < ApplicationController
     # The ordering of the field names is the order of the display 
     config.add_index_field 'content_type', :label => 'Content Type'
     config.add_index_field 'crawl_date', :label => 'Crawl Date'
-    #config.add_index_field 'content_text', :label => 'Content', :highlight => true
+    config.add_index_field 'content_text', :label => 'Content', :highlight => true
 
     # solr fields to be displayed in the show (single result) view
     #   The ordering of the field names is the order of the display 
