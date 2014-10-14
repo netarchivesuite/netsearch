@@ -38,5 +38,5 @@ Read more about [configuring Blacklight](https://github.com/projectblacklight/bl
   - [ ] Login
   - [ ] History
 - [ ] Adjust logo
-- [ ] Hit highlighting on the content_text field
+- [x] Hit highlighting on the content_text field
 - [ ] Some form of grouping
