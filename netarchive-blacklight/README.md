@@ -39,3 +39,4 @@ Read more about [configuring Blacklight](https://github.com/projectblacklight/bl
   - [ ] History
 - [ ] Adjust logo
 - [ ] Hit highlighting on the content_text field
+- [ ] Some form of grouping
