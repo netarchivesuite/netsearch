@@ -14,10 +14,16 @@ class CatalogController < ApplicationController
       :hl => true,
       :'hl.field' => 'content_text'
 
+      ## grouping should work but if group.format is 'simple' then blacklight crashes due to problems finding facets ('')
+      ## and if group.format is unspecified then the facets are okay but blacklight fails to show the results.
+      ## group.ngroups has a potential performance problem with large result sets as it has to counts all groups.
+      ## the correct solution would probably be to modify the pager and other items when grouping is enabled so as
+      ## not to need/display the count.
       #:group => true,
       #:'group.field' => 'url',
       #:'group.ngroups' => true,
-      #:'group.limit' => 2
+      #:'group.limit' => 2,
+      #:'group.format' => 'simple'
     }
     
     # solr path which will be added to solr base url before the other solr params.
