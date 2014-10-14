@@ -27,6 +27,8 @@ Configuration of fields and facets to be shown, Solr params, etc. can be found i
 
 Individual methods can be overwritten in `app/helpers/blacklight_helper.rb` (as has for instance been done with `link_to_document`in order to make it point to our Wayback instance).
 
+Read more about [configuring Blacklight](https://github.com/projectblacklight/blacklight/wiki/Blacklight-configuration)
+
 ## TODO
 - [x] Simplify config
 - [ ] Cleanup unneeded things from templates
