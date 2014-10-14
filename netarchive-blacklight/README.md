@@ -39,4 +39,4 @@ Read more about [configuring Blacklight](https://github.com/projectblacklight/bl
   - [ ] History
 - [ ] Adjust logo
 - [x] Hit highlighting on the content_text field
-- [ ] Some form of grouping
+- [ ] Some form of grouping on url (see notes in `app/controllers/catalog_controller.rb`)
