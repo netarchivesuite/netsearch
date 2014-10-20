@@ -6,6 +6,11 @@ class CatalogController < ApplicationController
   include Blacklight::Catalog
 
   configure_blacklight do |config|
+    # keys in {} will be substituted by the value from looking up the key in the current document
+    # if key is in [] the value will be url encoded before being inserted
+    config.wayback_url = 'http://elara.statsbiblioteket.dk/wayback/{wayback_date}/{url}'
+    #config.wayback_url = 'http://localhost.archive.org:8074/jsp/QueryUI/Redirect.jsp?url=[url]&time=[wayback_date]'
+
     ## Default parameters to send to solr for all search-like requests. See also SolrHelper#solr_search_params
     config.default_solr_params = { 
       :qt => 'search',
