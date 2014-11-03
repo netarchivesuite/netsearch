@@ -374,6 +374,16 @@
     
     
     
+        
+     <!-- Component developed by Statsbiblioteket for (hierarchical) faceting -->   
+    <searchComponent name="exposed" class="org.apache.solr.exposed.ExposedFacetQueryComponent">
+      <lst name="poolfactory">
+        <int name="pools">10</int>
+        <int name="filled">0</int>
+        <int name="fresh">1</int>
+      </lst>
+    </searchComponent>
+    
     
   <requestHandler name="/select" class="solr.SearchHandler">
     <!-- default values for query parameters can be specified, these
@@ -385,6 +395,9 @@
        <str name="df">text</str>
      </lst>
       
+       <arr name="last-components">
+        <str>exposed</str>
+      </arr>
    
     </requestHandler>
 
