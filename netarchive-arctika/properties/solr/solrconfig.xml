@@ -317,9 +317,11 @@
          using enableRemoteStreaming="true"
 
       --> 
+    <!-- Explicit 40MB formdataUploadLimitInKB (default is 2MB) to support
+         distributed faceting with facet.limit=1000+ -->
     <requestParsers enableRemoteStreaming="true" 
+                    formdataUploadLimitInKB="40000"
                     multipartUploadLimitInKB="2048000" />
-
     <!-- HTTP Caching
 
          Set HTTP caching related parameters (for proxy caches and clients).
