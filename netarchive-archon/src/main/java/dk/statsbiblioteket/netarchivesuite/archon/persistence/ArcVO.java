@@ -83,6 +83,31 @@ public class ArcVO {
     }
     
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((fileName == null) ? 0 : fileName.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ArcVO other = (ArcVO) obj;
+        if (fileName == null) {
+            if (other.fileName != null)
+                return false;
+        } else if (!fileName.equals(other.fileName))
+            return false;
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "ArcVO [fileName=" + fileName + ", createdTime=" + createdTime + ", priority=" + priority + ", arcState=" + arcState + ", shardId=" + shardId + ", modifiedTime=" + modifiedTime + "]";
     }

@@ -6,11 +6,11 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -366,7 +366,15 @@ public class H2Storage {
                 return "";
             }
             ArcVO nextArc = nextArcIdsCachedForShard.remove(0);
-
+            //Remove it from all caches! (fix of rare race condition bug when indexing concurrent to multiple shards)
+            //TODO maybe implement different so logic is simpler
+            
+            Set<String> keySet = nextArcIdsCached.keySet();
+            for (String shardId: keySet){
+                 nextArcIdsCached.get(shardId).remove(nextArc);
+            }
+            
+            
             String fullPath = nextArc.getFileName();
             setARCProperties(nextArc.getFileName(), shardID, ArchonConnector.ARC_STATE.RUNNING, nextArc.getPriority());            
             log.info("Returning next arc:"+fullPath);                                                 

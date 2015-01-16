@@ -6,9 +6,12 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 
 import dk.statsbiblioteket.netarchivesuite.core.ArchonUtil;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -18,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
+import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector.ARC_STATE;
 
 /*
  * Unittest class for the H2Storage.
@@ -149,7 +153,69 @@ public class H2StorageTest {
         assertEquals("",nextArc); //behavior if none is left
 
     }
+    
+    //This test is due to a rare race condition bug that only occured when running concurrent shardid builders.
+    //The same arc (with no shard) could be returned to both builders and would end up in both shards
+    @Test
+    public void testMultipleConcurrentShards() throws Exception {
+        //Make sure arcs with no shardid are not returned twice to different shards due to the caching.
+        
+        Random r = new Random();
+        //Construct data for test (all have random priorities)
+        //250 arcs with shardid 1 
+        //350 arcs with shardid 2
+        //1111 arcs with no shard id 
+        
+        String shard1Path = "folder1/";
+        String shard2Path = "folder2/"; 
+        String noShardPath = "folder3/";
+        
+        for (int i =1;i<=250;i++){
+            String arc = shard1Path+i+"_1.arc";
+            storage.addARC( arc);  
+            storage.setARCProperties(arc,"1",ARC_STATE.NEW,r.nextInt(10)+1);
+        }
+        
+        for (int i =1;i<=350;i++){
+            String arc = shard2Path+i+"_2.arc";
+            storage.addARC( arc);  
+            storage.setARCProperties(arc,"2",ARC_STATE.NEW,r.nextInt(10)+1);
+        }
+        
+        for (int i =1;i<=1111;i++){
+            String arc = noShardPath+i+"_none.arc";
+            storage.addARC( arc);  
+            storage.setARCPriority(arc,r.nextInt(10)+1);
+        }
+        
+        //and now we are ready to test concurrency and want to make sure the same no-shard arc id is not returned
+        //to both a shard1 and shard2 build process.
+        HashSet<String> returnedArcFiles = new HashSet<String>(); 
+ 
+        String currentArc= null;
+        while (!"".equals(currentArc)){ //The model will return "" when no arcs are left
+            int shardId =r.nextInt(2)+1; // Random index into  shard1 or shard2             
+            if (shardId == 1){
+                currentArc = storage.nextARC("1");  //The arc will now be in the running state
+            } else  {
+                currentArc = storage.nextARC("2");  //The arc will now be in the running state            
+            }
+              
+            if (returnedArcFiles.contains(currentArc)){
+                System.out.println("Same arc has already been returned:"+currentArc);
+                fail("Same arc has already been returned:"+currentArc);                         
+            }
+            
+            returnedArcFiles.add(currentArc);
+            //System.out.println("adding arc:"+currentArc);
+          
+            
+        }
+        //When removing arc-file, remove from ALL shardis or have shardid only with non-shardi
+        assertEquals(250+350+1111, returnedArcFiles.size()-1); //extract 1 as the last is the "" arc when none are left
+    }
 
+    
 
     @Test
     public void testGetShardIDs() throws Exception {
