@@ -2,34 +2,88 @@ package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import dk.statsbiblioteket.netarchivesuite.arctika.builder.ArcFileNameParser.ArcMetaData.ARC_TYPE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
-
+/**
+ * A stated filename is matched against a list of rules (pattern and List<template> pairs).
+ * The first regexp match is resolved with the templates. The templates are expected to produce
+ * pairs of {@code field:content}.
+ */
 public class ArcFileNameParser {
+    private static final Logger log = LoggerFactory.getLogger(ArcFileNameParser.class);
+
+    private List<Rule> rules;
+
+    public ArcFileNameParser(List<Rule> rules) {
+        this.rules = rules;
+    }
+
+    /**
+     * Format: Newline separated rules.<br/>
+     * Each line has the format regexp(\ttemplate)*<br/>
+     * Example: {code ([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)-(sb-prod-har)\tyear:$1\tfull:$1$2$5\t}<br/>
+     * @param rules a newline separated list of rules.
+     */
+    public ArcFileNameParser(String rules) {
+        this.rules = new ArrayList<Rule>();
+        for (String line: rules.split("\n")) {
+            String[] tokens = line.split("\t");
+            if (line.isEmpty() || line.startsWith("#") || tokens.length == 1) {
+                continue;
+            }
+            this.rules.add(new Rule(Pattern.compile(tokens[0]), Arrays.copyOfRange(tokens, 1, tokens.length)));
+        }
+        log.info("Created parser with " + rules + " rules");
+    }
+
+    /**
+     * Applies the previously given rules to the file name, returning the list of expanded templates
+     * for the matching pattern.
+     * @return a list of field:value pairs as per the template contract.
+     */
+    public List<String> expandFilename(String filename) {
+        List<String> pairs = new ArrayList<String>();
+        for (Rule rule: rules) {
+            Matcher matcher = rule.pattern.matcher(filename);
+            if (!matcher.matches()) {
+                continue;
+            }
+            for (String template: rule.templates) {
+                pairs.add(matcher.replaceAll(template));
+            }
+        }
+        return pairs;
+    }
 
     private static DateFormat arcDateFormat = new SimpleDateFormat("yyyyMMddhhmmss");
     private static DateFormat isoDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
 
-    //jobid-høstid-
     // Example 25666-33-20080221003533-00046-sb-prod-har-004.arc
     private static final Pattern arc_sb_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)-(sb-prod-har)-([0-9]{1,3}).(statsbiblioteket.dk.warc|statsbiblioteket.dk.arc|arc)");
 
     // Example 15638-38-20070418163759-00235-kb-prod-har-002.kb.dk.arc
-    private static final Pattern arc_kb1_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)-(kb-prod-har|kb-prod-wb)-([0-9]{1,3}).(arc|kb.dk.arc|kb.dk.warc)");
+    private static final Pattern arc_kb1_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)-(kb-prod-har|kb-prod-wb)-([0-9]{1,3}).(arc|kb.dk.arc|kb.dk.warc|kb228081.kb.dk.warc)");
 
     //Example 193305-197-20131111175547-00001-kb228081.kb.dk.warc
     private static final Pattern arc_kb2_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)-(kb228081.kb.dk.warc)");    
 
     //Example kb-pligtsystem-36861-20121018210245-00000.warc
-    private static final Pattern arc_kb_pligt_Pattern = Pattern.compile("(kb-pligtsystem)-([0-9]+)-([0-9]+)-([0-9]{1,5}).(warc)" );
+    private static final Pattern arc_kb_pligt_Pattern = Pattern.compile("(kb-pligtsystem)-([0-9]+)-([0-9]+)-([0-9]{1,5}).(kb228081.kb.dk.warc|warc)" );
 
     //Example 1298-metadata-2.arc
-    private static final Pattern arc_metadata_Pattern = Pattern.compile("([0-9]+)-(metadata)-([0-9]+).(arc|warc)" );                      
+    private static final Pattern arc_metadata_Pattern = Pattern.compile("([0-9]+)-(metadata)-([0-9]+).(arc)" );                      
+
+    final static String metaData = "-metadata-";
 
     public static void main(String[] args) {
         //System.out.println(parseSbArcFile("25666-33-20080221003533-00046-sb-prod-har-004.arc"));
@@ -44,7 +98,7 @@ public class ArcFileNameParser {
         if (isMetaDataArcFile(fileName)) {                      
             return parseMetaDataArcFile(fileName);
         } else if (isSbArcFile(fileName)) {      
-            return parseSbArcFile(fileName);
+            return    parseSbArcFile(fileName);
         }
         else if (isKb1ArcFile(fileName)) {      
             return parseKb1ArcFile(fileName);
@@ -56,7 +110,7 @@ public class ArcFileNameParser {
             return parseKbPligtArcFile(fileName);             
         } else {
             ArcMetaData meta = new ArcMetaData();
-            meta.setType(ARC_TYPE.UNKNOWN);
+            meta.setType(ARC_TYPE.METADATA);
             return meta;            
         }            
     }
@@ -207,5 +261,15 @@ public class ArcFileNameParser {
         }
     }
 
+
+    private static class Rule {
+        private final Pattern pattern;
+        private final List<String> templates;
+
+        public Rule(Pattern pattern, String... templates) {
+            this.pattern = pattern;
+            this.templates = Arrays.asList(templates);
+        }
+    }
 }
 
