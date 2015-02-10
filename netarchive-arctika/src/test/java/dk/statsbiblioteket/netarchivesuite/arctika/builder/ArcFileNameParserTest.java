@@ -14,7 +14,6 @@
  */
 package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
-import dk.statsbiblioteket.util.qa.QAInfo;
 import junit.framework.TestCase;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
@@ -23,12 +22,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.regex.Pattern;
 
-/**
- *
- */
-@QAInfo(level = QAInfo.Level.NORMAL,
-        state = QAInfo.State.IN_DEVELOPMENT,
-        author = "te")
 public class ArcFileNameParserTest extends TestCase {
     private static Log log = LogFactory.getLog(ArcFileNameParserTest.class);
 
