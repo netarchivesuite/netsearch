@@ -19,7 +19,7 @@ public class ArcFileNameParser {
     private static final Pattern arc_sb_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)-(sb-prod-har)-([0-9]{1,3}).(statsbiblioteket.dk.warc|statsbiblioteket.dk.arc|arc)");
 
     // Example 15638-38-20070418163759-00235-kb-prod-har-002.kb.dk.arc
-    private static final Pattern arc_kb1_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)-(kb-prod-har|kb-prod-wb)-([0-9]{1,3}).(arc|kb.dk.arc|kb.dk.warc|kb228081.kb.dk.warc)");
+    private static final Pattern arc_kb1_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)-(kb-prod-har|kb-prod-wb)-([0-9]{1,3}).(arc|kb.dk.arc|kb.dk.warc)");
 
     //Example 193305-197-20131111175547-00001-kb228081.kb.dk.warc
     private static final Pattern arc_kb2_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)-(kb228081.kb.dk.warc)");    
