@@ -1,10 +1,7 @@
 package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,11 +18,7 @@ import org.slf4j.LoggerFactory;
 public class ArcFileNameParser {
     private static final Logger log = LoggerFactory.getLogger(ArcFileNameParser.class);
 
-    private List<Rule> rules;
-
-    public ArcFileNameParser(List<Rule> rules) {
-        this.rules = rules;
-    }
+    private final List<Rule> rules;
 
     /**
      * Format: Newline separated rules.<br/>
