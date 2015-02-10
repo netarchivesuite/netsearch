@@ -28,9 +28,7 @@ public class ArcFileNameParser {
     private static final Pattern arc_kb_pligt_Pattern = Pattern.compile("(kb-pligtsystem)-([0-9]+)-([0-9]+)-([0-9]{1,5}).(kb228081.kb.dk.warc|warc)" );
 
     //Example 1298-metadata-2.arc
-    private static final Pattern arc_metadata_Pattern = Pattern.compile("([0-9]+)-(metadata)-([0-9]+).(arc)" );                      
-
-    final static String metaData = "-metadata-";
+    private static final Pattern arc_metadata_Pattern = Pattern.compile("([0-9]+)-(metadata)-([0-9]+).(arc|warc)" );                      
 
     public static void main(String[] args) {
         //System.out.println(parseSbArcFile("25666-33-20080221003533-00046-sb-prod-har-004.arc"));
@@ -45,7 +43,7 @@ public class ArcFileNameParser {
         if (isMetaDataArcFile(fileName)) {                      
             return parseMetaDataArcFile(fileName);
         } else if (isSbArcFile(fileName)) {      
-            return    parseSbArcFile(fileName);
+            return parseSbArcFile(fileName);
         }
         else if (isKb1ArcFile(fileName)) {      
             return parseKb1ArcFile(fileName);
@@ -57,7 +55,7 @@ public class ArcFileNameParser {
             return parseKbPligtArcFile(fileName);             
         } else {
             ArcMetaData meta = new ArcMetaData();
-            meta.setType(ARC_TYPE.METADATA);
+            meta.setType(ARC_TYPE.UNKNOWN);
             return meta;            
         }            
     }
