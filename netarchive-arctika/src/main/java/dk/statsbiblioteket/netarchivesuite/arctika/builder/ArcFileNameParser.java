@@ -1,9 +1,5 @@
 package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
-
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -210,7 +206,6 @@ public class ArcFileNameParser {
         public String toString() {
             return "ArcMetaData [type=" + type + ", harvestTimeIsoDate=" + harvestTimeIsoDate + "]";
         }
-
     }
 
 }
