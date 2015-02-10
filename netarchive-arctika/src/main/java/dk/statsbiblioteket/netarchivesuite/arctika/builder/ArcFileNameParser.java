@@ -15,6 +15,7 @@ public class ArcFileNameParser {
     private static DateFormat arcDateFormat = new SimpleDateFormat("yyyyMMddhhmmss");
     private static DateFormat isoDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
 
+    //jobid-høstid-
     // Example 25666-33-20080221003533-00046-sb-prod-har-004.arc
     private static final Pattern arc_sb_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)-(sb-prod-har)-([0-9]{1,3}).(statsbiblioteket.dk.warc|statsbiblioteket.dk.arc|arc)");
 
@@ -25,7 +26,7 @@ public class ArcFileNameParser {
     private static final Pattern arc_kb2_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)-(kb228081.kb.dk.warc)");    
 
     //Example kb-pligtsystem-36861-20121018210245-00000.warc
-    private static final Pattern arc_kb_pligt_Pattern = Pattern.compile("(kb-pligtsystem)-([0-9]+)-([0-9]+)-([0-9]{1,5}).(kb228081.kb.dk.warc|warc)" );
+    private static final Pattern arc_kb_pligt_Pattern = Pattern.compile("(kb-pligtsystem)-([0-9]+)-([0-9]+)-([0-9]{1,5}).(warc)" );
 
     //Example 1298-metadata-2.arc
     private static final Pattern arc_metadata_Pattern = Pattern.compile("([0-9]+)-(metadata)-([0-9]+).(arc|warc)" );                      
