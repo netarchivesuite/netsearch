@@ -42,10 +42,10 @@ public class ArcFileNameParserTest extends TestCase {
     private static final Pattern arc_kb2_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})-([0-9]+)-(kb228081.kb.dk.warc)");
 
     //Example kb-pligtsystem-36861-20121018210245-00000.warc
-    private static final Pattern arc_kb_pligt_Pattern = Pattern.compile("(kb-pligtsystem)-([0-9]+)-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})-([0-9]{1,5}).(kb228081.kb.dk.warc|warc)" );
+    private static final Pattern arc_kb_pligt_Pattern = Pattern.compile("(kb-pligtsystem)-([0-9]+)-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})-([0-9]{1,5}).(warc)" );
 
     //Example 1298-metadata-2.arc
-    private static final Pattern arc_metadata_Pattern = Pattern.compile("([0-9]+)-(metadata)-([0-9]+).(arc)" );
+    private static final Pattern arc_metadata_Pattern = Pattern.compile("([0-9]+)-(metadata)-([0-9]+).(warc|arc)" );
 
     final static String metaData = "-metadata-";
 
