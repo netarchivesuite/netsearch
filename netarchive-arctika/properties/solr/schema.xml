@@ -1,12 +1,103 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
 
-<schema name="example" version="1.5">
-  
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<!--  
+ This is the Solr schema file. This file should be named "schema.xml" and
+ should be in the conf directory under the solr home
+ (i.e. ./solr/conf/schema.xml by default) 
+ or located where the classloader for the Solr webapp can find it.
+
+ This example schema is the recommended starting point for users.
+ It should be kept correct and concise, usable out-of-the-box.
+
+ For more information, on how to customize this file, please see
+ http://wiki.apache.org/solr/SchemaXml
+
+ PERFORMANCE NOTE: this schema includes many optional features and should not
+ be used for benchmarking.  To improve performance one could
+  - set stored="false" for all fields possible (esp large fields) when you
+    only need to search on the field but don't need to return the original
+    value.
+  - set indexed="false" if you don't need to search on the field, but only
+    return the field as a result of searching on other indexed fields.
+  - remove all unneeded copyField statements
+  - for best index size and searching performance, set "index" to false
+    for all general text fields, use copyField to copy them to the
+    catchall "text" field, and use that for searching.
+  - For maximum indexing performance, use the StreamingUpdateSolrServer
+    java client.
+  - Remember to run the JVM in server mode, and use a higher logging level
+    that avoids logging every request
+-->
+
+<schema name="webarchive-discovery" version="1.5">
+  <!-- attribute "name" is the name of this schema and is only used for display purposes.
+       version="x.y" is Solr's version number for the schema syntax and 
+       semantics.  It should not normally be changed by applications.
+
+       1.0: multiValued attribute did not exist, all fields are multiValued 
+            by nature
+       1.1: multiValued attribute introduced, false by default 
+       1.2: omitTermFreqAndPositions attribute introduced, true by default 
+            except for text fields.
+       1.3: removed optional field compress feature
+       1.4: autoGeneratePhraseQueries attribute introduced to drive QueryParser
+            behavior when a single string produces multiple tokens.  Defaults 
+            to off for version >= 1.4
+       1.5: omitNorms defaults to true for primitive field types 
+            (int, float, boolean, string...)
+     -->
 
  <fields>
+   <!-- Valid attributes for fields:
+     name: mandatory - the name for the field
+     type: mandatory - the name of a field type from the 
+       <types> fieldType section
+     indexed: true if this field should be indexed (searchable or sortable)
+     stored: true if this field should be retrievable
+     multiValued: true if this field may contain multiple values per document
+     omitNorms: (expert) set to true to omit the norms associated with
+       this field (this disables length normalization and index-time
+       boosting for the field, and saves some memory).  Only full-text
+       fields or fields that need an index-time boost need norms.
+       Norms are omitted for primitive (non-analyzed) types by default.
+     termVectors: [false] set to true to store the term vector for a
+       given field.
+       When using MoreLikeThis, fields used for similarity should be
+       stored for best performance.
+     termPositions: Store position information with the term vector.  
+       This will increase storage costs.
+     termOffsets: Store offset information with the term vector. This 
+       will increase storage costs.
+     required: The field is required.  It will throw an error if the
+       value does not exist
+     default: a value that should be used if no value is specified
+       when adding a document.
+   -->
+
+   <!-- field names should consist of alphanumeric or underscore characters only and
+      not start with a digit.  This is not currently strictly enforced,
+      but other field names will not have first class support from all components
+      and back compatibility is not guaranteed.  Names with both leading and
+      trailing underscores (e.g. _version_) are reserved.
+   -->
         
    <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
-
+   
    <!-- Common metadata fields, named specifically to match up with
      SolrCell metadata when parsing rich documents such as Word, PDF.
      Some fields are multiValued only because Tika currently may return
@@ -15,15 +106,13 @@
        "content_type": From the HTTP headers of incoming stream
        "resourcename": From SolrCell request param resource.name
    -->
-   <field name="title" type="text_general" indexed="true" stored="true" multiValued="true"/>
+   <field name="title" type="text_general" indexed="true" stored="true" multiValued="false"/>
    <field name="subject" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="description" type="text_general" indexed="true" stored="true"/>
    <field name="comments" type="text_general" indexed="true" stored="true"/>
    <field name="author" type="string" indexed="true" stored="true"/>
-   <field name="keywords" type="text_general" indexed="true" stored="true"/>  <!-- TEG: never seen anything in this field in netarchive. UNUSED? -->
-   <field name="category" type="text_general" indexed="true" stored="true"/>
-   <field name="resourcename" type="text_general" indexed="true" stored="true"/>
-   <field name="url" type="string_disk" indexed="true" stored="true" multiValued="false" docValues="true"/>
+   <field name="keywords" type="text_general" indexed="true" stored="true"/>
+   <field name="url" type="string" indexed="true" stored="true"/>
    <field name="content_type" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="last_modified" type="date" indexed="true" stored="true"/>
    <field name="last_modified_year" type="string" indexed="true" stored="true"/>
@@ -34,24 +123,22 @@
         using copyField below. This is to save space. Use this field for returning and
         highlighting document content. Use the "text" field to search the content. -->
    <!-- BL: -->
-   <field name="content_text" type="text_general" indexed="true" stored="true" multiValued="true"/>
+   <field name="content" type="text_general" indexed="false" stored="true" multiValued="true" />
    <field name="content_text_length" type="tint" indexed="true" stored="true" multiValued="false"/>
    
    <!-- A general field to deposit metadata into so it can be searched even when unstructured. -->
    <field name="content_metadata" type="text_general" indexed="true" stored="true" multiValued="false"/>
-   <!-- -BL -->
 
-   <!-- catchall field, containing all other searchable text fields (implemented
-        via copyField further on in this schema  -->
-   <field name="text" type="text_general" indexed="true" stored="false" multiValued="true"/>
-
-   <!-- catchall text field that indexes tokens both normally and in reverse for efficient
-        leading wildcard queries. -->
-   <field name="text_rev" type="text_general_rev" indexed="true" stored="false" multiValued="true"/>
+   <!--  Perhaps useful in the future:
+        termVectors="true" termPositions="true" termOffsets="true"/>
+        -->
    
-
-   <field name="payloads" type="payloads" indexed="true" stored="true"/>
-
+   <!-- -BL -->
+   
+   <!-- catchall field, containing all other searchable text fields (implemented
+        via copyField further on in this schema)  -->
+   <field name="text" type="text_general" indexed="true" stored="false" multiValued="true"/>
+   
    <field name="_version_" type="long" indexed="true" stored="true"/>
 
    <!-- Uncommenting the following will create a "timestamp" field using
@@ -59,8 +146,8 @@
      -->
    <!--
    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
-   -->
-          
+     -->
+     
    <!-- wa.bl.uk fields begin -->
    
    <!-- Core fields, in addition to those above -->
@@ -77,48 +164,41 @@
    <!-- The content language - ISO 639 Language Codes: -->
    <field name="content_language" type="string" indexed="true" stored="true" multiValued="false"/>
    <!-- The 'normalised' (simplified) content type: -->
-   <field name="content_type_norm" type="string_disk" indexed="true" stored="true" multiValued="false" default="other" docValues="true"/>
+   <field name="content_type_norm" type="string" indexed="true" stored="true" multiValued="false" default="other"/>
    
    <!-- The harvest date, but in wayback format: 'YYYYMMDDHHMMSS' -->   
    <field name="wayback_date" type="string" indexed="true" stored="true" multiValued="false"/>
-   <!-- The ealiest harvest/crawl date, as a date -->
+   <!-- The ealiest harvest/crawl date, as a date, and also as multi-valued for hash-based ID. -->
    <field name="crawl_date" type="tdate" indexed="true" stored="true" multiValued="false"/>
-   <!-- The harvest/crawl year, for faceting -->
-   <field name="crawl_year" type="string_disk" indexed="true" stored="true" multiValued="false" docValues="true"/>
+   <field name="crawl_dates" type="tdate" indexed="true" stored="true" multiValued="true"/>
+   <!-- The harvest/crawl year (for faceting), and also as multi-valued for hash-based ID. -->
+   <field name="crawl_year" type="string" indexed="true" stored="true" multiValued="false"/>
+   <field name="crawl_years" type="string" indexed="true" stored="true" multiValued="true"/>
    <!-- The harvest/crawl year and month, for faceting -->
    <field name="crawl_year_month" type="string" indexed="true" stored="true" multiValued="false"/>
    <!-- The harvest/crawl year, month and day, for faceting -->
    <field name="crawl_year_month_day" type="string" indexed="true" stored="true" multiValued="false"/>
-   <!-- The harvest/crawl dates, as a multivalued series of date -->
-   <field name="crawl_dates" type="tdate" indexed="true" stored="true" multiValued="true"/>
    
    <!-- The domain for this URL: -->
-   <field name="host" type="string_disk" indexed="true" stored="true" multiValued="false"  docValues="true"/>
+   <field name="host" type="string" indexed="true" stored="true" multiValued="false" docValues="true"/>
    <!-- The private suffix a.k.a domain for this host: -->
-   <field name="domain" type="string_disk" indexed="true" stored="true" multiValued="false" docValues="true"/>
+   <field name="domain" type="string" indexed="true" stored="true" multiValued="false" docValues="true"/>
    <!-- The public suffix of the host domain, i.e. co.uk, org, etc: -->
-   <field name="public_suffix" type="string_disk" indexed="true" stored="true" multiValued="false" docValues="true"/>
+   <field name="public_suffix" type="string" indexed="true" stored="true" multiValued="false"/>
    
    <!-- The hostnames of discovered outlinks -->
-   <field name="links_hosts" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="links_hosts" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
    <!-- The private suffixs of the target domains of any links, i.e. example.co.uk, example.org, etc: -->
-   <field name="links_domains" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="links_domains" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
    <!-- The public suffixs of the target domains of any links, i.e. co.uk, org, etc: -->
    <field name="links_public_suffixes" type="string" indexed="true" stored="true" multiValued="true"/>
    
    <!-- The digest/hash of the content (e.g. sha1:UYIPOGACBXSSCQVMBGTCGYOFBHFO5TTL, WARC only?): -->
-   <field name="hash" type="string" indexed="true" stored="true" multiValued="true"/>
-
-   <!-- The combined hash and url of the content, so allow us to identify unchanged resources. Populated by copying. -->
-   <field name="hash_and_url" type="string" indexed="false" stored="true" multiValued="false"/>
+   <field name="hash" type="string" indexed="true" stored="true" multiValued="true"/>   
 
    <!-- The referring URL - not actually populated at present. -->   
    <field name="referrer_url" type="string" indexed="false" stored="true" multiValued="false"/>
-   
-   <!-- Core fields to be removed? -->
-   <field name="spell" type="textSpell" indexed="true" stored="false" multiValued="true"/>
-   <field name="text_ns" type="text_general" indexed="true" stored="false" multiValued="true"/>
-   
+      
      <!-- The publication date, as a date -->
    <field name="publication_date" type="tdate" indexed="true" stored="true" multiValued="false"/>
    <!-- The publication year, for faceting -->
@@ -137,9 +217,15 @@
    <field name="wct_instance_id" type="int" indexed="true" stored="true" multiValued="false"/>
    <field name="wct_collections" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="wct_subjects" type="string" indexed="true" stored="true" multiValued="true"/>
-   <field name="wct_description" type="text_general" indexed="true" stored="true"/> <!-- TEG: never seen anything in this field in netarchive. UNUSED? -->
-   <field name="wct_title" type="string" indexed="true" stored="true"/> <!-- TEG: never seen anything in this field in netarchive. UNUSED? -->
+   <field name="wct_description" type="text_general" indexed="true" stored="true"/>
+   <field name="wct_title" type="string" indexed="true" stored="true"/>
    <field name="wct_agency" type="string" indexed="true" stored="true" multiValued="false"/> <!-- default="British Library"/  -->
+   <!-- WCT fields that should no longer use WCT-specific names? -->
+<!--    <field name="wct_domain" type="string" indexed="true" stored="true" multiValued="false"/> -->
+<!--    <field name="wct_url" type="string" indexed="true" stored="true" multiValued="false"/> -->
+<!--    <field name="wct_wayback_date" type="string" indexed="true" stored="true" multiValued="false"/> -->
+<!--    <field name="wct_harvest_date" type="tdate" indexed="true" stored="true" multiValued="false"/> -->
+
    <!-- Format fields -->
 
    <!-- The version of the content type, e.g. '1.4' for PDF-1.4: -->
@@ -167,6 +253,13 @@
 
    <!-- Any Parse Error encountered while attempting to extract metadata and text: -->
    <field name="parse_error" type="string" indexed="true" stored="true" multiValued="true"/>
+   
+   <!-- Results of checking if PDFs are valid PDF/A: -->
+   <field name="pdf_pdfa_is_valid" type="string" indexed="true" stored="true" multiValued="false"/>
+   <field name="pdf_pdfa_errors" type="string" indexed="true" stored="true" multiValued="true"/>
+   
+   <!-- Root namespace of XML documents: -->
+   <field name="xml_root_ns" type="string" indexed="true" stored="true" multiValued="false"/>
 
    <!-- Content-based fields -->
    
@@ -183,7 +276,15 @@
    <field name="sentiment_score" type="float" indexed="true" stored="true" multiValued="false"/>
    
    <!-- The size of images, in pixels? or tags/ranges? -->
-   <field name="image_size" type="tint" indexed="true" stored="true" multiValued="true"/>
+   <field name="image_width" type="tint" indexed="true" stored="true" multiValued="false"/>
+   <field name="image_height" type="tint" indexed="true" stored="true" multiValued="false"/>
+   <field name="image_size" type="tint" indexed="true" stored="true" multiValued="false"/>
+   <!-- Locations of faces detected in the images -->
+   <field name='image_faces_count' type='tint' indexed='true' stored='true' multiValued='false'/>
+   <field name='image_faces' type='string' indexed='false' stored='true' multiValued='true'/>
+   <!-- The dominant colours extracted from the images -->
+   <field name='image_colours' type='string' indexed='true' stored='true' multiValued='true'/>
+   <field name='image_dominant_colour' type='string' indexed='true' stored='true' multiValued='false'/>
 
    <!-- The different HTML elements used by the document -->
    <field name="elements_used" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -196,56 +297,12 @@
    <!-- Details of any embedded licenses: -->
    <field name="license_url" type="string" indexed="true" stored="true" multiValued="true"/>
 
-   <!-- wa.bl.uk fields end -->
-
-
-   <!-- Dynamic field definitions allow using convention over configuration
-       for fields via the specification of patterns to match field names. 
-       EXAMPLE:  name="*_i" will match any field ending in _i (like myid_i, z_i)
-       RESTRICTION: the glob-like pattern in the name attribute must have
-       a "*" only at the start or the end.  -->
+   <field name="source_file_s" type="string" indexed="true" stored="true" />
    
-   <dynamicField name="*_i"  type="int"    indexed="true"  stored="true"/>
-   <dynamicField name="*_is" type="int"    indexed="true"  stored="true"  multiValued="true"/>
-   <dynamicField name="*_s"  type="string"  indexed="true"  stored="true" />
-   <dynamicField name="*_ss" type="string"  indexed="true"  stored="true" multiValued="true"/>
-   <dynamicField name="*_l"  type="long"   indexed="true"  stored="true"/>
-   <dynamicField name="*_ls" type="long"   indexed="true"  stored="true"  multiValued="true"/>
-   <dynamicField name="*_t"  type="text_general"    indexed="true"  stored="true"/>
-   <dynamicField name="*_txt" type="text_general"   indexed="true"  stored="true" multiValued="true"/>
-   <dynamicField name="*_b"  type="boolean" indexed="true" stored="true"/>
-   <dynamicField name="*_bs" type="boolean" indexed="true" stored="true"  multiValued="true"/>
-   <dynamicField name="*_f"  type="float"  indexed="true"  stored="true"/>
-   <dynamicField name="*_fs" type="float"  indexed="true"  stored="true"  multiValued="true"/>
-   <dynamicField name="*_d"  type="double" indexed="true"  stored="true"/>
-   <dynamicField name="*_ds" type="double" indexed="true"  stored="true"  multiValued="true"/>
-
-   <!-- Type used to index the lat and lon components for the "location" FieldType -->
-   <dynamicField name="*_coordinate"  type="tdouble" indexed="true"  stored="false" />
-
-   <dynamicField name="*_dt"  type="date"    indexed="true"  stored="true"/>
-   <dynamicField name="*_dts" type="date"    indexed="true"  stored="true" multiValued="true"/>
-   <dynamicField name="*_p"  type="location" indexed="true" stored="true"/>
-
-   <!-- some trie-coded dynamic fields for faster range queries -->
-   <dynamicField name="*_ti" type="tint"    indexed="true"  stored="true"/>
-   <dynamicField name="*_tl" type="tlong"   indexed="true"  stored="true"/>
-   <dynamicField name="*_tf" type="tfloat"  indexed="true"  stored="true"/>
-   <dynamicField name="*_td" type="tdouble" indexed="true"  stored="true"/>
-   <dynamicField name="*_tdt" type="tdate"  indexed="true"  stored="true"/>
-
-   <dynamicField name="*_pi"  type="pint"    indexed="true"  stored="true"/>
-
-   <dynamicField name="ignored_*" type="ignored" multiValued="true"/>
-   <dynamicField name="attr_*" type="text_general" indexed="true" stored="true" multiValued="true"/>
-
-   <dynamicField name="random_*" type="random" />
-
-   <!-- uncomment the following to ignore any fields that don't already match an existing 
-        field name or dynamic field, rather than reporting them as an error. 
-        alternately, change the type="ignored" to some other type e.g. "text" if you want 
-        unknown fields indexed and/or stored by default --> 
-   <!--dynamicField name="*" type="ignored" multiValued="true" /-->
+    <!-- Type used to index the lat and lon components for the "location" FieldType -->
+    <!-- This dynamic field is used, but we can not find where in the code it is defined-->
+   <dynamicField name="*_coordinate" type="tdouble" indexed="true" stored="false" />
+   <!-- wa.bl.uk fields end --> 
    
  </fields>
 
@@ -263,8 +320,12 @@
   in solrconfig.xml defines "df", which takes precedence. That would need to be removed.
  <defaultSearchField>text</defaultSearchField> -->
 
- 
-  <solrQueryParser defaultOperator="AND"/>
+ <!-- DEPRECATED: The defaultOperator (AND|OR) is consulted by various query parsers
+  when parsing a query string to determine if a clause of the query should be marked as
+  required or optional, assuming the clause isn't already marked by some operator.
+  The default is OR, which is generally assumed so it is not a good idea to change it
+  globally here.  The "q.op" request parameter takes precedence over this.
+ --> <solrQueryParser defaultOperator="AND"/>
 
   <!-- copyField commands copy one field to another at the time a document
         is added to the index.  It's used either to index the same field differently,
@@ -272,36 +333,21 @@
 
    <!-- wa.bl.uk copies begin -->
    <!-- Metadata fields to add to default search: -->
-   <copyField source="author" dest="text"/>  
+   <copyField source="title" dest="text"/>
+   <copyField source="author" dest="text"/>
+   <copyField source="keywords" dest="text"/>
+   <copyField source="description" dest="text"/>
    <copyField source="wct_title" dest="text"/>
    <copyField source="wct_description" dest="text"/>
    <copyField source="url" dest="text"/>
-
+   <!-- Also copy in the actual text payload to ensure it is actually indexed: -->
+   <copyField source="content" dest="text"/>
+   
    <!-- wa.bl.uk end begin -->
- 
+    
   <types>
    <!-- wa.bl.uk fieldTypes begin -->
-   <fieldType name="textSpell" class="solr.TextField"
-      positionIncrementGap="100">
-      <analyzer type="index">
-         <tokenizer class="solr.StandardTokenizerFactory" />
-         <filter class="solr.StopFilterFactory" ignoreCase="true"
-            words="stopwords.txt" />
-         <filter class="solr.StandardFilterFactory" />
-         <filter class="solr.LowerCaseFilterFactory" />
-         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
-      </analyzer>
-      <analyzer type="query">
-         <tokenizer class="solr.StandardTokenizerFactory" />
-         <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt"
-            ignoreCase="true" expand="true" />
-         <filter class="solr.StopFilterFactory" ignoreCase="true"
-            words="stopwords.txt" />
-         <filter class="solr.StandardFilterFactory" />
-         <filter class="solr.LowerCaseFilterFactory" />
-         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
-      </analyzer>
-   </fieldType>
+  
    <fieldtype name="literal_ngram" stored="false" indexed="true" class="solr.TextField" >
       <analyzer>
          <tokenizer class="solr.WhitespaceTokenizerFactory"/>
@@ -327,13 +373,29 @@
     -->
 
     <!-- The StrField type is not analyzed, but indexed/stored verbatim. -->
-    
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
-    <fieldType name="string_disk" class="solr.StrField" sortMissingLast="true" docValuesFormat="Disk" />
 
     <!-- boolean type: "true" or "false" -->
     <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
 
+    <!-- sortMissingLast and sortMissingFirst attributes are optional attributes are
+         currently supported on types that are sorted internally as strings
+         and on numeric types.
+	     This includes "string","boolean", and, as of 3.5 (and 4.x),
+	     int, float, long, date, double, including the "Trie" variants.
+       - If sortMissingLast="true", then a sort on this field will cause documents
+         without the field to come after documents with the field,
+         regardless of the requested sort order (asc or desc).
+       - If sortMissingFirst="true", then a sort on this field will cause documents
+         without the field to come before documents with the field,
+         regardless of the requested sort order.
+       - If sortMissingLast="false" and sortMissingFirst="false" (the default),
+         then default lucene sorting will be used which places docs without the
+         field first in an ascending sort and last in a descending sort.
+    -->    
+   <!-- A specialized field for geospatial search. If indexed, this fieldType must not be multivalued. -->
+   
+   <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
     <!--
       Default numeric field types. For faster range queries, consider the tint/tfloat/tlong/tdouble types.
     -->
@@ -341,6 +403,7 @@
     <fieldType name="float" class="solr.TrieFloatField" precisionStep="0" positionIncrementGap="0"/>
     <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
     <fieldType name="double" class="solr.TrieDoubleField" precisionStep="0" positionIncrementGap="0"/>
+
 
     <!--
      Numeric field types that index each value at various levels of precision
@@ -384,34 +447,17 @@
     <!-- A Trie based date field for faster date range queries and date faceting. -->
     <fieldType name="tdate" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0"/>
 
+        <!-- solr.TextField allows the specification of custom text analyzers
+         specified as a tokenizer and a list of token filters. Different
+         analyzers may be specified for indexing and querying.
 
-    <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
-    <fieldtype name="binary" class="solr.BinaryField"/>
+         The optional positionIncrementGap puts space between multiple fields of
+         this type on the same document, with the purpose of preventing false phrase
+         matching across fields.
 
-    <!--
-      Note:
-      These should only be used for compatibility with existing indexes (created with lucene or older Solr versions).
-      Use Trie based fields instead. As of Solr 3.5 and 4.x, Trie based fields support sortMissingFirst/Last
-      
-      Plain numeric field types that store and index the text
-      value verbatim (and hence don't correctly support range queries, since the
-      lexicographic ordering isn't equal to the numeric ordering)
-    -->
-    <fieldType name="pint" class="solr.IntField"/>
-    <fieldType name="plong" class="solr.LongField"/>
-    <fieldType name="pfloat" class="solr.FloatField"/>
-    <fieldType name="pdouble" class="solr.DoubleField"/>
-    <fieldType name="pdate" class="solr.DateField" sortMissingLast="true"/>
-
-    <fieldType name="random" class="solr.RandomSortField" indexed="true" />
-
-
-    <!-- A text field that only splits on whitespace for exact matching of words -->
-    <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
-      <analyzer>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-      </analyzer>
-    </fieldType>
+         For more info on customizing your analyzer chain, please see
+         http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
+     -->
 
     <!-- A general text field that has reasonable, generic
          cross-language defaults: it tokenizes with StandardTokenizer,
@@ -421,177 +467,20 @@
     <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
+        <!-- in this example, we will only use synonyms at query time
+        <filter class="solr.SynonymFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
+        -->
+        <filter class="solr.LowerCaseFilterFactory"/>
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
+        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />  
       </analyzer>
     </fieldType>
         
-    <!-- Just like text_general except it reverses the characters of
-	 each token, to enable more efficient leading wildcard queries. -->
-    <fieldType name="text_general_rev" class="solr.TextField" positionIncrementGap="100">
-      <analyzer type="index">
-        <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.ReversedWildcardFilterFactory" withOriginal="true"
-           maxPosAsterisk="3" maxPosQuestion="2" maxFractionAsterisk="0.33"/>
-      </analyzer>
-      <analyzer type="query">
-        <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true" />
-        <filter class="solr.LowerCaseFilterFactory"/>
-      </analyzer>
-    </fieldType>
-
-    <!-- charFilter + WhitespaceTokenizer  -->
-    <!--
-    <fieldType name="text_char_norm" class="solr.TextField" positionIncrementGap="100" >
-      <analyzer>
-        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-      </analyzer>
-    </fieldType>
-    -->
-
-    <!-- This is an example of using the KeywordTokenizer along
-         With various TokenFilterFactories to produce a sortable field
-         that does not include some properties of the source text
-      -->
-    <fieldType name="alphaOnlySort" class="solr.TextField" sortMissingLast="true" omitNorms="true">
-      <analyzer>
-        <!-- KeywordTokenizer does no actual tokenizing, so the entire
-             input string is preserved as a single token
-          -->
-        <tokenizer class="solr.KeywordTokenizerFactory"/>
-        <!-- The LowerCase TokenFilter does what you expect, which can be
-             when you want your sorting to be case insensitive
-          -->
-        <filter class="solr.LowerCaseFilterFactory" />
-        <!-- The TrimFilter removes any leading or trailing whitespace -->
-        <filter class="solr.TrimFilterFactory" />
-        <!-- The PatternReplaceFilter gives you the flexibility to use
-             Java Regular expression to replace any sequence of characters
-             matching a pattern with an arbitrary replacement string, 
-             which may include back references to portions of the original
-             string matched by the pattern.
-             
-             See the Java Regular Expression documentation for more
-             information on pattern and replacement string syntax.
-             
-             http://java.sun.com/j2se/1.6.0/docs/api/java/util/regex/package-summary.html
-          -->
-        <filter class="solr.PatternReplaceFilterFactory"
-                pattern="([^a-z])" replacement="" replace="all"
-        />
-      </analyzer>
-    </fieldType>
-    
-    <fieldtype name="phonetic" stored="false" indexed="true" class="solr.TextField" >
-      <analyzer>
-        <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.DoubleMetaphoneFilterFactory" inject="false"/>
-      </analyzer>
-    </fieldtype>
-
-    <fieldtype name="payloads" stored="false" indexed="true" class="solr.TextField" >
-      <analyzer>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-        <!--
-        The DelimitedPayloadTokenFilter can put payloads on tokens... for example,
-        a token of "foo|1.4"  would be indexed as "foo" with a payload of 1.4f
-        Attributes of the DelimitedPayloadTokenFilterFactory : 
-         "delimiter" - a one character delimiter. Default is | (pipe)
-	 "encoder" - how to encode the following value into a playload
-	    float -> org.apache.lucene.analysis.payloads.FloatEncoder,
-	    integer -> o.a.l.a.p.IntegerEncoder
-	    identity -> o.a.l.a.p.IdentityEncoder
-            Fully Qualified class name implementing PayloadEncoder, Encoder must have a no arg constructor.
-         -->
-        <filter class="solr.DelimitedPayloadTokenFilterFactory" encoder="float"/>
-      </analyzer>
-    </fieldtype>
-
-    <!-- lowercases the entire field value, keeping it as a single token.  -->
-    <fieldType name="lowercase" class="solr.TextField" positionIncrementGap="100">
-      <analyzer>
-        <tokenizer class="solr.KeywordTokenizerFactory"/>
-        <filter class="solr.LowerCaseFilterFactory" />
-      </analyzer>
-    </fieldType>
-
-    <!-- 
-      Example of using PathHierarchyTokenizerFactory at index time, so
-      queries for paths match documents at that path, or in descendent paths
-    -->
-    <fieldType name="descendent_path" class="solr.TextField">
-      <analyzer type="index">
-	<tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter="/" />
-      </analyzer>
-      <analyzer type="query">
-	<tokenizer class="solr.KeywordTokenizerFactory" />
-      </analyzer>
-    </fieldType>
-    <!-- 
-      Example of using PathHierarchyTokenizerFactory at query time, so
-      queries for paths match documents at that path, or in ancestor paths
-    -->
-    <fieldType name="ancestor_path" class="solr.TextField">
-      <analyzer type="index">
-	<tokenizer class="solr.KeywordTokenizerFactory" />
-      </analyzer>
-      <analyzer type="query">
-	<tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter="/" />
-      </analyzer>
-    </fieldType>
-
-    <!-- since fields of this type are by default not stored or indexed,
-         any data added to them will be ignored outright.  --> 
-    <fieldtype name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" />
-
-    <!-- This point type indexes the coordinates as separate fields (subFields)
-      If subFieldType is defined, it references a type, and a dynamic field
-      definition is created matching *___<typename>.  Alternately, if 
-      subFieldSuffix is defined, that is used to create the subFields.
-      Example: if subFieldType="double", then the coordinates would be
-        indexed in fields myloc_0___double,myloc_1___double.
-      Example: if subFieldSuffix="_d" then the coordinates would be indexed
-        in fields myloc_0_d,myloc_1_d
-      The subFields are an implementation detail of the fieldType, and end
-      users normally should not need to know about them.
-     -->
-    <fieldType name="point" class="solr.PointType" dimension="2" subFieldSuffix="_d"/>
-
-    <!-- A specialized field for geospatial search. If indexed, this fieldType must not be multivalued. -->
-    <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
-
-    <!-- An alternative geospatial field type new to Solr 4.  It supports multiValued and polygon shapes.
-      For more information about this and other Spatial fields new to Solr 4, see:
-      http://wiki.apache.org/solr/SolrAdaptersForLuceneSpatial4
-    -->
-    <fieldType name="location_rpt" class="solr.SpatialRecursivePrefixTreeFieldType"
-        geo="true" distErrPct="0.025" maxDistErr="0.000009" units="degrees" />
-
-   
-             
-
-    
  </types>
   
-  <!-- Similarity is the scoring routine for each document vs. a query.
-       A custom Similarity or SimilarityFactory may be specified here, but 
-       the default is fine for most applications.  
-       For more info: http://wiki.apache.org/solr/SchemaXml#Similarity
-    -->
-  <!--
-     <similarity class="com.example.solr.CustomSimilarityFactory">
-       <str name="paramkey">param value</str>
-     </similarity>
-    -->
-
 </schema>

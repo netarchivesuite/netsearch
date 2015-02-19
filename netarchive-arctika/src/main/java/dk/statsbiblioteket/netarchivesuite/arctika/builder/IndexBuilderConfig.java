@@ -25,6 +25,7 @@ public class IndexBuilderConfig {
     private double optimize_limit = 0.96d; // 96% default value
     private double index_target_limit = 0.95d; // 95% default value
     private String archon_url;
+    private String warcIndexerConfigFile;
     private String solr_url;
     private String worker_temp_dir="/tmp"; 
     
@@ -108,6 +109,14 @@ public class IndexBuilderConfig {
         this.solr_url = solr_url;
     }
 
+    public String getWarcIndexerConfigFile() {
+        return warcIndexerConfigFile;
+    }
+
+    public void setWarcIndexerConfigFile(String warcIndexerConfigFile) {
+        this.warcIndexerConfigFile = warcIndexerConfigFile;
+    }
+
     public int getShardId() {
         return shardId;
     }
@@ -148,6 +157,7 @@ public class IndexBuilderConfig {
         shardId = Integer.parseInt(serviceProperties.getProperty("arctika.shardId"));
         archon_url = serviceProperties.getProperty("arctika.archon_url");
         solr_url = serviceProperties.getProperty("arctika.solr_url");
+        warcIndexerConfigFile = serviceProperties.getProperty("arctika.worker.warcindexer.configfile");        
         worker_jar_file = serviceProperties.getProperty("arctika.worker.index.jar.file");
         worker_temp_dir = serviceProperties.getProperty("arctika.worker.tmp.dir");         
                 
@@ -160,6 +170,7 @@ public class IndexBuilderConfig {
         log.info("Property: index_target_limit = " + index_target_limit);
         log.info("Property: shardId = " + shardId);
         log.info("Property: archon_url = " + archon_url);
+        log.info("Property: warcIndexerConfigFile = " +  warcIndexerConfigFile );
         log.info("Property: solr_url = " + solr_url);       
     }
 

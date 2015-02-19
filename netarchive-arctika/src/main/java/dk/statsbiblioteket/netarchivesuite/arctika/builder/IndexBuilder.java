@@ -220,6 +220,7 @@ public class IndexBuilder {
                 nextARC, config.getSolr_url(),
                 config.getWorker_maxMemInMb(),
                 config.getWorker_jar_file(),
+                config.getWarcIndexerConfigFile(),
                 config.getWorker_temp_dir()));                
         return true;
     }

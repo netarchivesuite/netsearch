@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import dk.statsbiblioteket.util.console.ProcessRunner;
 
+import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -24,6 +25,7 @@ public class IndexWorker implements Callable<IndexWorker> {
     public static enum RUN_STATUS {NEW,RUNNING, COMPLETED,RUN_ERROR}
     private int numberOfErrors = 0;
     private String arcFile;
+    private String configFile;
     private String workerJarFile;
     private int maxMemInMb;
     private String solrUrl;
@@ -31,12 +33,13 @@ public class IndexWorker implements Callable<IndexWorker> {
     private long runtimeMS = 0;
     private String tmpDir;            
     
-    public IndexWorker(String arcFile,String solrUrl, int maxMemInMb, String workerJarFile, String tmpDir){
+    public IndexWorker(String arcFile,String solrUrl, int maxMemInMb, String workerJarFile, String configFile, String tmpDir){
         this.arcFile=arcFile;
         this.solrUrl=solrUrl;
         this.maxMemInMb=maxMemInMb;
         this.workerJarFile=workerJarFile;
         this.tmpDir=tmpDir;
+        this.configFile=configFile;
         status=RUN_STATUS.NEW;         
     }
         
@@ -87,17 +90,24 @@ public class IndexWorker implements Callable<IndexWorker> {
         
         try{                   
            //Example of final command (Belinda): 
-           //java -Xmx256M -Djava.io.tmpdir=/home/summanet/arctika/arctica_tmp -jar /home/summanet/arctika/warc-indexer-1.1.1-SNAPSHOT-jar-with-dependencies.jar  -s "http://localhost:9731/solr" /netarkiv/0001/filedir/152829-166-20120605115157-00187-kb-prod-har-004.kb.dk.arc 
-            
+           //java -Xmx256M -Djava.io.tmpdir=/home/summanet/arctika2/arctica_tmp -jar /home/summanet/arctika2/warc-indexer-2.0.1-SNAPSHOT-jar-with-dependencies.jar -c /home/summanet/arctika2/config.conf -s  "http://localhost:9731/solr" /netarkiv/0101/filedir/15626-38-20070418024637-00385-sb-prod-har-001.statsbiblioteket.dk.arc
+
+         if (!new File(configFile).exists()){
+             throw new IllegalArgumentException("Warc indexer config file not found:'"+configFile+"'");
+         }
          ProcessRunner runner = new ProcessRunner("java",
                  "-Xmx"+maxMemInMb+"M", //-Xmx256M etc              
                  "-Djava.io.tmpdir="+tmpDir,                                   
                  "-jar",
                  workerJarFile,
+                 "-c",
+                 configFile,                 
                  "-s",
                  solrUrl,
                  arcFile);
+
          runner.setTimeout(WORKER_TIMEOUT); // 1 hour
+        
          
          runner.run(); //this will wait until native call returned         
          int returnCode = runner.getReturnCode();
