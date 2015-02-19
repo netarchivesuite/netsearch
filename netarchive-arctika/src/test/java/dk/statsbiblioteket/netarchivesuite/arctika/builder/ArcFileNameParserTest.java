@@ -47,8 +47,6 @@ public class ArcFileNameParserTest extends TestCase {
     //Example 1298-metadata-2.arc
     private static final Pattern arc_metadata_Pattern = Pattern.compile("([0-9]+)-(metadata)-([0-9]+).(warc|arc)" );
 
-    final static String metaData = "-metadata-";
-
     private static final String SB_RULES =
             arc_sb_Pattern + "\t" + ARC_TYPE_FIELD + ":sb" + "\t" + HARVEST_TIME_FIELD + ":$3-$4-$5T$6:$7:$8.000Z\n" +
             arc_kb1_Pattern + "\t" + ARC_TYPE_FIELD + ":kb" + "\t" + HARVEST_TIME_FIELD + ":$3-$4-$5T$6:$7:$8.000Z\n" +
