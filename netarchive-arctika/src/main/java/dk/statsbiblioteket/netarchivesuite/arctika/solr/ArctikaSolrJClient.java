@@ -32,7 +32,8 @@ public class ArctikaSolrJClient{
 	}
 	
 	public void optimize() throws IOException, SolrServerException {
-	    solrServer.optimize();	       	    
+	   solrServer.commit(true,false); //flush before optimizing
+	   solrServer.optimize();	       	    
 	}
 		
 	//http://127.0.0.1:8983/solr/admin/cores?action=STATUS
