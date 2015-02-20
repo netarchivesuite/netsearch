@@ -304,6 +304,15 @@
    <dynamicField name="*_coordinate" type="tdouble" indexed="true" stored="false" />
    <!-- wa.bl.uk fields end --> 
    
+    <!-- SB arc-name fields  start -->
+    <field name="arc_full" type="string" indexed="true" stored="true" multiValued="false"/>
+    <field name="arc_name" type="string" indexed="true" stored="true" multiValued="false"/>
+    <field name="arc_orig" type="string" indexed="true" stored="true" multiValued="false"/>
+    <field name="arc_job" type="string" indexed="true" stored="true" multiValued="false"/>      
+    <field name="arc_harvest" type="string" indexed="true" stored="true" multiValued="false"/>   
+    <field name="arc_harvesttime" type="date" indexed="true" stored="true" multiValued="false"/>
+   <!-- SB arc-name fields  end -->
+   
  </fields>
 
 
