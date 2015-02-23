@@ -32,7 +32,7 @@ public class ArctikaSolrJClient{
 	}
 	
 	public void optimize() throws IOException, SolrServerException {
-	   solrServer.commit(true,false); //flush before optimizing
+	   solrServer.commit(true,true); //flush before optimizing
 	   solrServer.optimize();	       	    
 	}
 		
