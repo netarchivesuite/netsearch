@@ -227,9 +227,9 @@
          will be allowed before they are merged into one.
          Default is 10 for both merge policies.
       -->
-    <!-- 
-    <mergeFactor>10</mergeFactor>
-      -->
+     <!--Increased from 10 for netarkivet -->
+    <mergeFactor>40</mergeFactor>
+
 
     <!-- Expert: Merge Scheduler
          The Merge Scheduler in Lucene controls how merges are
@@ -278,7 +278,7 @@
     <!-- Expert: Controls how often Lucene loads terms into memory
          Default is 128 and is likely good for most everyone.
       -->
-    <!-- <termIndexInterval>128</termIndexInterval> -->
+    <!-- <termIndexInterval>1024</termIndexInterval> -->
 
     <!-- If true, IndexReaders will be opened/reopened from the IndexWriter
          instead of from the Directory. Hosts in a master/slave setup
