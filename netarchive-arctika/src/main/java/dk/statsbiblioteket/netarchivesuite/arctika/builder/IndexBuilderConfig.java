@@ -17,6 +17,7 @@ public class IndexBuilderConfig {
 
     private int shardId = -1;
     private String worker_jar_file;
+    private int max_worker_tries=3;
     private int worker_maxMemInMb = -1;
     private int max_concurrent_workers = -1;
     private long index_max_size = -1; //This will be combined with the unit below
@@ -63,6 +64,14 @@ public class IndexBuilderConfig {
 
     public void setMax_concurrent_workers(int max_concurrent_workers) {
         this.max_concurrent_workers = max_concurrent_workers;
+    }
+
+    public int getMax_worker_tries() {
+        return max_worker_tries;
+    }
+
+    public void setMax_worker_tries(int max_worker_tries) {
+        this.max_worker_tries = max_worker_tries;
     }
 
     public long getIndex_max_size() {
@@ -154,6 +163,7 @@ public class IndexBuilderConfig {
         
         optimize_limit = Double.parseDouble(serviceProperties.getProperty("arctika.optimize_limit"));
         index_target_limit = Double.parseDouble(serviceProperties.getProperty("arctika.index_target_limit"));
+        max_worker_tries = Integer.parseInt(serviceProperties.getProperty("actika.worker.tries"));
         shardId = Integer.parseInt(serviceProperties.getProperty("arctika.shardId"));
         archon_url = serviceProperties.getProperty("arctika.archon_url");
         solr_url = serviceProperties.getProperty("arctika.solr_url");
@@ -162,6 +172,7 @@ public class IndexBuilderConfig {
         worker_temp_dir = serviceProperties.getProperty("arctika.worker.tmp.dir");         
                 
         log.info("Property: worker_jar_file = " + worker_jar_file);
+        log.info("Property: max_worker_tries = " +max_worker_tries);
         log.info("Property: arctika.worker.tmp.dir = " +  worker_temp_dir);
         log.info("Property: actika.worker.maxMemInMb = " + worker_maxMemInMb);
         log.info("Property: max_concurrent_workers = " + max_concurrent_workers);

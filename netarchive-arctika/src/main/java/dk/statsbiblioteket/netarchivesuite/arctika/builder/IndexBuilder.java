@@ -24,10 +24,6 @@ public class IndexBuilder {
      */
     private static final long WAIT_OPTIMIZE = 60 * 1000L;
 
-    /**
-     * If a worker fails it retries its job. This limits the total number of attempts.
-     */
-    private int MAX_WORKER_TRIES = 3;
 
     private final JobController<IndexWorker> jobController;
     private final IndexBuilderConfig config;
@@ -142,7 +138,7 @@ public class IndexBuilder {
     private boolean isIndexingFinished() throws ExecutionException, InterruptedException, IOException, SolrServerException {
         int emptyRun = 0;
         int active = 0;
-        while (emptyRun++ < MAX_WORKER_TRIES && (active = jobController.getActiveCount()) > 0) {
+        while (emptyRun++ < config.getMax_worker_tries() && (active = jobController.getActiveCount()) > 0) {
             jobController.popAll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS);
         }
         if (active > 0) {
@@ -251,7 +247,7 @@ public class IndexBuilder {
         }
         if (workerStatus==RUN_STATUS.RUN_ERROR){
                 
-            if (worker.getNumberOfErrors()< MAX_WORKER_TRIES){
+            if (worker.getNumberOfErrors()< config.getMax_worker_tries()){
                 log.info("Worker failed. Will re-try. Error count: " + worker.getNumberOfErrors() +" arcfile: "
                          + worker.getArcFile() + " " + progress);
                 worker.increaseErrorCount();
