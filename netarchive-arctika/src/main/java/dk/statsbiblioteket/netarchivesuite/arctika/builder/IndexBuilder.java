@@ -137,16 +137,16 @@ public class IndexBuilder {
 
     private boolean isIndexingFinished() throws ExecutionException, InterruptedException, IOException, SolrServerException {
         int emptyRun = 0;
-        int active = 0;
         if (config.getMax_worker_tries() == 0) {
             log.warn("isIndexingFinished: config.getMax_worker_tries() == 0 with " + jobController.getActiveCount()
                      + " running jobs. Optimize will probably be skipped");
         }
-        while (emptyRun++ < config.getMax_worker_tries() && (active = jobController.getActiveCount()) > 0) {
+        while (emptyRun++ < config.getMax_worker_tries() && jobController.getActiveCount() > 0) {
             log.debug("isIndexingFinished: Calling popAll on jobController with active jobs: "
                       + jobController.getActiveCount());
             jobController.popAll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS);
         }
+        int active = jobController.getActiveCount();
         if (active > 0) {
             log.error("There are still " + active + " workers after popAll with timeout " + IndexWorker.WORKER_TIMEOUT
                       + " ms. Optimization will not be run and index building will exit");
