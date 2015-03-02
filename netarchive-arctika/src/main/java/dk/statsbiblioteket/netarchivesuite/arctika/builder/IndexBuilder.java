@@ -39,7 +39,7 @@ public class IndexBuilder {
     private int failedWorkers = 0;
 
     public static void main (String[] args) throws Exception {
-        String propertyFile = System.getProperty("ArtikaPropertyFile");
+        String propertyFile = System.getProperty("ArctikaPropertyFile");
         if (propertyFile == null || "".equals(propertyFile)){
             String message = "Property file location must be set. Use -DArtikaPropertyFile={path to file}";
             System.out.println(message);
@@ -138,7 +138,13 @@ public class IndexBuilder {
     private boolean isIndexingFinished() throws ExecutionException, InterruptedException, IOException, SolrServerException {
         int emptyRun = 0;
         int active = 0;
+        if (config.getMax_worker_tries() == 0) {
+            log.warn("isIndexingFinished: config.getMax_worker_tries() == 0 with " + jobController.getActiveCount()
+                     + " running jobs. Optimize will probably be skipped");
+        }
         while (emptyRun++ < config.getMax_worker_tries() && (active = jobController.getActiveCount()) > 0) {
+            log.debug("isIndexingFinished: Calling popAll on jobController with active jobs: "
+                      + jobController.getActiveCount());
             jobController.popAll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS);
         }
         if (active > 0) {
