@@ -253,7 +253,7 @@ public class IndexBuilder {
         }
         if (workerStatus==RUN_STATUS.RUN_ERROR){
                 
-            if (worker.getNumberOfErrors()< config.getMax_worker_tries()){
+            if (worker.getNumberOfErrors()<= config.getMax_worker_tries()){
                 log.info("Worker failed. Will re-try. Error count: " + worker.getNumberOfErrors() +" arcfile: "
                          + worker.getArcFile() + " " + progress);
                 worker.increaseErrorCount();
