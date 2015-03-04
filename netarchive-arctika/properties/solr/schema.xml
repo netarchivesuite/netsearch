@@ -116,7 +116,7 @@
    <field name="content_type" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
    <field name="last_modified" type="date" indexed="true" stored="true" docValues="true"/>
    <field name="last_modified_year" type="string" indexed="true" stored="true" />
-   <field name="links" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
+   <field name="links" type="string" indexed="true" stored="false" multiValued="true" docValues="true"/>
 
    <!-- Main body of document extracted by SolrCell.
         NOTE: This field is not indexed by default, since it is also copied to "text"
@@ -187,11 +187,11 @@
    <field name="public_suffix" type="string" indexed="true" stored="true" multiValued="false"/>
    
    <!-- The hostnames of discovered outlinks -->
-   <field name="links_hosts" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
+   <field name="links_hosts" type="string" indexed="true" stored="false" multiValued="true" docValues="true"/>
    <!-- The private suffixs of the target domains of any links, i.e. example.co.uk, example.org, etc: -->
-   <field name="links_domains" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
+   <field name="links_domains" type="string" indexed="true" stored="false" multiValued="true" docValues="true"/>
    <!-- The public suffixs of the target domains of any links, i.e. co.uk, org, etc: -->
-   <field name="links_public_suffixes" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
+   <field name="links_public_suffixes" type="string" indexed="true" stored="false" multiValued="true" docValues="true"/>
    
    <!-- The digest/hash of the content (e.g. sha1:UYIPOGACBXSSCQVMBGTCGYOFBHFO5TTL, WARC only?): -->
    <field name="hash" type="string" indexed="true" stored="true" multiValued="true"/>   
@@ -287,7 +287,7 @@
    <field name='image_dominant_colour' type='string' indexed='true' stored='true' multiValued='false'/>
 
    <!-- The different HTML elements used by the document -->
-   <field name="elements_used" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
+   <field name="elements_used" type="string" indexed="true" stored="false" multiValued="true" docValues="true"/>
 
    <!-- Fuzzy hashing for detecting similar content.
         Uses a dynamic field definition to allow for variations in block sizes. -->
@@ -306,8 +306,8 @@
    
     <!-- SB arc-name fields  start -->
     <field name="arc_full" type="string" indexed="true" stored="true" multiValued="false"/>
-    <field name="arc_name" type="string" indexed="true" stored="true" multiValued="false"/>
-    <field name="arc_orig" type="string" indexed="true" stored="true" multiValued="false" docValues="true"/>
+    <field name="arc_name" type="string" indexed="true" stored="false" multiValued="false"/>
+    <field name="arc_orig" type="string" indexed="true" stored="false" multiValued="false" docValues="true"/>
     <field name="arc_job" type="string" indexed="true" stored="true" multiValued="false" docValues="true"/>      
     <field name="arc_harvest" type="string" indexed="true" stored="true" multiValued="false"/>   
     <field name="arc_harvesttime" type="string" indexed="true" stored="true" multiValued="false"/>
@@ -407,7 +407,7 @@
    <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
     <!--
       Default numeric field types. For faster range queries, consider the tint/tfloat/tlong/tdouble types.
-    -->
+    -->        
     <fieldType name="int" class="solr.TrieIntField" precisionStep="0" positionIncrementGap="0"/>
     <fieldType name="float" class="solr.TrieFloatField" precisionStep="0" positionIncrementGap="0"/>
     <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
