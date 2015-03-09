@@ -170,8 +170,8 @@
    <!-- The harvest date, but in wayback format: 'YYYYMMDDHHMMSS' -->   
    <field name="wayback_date" type="string" indexed="true" stored="true" multiValued="false"/>
    <!-- The ealiest harvest/crawl date, as a date, and also as multi-valued for hash-based ID. -->
-   <field name="crawl_date" type="tdate" indexed="true" stored="true" multiValued="false" docValues="true"/>
-   <field name="crawl_dates" type="tdate" indexed="true" stored="true" multiValued="true"/>
+   <field name="crawl_date" type="tdate" indexed="true" stored="true" multiValued="false" docValues="true" omitNorms="true"/>
+   <field name="crawl_dates" type="tdate" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
    <!-- The harvest/crawl year (for faceting), and also as multi-valued for hash-based ID. -->
    <field name="crawl_year" type="string" indexed="true" stored="true" multiValued="false" docValues="true"/>
    <field name="crawl_years" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -201,7 +201,7 @@
    <field name="referrer_url" type="string" indexed="false" stored="true" multiValued="false"/>
       
      <!-- The publication date, as a date -->
-   <field name="publication_date" type="tdate" indexed="true" stored="true" multiValued="false" docValues="true"/>
+   <field name="publication_date" type="tdate" indexed="true" stored="true" multiValued="false" docValues="true" omitNorms="true"/>
    <!-- The publication year, for faceting -->
    <field name="publication_year" type="string" indexed="true" stored="true" multiValued="false" docValues="true"/>
    
@@ -455,7 +455,7 @@
     <fieldType name="date" class="solr.TrieDateField" precisionStep="0" positionIncrementGap="0"/>
 
     <!-- A Trie based date field for faster date range queries and date faceting. -->
-    <fieldType name="tdate" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0"/>
+    <fieldType name="tdate" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0" omitNorms="true"/>
 
         <!-- solr.TextField allows the specification of custom text analyzers
          specified as a tokenizer and a list of token filters. Different
