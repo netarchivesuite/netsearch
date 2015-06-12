@@ -836,7 +836,7 @@
      </lst>
      <lst name="appends">
        <str name="fq">
-       NOT (host:"mtp.hum.ku.dk") AND NOT (host:"www.mtp.hum.ku.dk") AND NOT (host:"ftp.pubhub.dk") AND NOT (host:"www.ftp.pubhub.dk") AND  NOT (host:"odaa.dk" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z]) AND NOT (host:"NOT (host:"mtp.hum.ku.dk") AND NOT (host:"www.mtp.hum.ku.dk") AND NOT (host:"ftp.pubhub.dk") AND NOT (host:"www.ftp.pubhub.dk") AND  NOT (host:"www.dsb.dk" AND crawl_date:[2001-06-19T00:00:00Z TO 2014-06-01T23:59:59Z]) AND NOT (host:"www.odaa.dk" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z])" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z])       
+       NOT (host:"mtp.hum.ku.dk") AND NOT (host:"www.mtp.hum.ku.dk") AND NOT (host:"ftp.pubhub.dk") AND NOT (host:"www.ftp.pubhub.dk") AND NOT (host:"odaa.dk" AND crawl_date [2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z]) AND NOT (host:"www.odaa.dk" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z])        
       </str>
     </lst>
   </requestHandler>
@@ -853,7 +853,7 @@
      </lst>
     <lst name="appends">
        <str name="fq">
-       NOT (host:"mtp.hum.ku.dk") AND NOT (host:"www.mtp.hum.ku.dk") AND NOT (host:"ftp.pubhub.dk") AND NOT (host:"www.ftp.pubhub.dk") AND  NOT (host:"odaa.dk" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z]) AND NOT (host:"NOT (host:"mtp.hum.ku.dk") AND NOT (host:"www.mtp.hum.ku.dk") AND NOT (host:"ftp.pubhub.dk") AND NOT (host:"www.ftp.pubhub.dk") AND  NOT (host:"www.dsb.dk" AND crawl_date:[2001-06-19T00:00:00Z TO 2014-06-01T23:59:59Z]) AND NOT (host:"www.odaa.dk" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z])" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z])       
+       NOT (host:"mtp.hum.ku.dk") AND NOT (host:"www.mtp.hum.ku.dk") AND NOT (host:"ftp.pubhub.dk") AND NOT (host:"www.ftp.pubhub.dk") AND NOT (host:"odaa.dk" AND crawl_date [2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z]) AND NOT (host:"www.odaa.dk" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z])       
       </str>
     </lst>
   </requestHandler>
