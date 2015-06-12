@@ -828,76 +828,34 @@
        queries across multiple shards
     -->
   <requestHandler name="/select" class="solr.SearchHandler">
-    <!-- default values for query parameters can be specified, these
-         will be overridden by parameters in the request
-      -->
      <lst name="defaults">
        <str name="echoParams">explicit</str>
        <int name="rows">10</int>
        <str name="df">text</str>
+       <str name="defType">edismax</str>
      </lst>
-    <!-- In addition to defaults, "appends" params can be specified
-         to identify values which should be appended to the list of
-         multi-val params from the query (or the existing "defaults").
-      -->
-    <!-- In this example, the param "fq=instock:true" would be appended to
-         any query time fq params the user may specify, as a mechanism for
-         partitioning the index, independent of any user selected filtering
-         that may also be desired (perhaps as a result of faceted searching).
-
-         NOTE: there is *absolutely* nothing a client can do to prevent these
-         "appends" values from being used, so don't use this mechanism
-         unless you are sure you always want it.
-      -->
-    <!--
-       <lst name="appends">
-         <str name="fq">inStock:true</str>
-       </lst>
-      -->
-    <!-- "invariants" are a way of letting the Solr maintainer lock down
-         the options available to Solr clients.  Any params values
-         specified here are used regardless of what values may be specified
-         in either the query, the "defaults", or the "appends" params.
-
-         In this example, the facet.field and facet.query params would
-         be fixed, limiting the facets clients can use.  Faceting is
-         not turned on by default - but if the client does specify
-         facet=true in the request, these are the only facets they
-         will be able to see counts for; regardless of what other
-         facet.field or facet.query params they may specify.
-
-         NOTE: there is *absolutely* nothing a client can do to prevent these
-         "invariants" values from being used, so don't use this mechanism
-         unless you are sure you always want it.
-      -->
-    <!--
-       <lst name="invariants">
-         <str name="facet.field">cat</str>
-         <str name="facet.field">manu_exact</str>
-         <str name="facet.query">price:[* TO 500]</str>
-         <str name="facet.query">price:[500 TO *]</str>
-       </lst>
-      -->
-    <!-- If the default list of SearchComponents is not desired, that
-         list can either be overridden completely, or components can be
-         prepended or appended to the default list.  (see below)
-      -->
-    <!--
-       <arr name="components">
-         <str>nameOfCustomComponent1</str>
-         <str>nameOfCustomComponent2</str>
-       </arr>
-      -->
-    </requestHandler>
+     <lst name="appends">
+       <str name="fq">
+       NOT (host:"mtp.hum.ku.dk") AND NOT (host:"www.mtp.hum.ku.dk") AND NOT (host:"ftp.pubhub.dk") AND NOT (host:"www.ftp.pubhub.dk") AND  NOT (host:"odaa.dk" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z]) AND NOT (host:"NOT (host:"mtp.hum.ku.dk") AND NOT (host:"www.mtp.hum.ku.dk") AND NOT (host:"ftp.pubhub.dk") AND NOT (host:"www.ftp.pubhub.dk") AND  NOT (host:"www.dsb.dk" AND crawl_date:[2001-06-19T00:00:00Z TO 2014-06-01T23:59:59Z]) AND NOT (host:"www.odaa.dk" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z])" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z])       
+      </str>
+    </lst>
+  </requestHandler>
 
   <!-- A request handler that returns indented JSON by default -->
   <requestHandler name="/query" class="solr.SearchHandler">
      <lst name="defaults">
        <str name="echoParams">explicit</str>
        <str name="wt">json</str>
+       <int name="rows">10</int>
        <str name="indent">true</str>
        <str name="df">text</str>
+       <str name="defType">edismax</str>
      </lst>
+    <lst name="appends">
+       <str name="fq">
+       NOT (host:"mtp.hum.ku.dk") AND NOT (host:"www.mtp.hum.ku.dk") AND NOT (host:"ftp.pubhub.dk") AND NOT (host:"www.ftp.pubhub.dk") AND  NOT (host:"odaa.dk" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z]) AND NOT (host:"NOT (host:"mtp.hum.ku.dk") AND NOT (host:"www.mtp.hum.ku.dk") AND NOT (host:"ftp.pubhub.dk") AND NOT (host:"www.ftp.pubhub.dk") AND  NOT (host:"www.dsb.dk" AND crawl_date:[2001-06-19T00:00:00Z TO 2014-06-01T23:59:59Z]) AND NOT (host:"www.odaa.dk" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z])" AND crawl_date:[2013-06-19T00:00:00Z TO 2014-06-01T23:59:59Z])       
+      </str>
+    </lst>
   </requestHandler>
 
 
@@ -921,105 +879,7 @@
   </requestHandler>
 
  
-  <!-- A Robust Example 
-       
-       This example SearchHandler declaration shows off usage of the
-       SearchHandler with many defaults declared
-
-       Note that multiple instances of the same Request Handler
-       (SearchHandler) can be registered multiple times with different
-       names (and different init parameters)
-    -->
-  <requestHandler name="/browse" class="solr.SearchHandler">
-     <lst name="defaults">
-       <str name="echoParams">explicit</str>
-
-       <!-- VelocityResponseWriter settings -->
-       <str name="wt">velocity</str>
-       <str name="v.template">browse</str>
-       <str name="v.layout">layout</str>
-       <str name="title">Solritas</str>
-
-       <!-- Query settings -->
-       <str name="defType">edismax</str>
-       <str name="qf">
-          text^0.5 features^1.0 name^1.2 sku^1.5 id^10.0 manu^1.1 cat^1.4
-          title^10.0 description^5.0 keywords^5.0 author^2.0 resourcename^1.0
-       </str>
-       <str name="df">text</str>
-       <str name="mm">100%</str>
-       <str name="q.alt">*:*</str>
-       <str name="rows">10</str>
-       <str name="fl">*,score</str>
-
-       <str name="mlt.qf">
-         text^0.5 features^1.0 name^1.2 sku^1.5 id^10.0 manu^1.1 cat^1.4
-         title^10.0 description^5.0 keywords^5.0 author^2.0 resourcename^1.0
-       </str>
-       <str name="mlt.fl">text,features,name,sku,id,manu,cat,title,description,keywords,author,resourcename</str>
-       <int name="mlt.count">3</int>
-
-       <!-- Faceting defaults -->
-       <str name="facet">on</str>
-       <str name="facet.field">cat</str>
-       <str name="facet.field">manu_exact</str>
-       <str name="facet.field">content_type</str>
-       <str name="facet.field">author_s</str>
-       <str name="facet.query">ipod</str>
-       <str name="facet.query">GB</str>
-       <str name="facet.mincount">1</str>
-       <str name="facet.pivot">cat,inStock</str>
-       <str name="facet.range.other">after</str>
-       <str name="facet.range">price</str>
-       <int name="f.price.facet.range.start">0</int>
-       <int name="f.price.facet.range.end">600</int>
-       <int name="f.price.facet.range.gap">50</int>
-       <str name="facet.range">popularity</str>
-       <int name="f.popularity.facet.range.start">0</int>
-       <int name="f.popularity.facet.range.end">10</int>
-       <int name="f.popularity.facet.range.gap">3</int>
-       <str name="facet.range">manufacturedate_dt</str>
-       <str name="f.manufacturedate_dt.facet.range.start">NOW/YEAR-10YEARS</str>
-       <str name="f.manufacturedate_dt.facet.range.end">NOW</str>
-       <str name="f.manufacturedate_dt.facet.range.gap">+1YEAR</str>
-       <str name="f.manufacturedate_dt.facet.range.other">before</str>
-       <str name="f.manufacturedate_dt.facet.range.other">after</str>
-
-       <!-- Highlighting defaults -->
-       <str name="hl">on</str>
-       <str name="hl.fl">content features title name</str>
-       <str name="hl.encoder">html</str>
-       <str name="hl.simple.pre">&lt;b&gt;</str>
-       <str name="hl.simple.post">&lt;/b&gt;</str>
-       <str name="f.title.hl.fragsize">0</str>
-       <str name="f.title.hl.alternateField">title</str>
-       <str name="f.name.hl.fragsize">0</str>
-       <str name="f.name.hl.alternateField">name</str>
-       <str name="f.content.hl.snippets">3</str>
-       <str name="f.content.hl.fragsize">200</str>
-       <str name="f.content.hl.alternateField">content</str>
-       <str name="f.content.hl.maxAlternateFieldLength">750</str>
-
-       <!-- Spell checking defaults -->
-       <str name="spellcheck">on</str>
-       <str name="spellcheck.extendedResults">false</str>       
-       <str name="spellcheck.count">5</str>
-       <str name="spellcheck.alternativeTermCount">2</str>
-       <str name="spellcheck.maxResultsForSuggest">5</str>       
-       <str name="spellcheck.collate">true</str>
-       <str name="spellcheck.collateExtendedResults">true</str>  
-       <str name="spellcheck.maxCollationTries">5</str>
-       <str name="spellcheck.maxCollations">3</str>           
-     </lst>
-
-     <!-- append spellchecking to our list of components -->
-     <arr name="last-components">
-       <str>spellcheck</str>
-     </arr>
-  </requestHandler>
-
-
-  <!-- Update Request Handler.  
+    <!-- Update Request Handler.  
        
        http://wiki.apache.org/solr/UpdateXmlMessages
 
@@ -1943,7 +1803,7 @@
       <str name="spellcheck.onlyMorePopular">true</str>
       <str name="spellcheck.count">5</str>
       <str name="spellcheck.collate">true</str>
-    </lst>
+    </lst>     <int name="rows">10</int>
     <arr name="components">
       <str>suggestFileFormat</str>
     </arr>
