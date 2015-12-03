@@ -217,9 +217,18 @@ public class IndexBuilder {
             System.out.println(message);
             return false;            
         }
-        
+
+        //if there is a corename in the properties file
+        String solrUrl = config.getSolr_url();
+        if(config.getCoreName() != null && config.getCoreName().length() > 0) {
+            if(!solrUrl.endsWith("/")) {
+               solrUrl += "/";
+            }
+            solrUrl += config.getCoreName();
+        }
+
         jobController.submit(new IndexWorker(
-                nextARC, config.getSolr_url(),
+                nextARC, solrUrl,
                 config.getWorker_maxMemInMb(),
                 config.getWorker_jar_file(),
                 config.getWarcIndexerConfigFile(),

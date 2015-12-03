@@ -96,6 +96,7 @@ public class IndexWorker implements Callable<IndexWorker> {
              throw new IllegalArgumentException("Warc indexer config file not found:'"+configFile+"'");
          }
          ProcessRunner runner = new ProcessRunner("java",
+                 "-Dfile.encoding=UTF-8",
                  "-Xmx"+maxMemInMb+"M", //-Xmx256M etc              
                  "-Djava.io.tmpdir="+tmpDir,                                   
                  "-jar",

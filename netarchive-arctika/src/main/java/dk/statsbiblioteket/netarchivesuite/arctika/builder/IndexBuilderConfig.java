@@ -28,6 +28,7 @@ public class IndexBuilderConfig {
     private String archon_url;
     private String warcIndexerConfigFile;
     private String solr_url;
+    private String solr_core_name;
     private String worker_temp_dir="/tmp"; 
     
     public IndexBuilderConfig(String configFilePath) throws Exception {
@@ -117,6 +118,14 @@ public class IndexBuilderConfig {
     public void setSolr_url(String solr_url) {
         this.solr_url = solr_url;
     }
+    
+    public String getCoreName() {
+        return solr_core_name;
+    }
+   
+    public void setCoreName(String solr_core_name) {
+        this.solr_core_name = solr_core_name;
+    } 
 
     public String getWarcIndexerConfigFile() {
         return warcIndexerConfigFile;
@@ -167,6 +176,7 @@ public class IndexBuilderConfig {
         shardId = Integer.parseInt(serviceProperties.getProperty("arctika.shardId"));
         archon_url = serviceProperties.getProperty("arctika.archon_url");
         solr_url = serviceProperties.getProperty("arctika.solr_url");
+        solr_core_name=serviceProperties.getProperty("arctika.solr_core_name");
         warcIndexerConfigFile = serviceProperties.getProperty("arctika.worker.warcindexer.configfile");        
         worker_jar_file = serviceProperties.getProperty("arctika.worker.index.jar.file");
         worker_temp_dir = serviceProperties.getProperty("arctika.worker.tmp.dir");         
@@ -182,7 +192,8 @@ public class IndexBuilderConfig {
         log.info("Property: shardId = " + shardId);
         log.info("Property: archon_url = " + archon_url);
         log.info("Property: warcIndexerConfigFile = " +  warcIndexerConfigFile );
-        log.info("Property: solr_url = " + solr_url);       
+        log.info("Property: solr_url = " + solr_url);
+        log.info("Property: solr_core_name = " + solr_core_name);
     }
 
 }
