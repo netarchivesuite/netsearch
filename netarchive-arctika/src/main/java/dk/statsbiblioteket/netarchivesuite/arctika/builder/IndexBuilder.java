@@ -41,7 +41,7 @@ public class IndexBuilder {
     public static void main (String[] args) throws Exception {
         String propertyFile = System.getProperty("ArctikaPropertyFile");
         if (propertyFile == null || "".equals(propertyFile)){
-            String message = "Property file location must be set. Use -DArtikaPropertyFile={path to file}";
+            String message = "Property file location must be set. Use -DArctikaPropertyFile={path to file}";
             System.out.println(message);
             log.error(message);
             System.exit(1);
