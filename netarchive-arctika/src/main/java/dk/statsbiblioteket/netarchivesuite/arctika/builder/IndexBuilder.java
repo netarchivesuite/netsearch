@@ -41,7 +41,7 @@ public class IndexBuilder {
     public static void main (String[] args) throws Exception {
         String propertyFile = System.getProperty("ArctikaPropertyFile");
         if (propertyFile == null || "".equals(propertyFile)){
-            String message = "Property file location must be set. Use -DArtikaPropertyFile={path to file}";
+            String message = "Property file location must be set. Use -DArctikaPropertyFile={path to file}";
             System.out.println(message);
             log.error(message);
             System.exit(1);
@@ -217,9 +217,18 @@ public class IndexBuilder {
             System.out.println(message);
             return false;            
         }
-        
+
+        //if there is a corename in the properties file
+        String solrUrl = config.getSolr_url();
+        if(config.getCoreName() != null && config.getCoreName().length() > 0) {
+            if(!solrUrl.endsWith("/")) {
+               solrUrl += "/";
+            }
+            solrUrl += config.getCoreName();
+        }
+
         jobController.submit(new IndexWorker(
-                nextARC, config.getSolr_url(),
+                nextARC, solrUrl,
                 config.getWorker_maxMemInMb(),
                 config.getWorker_jar_file(),
                 config.getWarcIndexerConfigFile(),

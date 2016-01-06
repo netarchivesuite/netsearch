@@ -91,6 +91,11 @@ TO BUILD THE JAR WITH DEPENDENCIES USE:
   <artifactId>maven-assembly-plugin</artifactId>
   <version>2.3</version>
   <configuration>
+    <archive>
+      <manifest>
+        <mainClass>dk.statsbiblioteket.netarchivesuite.arctika.builder.IndexBuilder</mainClass>
+      </manifest>
+    </archive>
     <descriptorRefs>
       <descriptorRef>jar-with-dependencies</descriptorRef>
     </descriptorRefs>
