@@ -689,7 +689,7 @@
      author
      description
      url         
-     content_text     
+     content     
      text                                            
      </str>
      <!--Phrase fields, read SOLR book page 154. Performance can be improved by shingling common-grams -->
