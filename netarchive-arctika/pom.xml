@@ -16,6 +16,32 @@
   <name>netarchive-arctika</name>
   <description>Builds limited size Solr indexes from ARC files using Tika. Sister project to Archon.</description>
 
+
+  <repositories>
+    <repository>
+      <id>sbprojects-nexus</id>
+      <url>https://sbprojects.statsbiblioteket.dk/nexus/content/groups/public</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>sbprojects-nexus</id>
+      <url>https://sbprojects.statsbiblioteket.dk/nexus/content/groups/public</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+
   <dependencies>
 
 <!--
