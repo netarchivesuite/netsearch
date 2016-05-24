@@ -183,11 +183,22 @@ public class ArchonResource {
              H2Storage.getInstance().setARCPriority(arcID, priority);            
         } catch (Exception e) {
             throw handleServiceExceptions(e);
-        }
-    
+        }    
     }
     
-    
+
+    @POST            
+    @Path("resetArcWithPriority/{arcID}/{priority}")              
+    public void resetArcWithPriority(@PathParam("arcID") String arcID,            
+            @PathParam("priority") int priority) throws ArchonServiceException  {                                     
+  
+        try {            
+             H2Storage.getInstance().resetArcWithPriorityStatement(arcID, priority);            
+        } catch (Exception e) {
+            throw handleServiceExceptions(e);
+        }    
+    }
+        
     @POST            
     @Path("setShardState/{shardID}/{state}/{priority}")              
     public void setShardState(@PathParam("shardID") String shardID,

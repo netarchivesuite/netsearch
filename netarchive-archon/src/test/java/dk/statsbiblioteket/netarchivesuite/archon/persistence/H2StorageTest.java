@@ -2,6 +2,7 @@ package dk.statsbiblioteket.netarchivesuite.archon.persistence;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -358,6 +359,23 @@ public class H2StorageTest {
         assertEquals(7,arc.getPriority());
     }
 
+    
+
+    @Test
+    public void testResetArcWithPriorty() throws Exception {          
+        storage.addARC(arcFile1);       
+        storage.setARCProperties(arcFile1, "51", ArchonConnector.ARC_STATE.COMPLETED, 3);        
+              
+        //Now reset it
+        storage.resetArcWithPriorityStatement(arcFile1,6);
+        
+        ArcVO arc = storage.getArcByID("arcfile1");                    
+        assertEquals(6,arc.getPriority());        
+        assertEquals(ArchonConnector.ARC_STATE.NEW.name(),arc.getArcState());
+        assertNull(arc.getShardId());       
+    }
+
+    
     
     @Test
     public void testClearIndexing() throws Exception {    

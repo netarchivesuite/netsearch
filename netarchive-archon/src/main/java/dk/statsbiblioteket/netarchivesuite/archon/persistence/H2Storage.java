@@ -136,6 +136,16 @@ public class H2Storage {
             + MODIFIED_TIME_COLUMN + " = ? " 
             +" WHERE "
             +ARC_FILE_ID_COLUMN+" = ?";
+    
+
+    private final static String resetArcWithPriorityStatement = "UPDATE "+ ARCHON_TABLE 
+            +" SET "+PRIORITY_COLUMN+ " = ? , "             
+            + ARC_STATE_COLUMN+ " = 'NEW' ,"
+            + SHARD_ID_COLUMN + " = null ,"
+            + MODIFIED_TIME_COLUMN + " = ?  "             
+            +" WHERE "
+            +ARC_FILE_ID_COLUMN+" = ?";
+    
 
     //SELECT DISTINCT (SHARD_ID) from ARCHON WHERE SHARD_ID IS NOT NULL
     private final static String selectShardIDsQuery =
@@ -649,6 +659,43 @@ public class H2Storage {
         }               
     }
 
+    
+
+    //synchronized since we are writing.     
+    public synchronized void resetArcWithPriorityStatement(String fullPath, int priority) throws Exception{
+
+        String[] splitPath = splitPath(fullPath); 
+        String folder = splitPath[0];
+        String arcId = splitPath[1];
+
+        PreparedStatement stmt = null;
+        try {                   
+            boolean aRCIDExist = aRCIDExist(arcId);
+            if (!aRCIDExist){
+                throw new IllegalArgumentException("ArcID does not exist:"+arcId);            
+            }
+
+            stmt = singleDBConnection.prepareStatement(resetArcWithPriorityStatement);
+
+            stmt.setInt(1, priority);            
+            stmt.setLong(2, System.currentTimeMillis());
+            stmt.setString(3, arcId);
+            int updated = stmt.executeUpdate();
+
+            if (updated == 0){ //arcfile not found
+                throw new IllegalArgumentException("Arcfile not found with id:"+arcId);
+            }
+
+            singleDBConnection.commit(); 
+        } catch (Exception e) {
+            log.error("SQL Exception in resetArcWithPriorityStatement:" + e.getMessage());                                
+            throw e;
+        } finally {
+            closeStatement(stmt);
+        }               
+    }
+
+    
     //synchronized since we are writing.
     public synchronized void removeARC(String arcID) throws Exception{
         PreparedStatement stmt = null;
