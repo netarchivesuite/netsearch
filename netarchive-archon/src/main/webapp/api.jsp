@@ -50,6 +50,17 @@ An ARC-file unique identifier is only the filename and not the full file-path.<b
              (none) 
             </td>
           </tr>
+             <tr>  
+            <td>services/resetARCWithPriority/{arcPath}/{priority}</td>  
+            <td>
+            Reset state to NEW and shardid to null and set a priority
+            example: services/resetARCWithPriority/folder1%2Ffolder2%2Farcfile1.arc/3  
+            </td>  
+            <td>
+             (none) 
+            </td>
+          </tr>
+          
         </tbody>  
 </table>    
 
