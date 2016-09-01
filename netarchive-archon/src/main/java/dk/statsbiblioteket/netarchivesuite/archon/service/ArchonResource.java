@@ -188,7 +188,7 @@ public class ArchonResource {
     
 
     @POST            
-    @Path("resetArcWithPriority/{arcID}/{priority}")              
+    @Path("resetARCWithPriority/{arcID}/{priority}")              
     public void resetArcWithPriority(@PathParam("arcID") String arcID,            
             @PathParam("priority") int priority) throws ArchonServiceException  {                                     
   
