@@ -90,7 +90,7 @@ public class IndexWorker implements Callable<IndexWorker> {
         
         try{                   
            //Example of final command (Belinda): 
-           //java -Xmx256M -Djava.io.tmpdir=/home/summanet/arctika2/arctica_tmp -jar /home/summanet/arctika2/warc-indexer-2.0.1-SNAPSHOT-jar-with-dependencies.jar -c /home/summanet/arctika2/config.conf -s  "http://localhost:9731/solr" /netarkiv/0101/filedir/15626-38-20070418024637-00385-sb-prod-har-001.statsbiblioteket.dk.arc
+           //java -Xmx256M -Djava.io.tmpdir=/home/summanet/arctika2/arctica_tmp -jar /home/summanet/arctika2/warc-indexer-2.0.2-SNAPSHOT-jar-with-dependencies.jar -c /home/summanet/arctika2/config.conf -s  "http://localhost:9731/solr" /netarkiv/0101/filedir/15626-38-20070418024637-00385-sb-prod-har-001.statsbiblioteket.dk.arc
 
          if (!new File(configFile).exists()){
              throw new IllegalArgumentException("Warc indexer config file not found:'"+configFile+"'");
