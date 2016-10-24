@@ -4,7 +4,7 @@ search-archon
 Tracks overall progress in indexing ARC files with the sister project ARCTika
 
 How to set up the archon application.
-Version 
+Version 1.2
 1)Copy /netarchive-archon/properties/archon.properties to home-dir
 2)Edit archon.properties. 4 JDDB driver properties must be defined. When using other than postgres/h2 add driver to pom.xml dependencies 
 3) 'mvn package deploy' (in main module)
