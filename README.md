@@ -13,7 +13,7 @@ and faceted/grouping search time &lt; 2000ms.
 
 **Software components**
 
-1. Archon. WAR-application that keeps track of the arc/warc files book keeping. Uses a DB (H2) for persistence.
+1. Archon. WAR-application that keeps track of the arc/warc files book keeping. Uses a database for persistence.
 2. Arctika: Java program that builds a given index(shard) and manage a worker pool of jobs that each process a arc/warc-file and submits the extracted meta-data to solr. The workers uses (https://github.com/ukwa/webarchive-discovery) for reading the arc-files using Tika for text extraction.
 3. A Solr-Cloud cluster where you can add new servers(shards). Each index is put into a Solr server instance(shard) in the cluster.  A zookeeper emsemble monitors the cluster.
 4. Front-end server for searching and showing the results. We use the open source project SolrAjax for this. This will likely be replaced with a better front-end solution later.
