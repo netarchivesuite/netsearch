@@ -6,42 +6,35 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.statsbiblioteket.netarchivesuite.archon.ArchonPropertiesLoader;
 import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
 
-
-/**
- * This class handles all communication with the DB. Singleton pattern. From unit-test the test-class initializes the singleton - on Tomcat it is initialized by
- * InitializationContextListener.
- * 
- * For performance the DB can be accessed through the LicenseCache-class that cache the complete DB-tables. The cache has a 15 minute reload timer, but can also
- * instant reload when implicit notified by the DB-methods in this class.
- * 
- * The DB consist of the following tables:
- * 
- * TODO
- * 
+/*
+ * Persistance layer. Can use any JDBC driver.
+ * Must be initialized before use.
+ * Uses a connectionpool 
  */
-public class H2Storage {
+public class ArchonStorage {
 
-    private static final Logger log = LoggerFactory.getLogger(H2Storage.class);
-    private static H2Storage instance = null;
+    private static final Logger log = LoggerFactory.getLogger(ArchonStorage.class);
 
-    private static Connection singleDBConnection = null;
+    private static BasicDataSource dataSource = null;
+    private Connection connection = null;
 
     // statistics shown on monitor.jsp page
     public static Date INITDATE = null;
-    public static Date LASTDATABASEBACKUPDATE = null;
-    public static int NUMBER_DATABASE_BACKUP_SINCE_STARTUP = 0;
-
+    
     // Table and column names
     private static final String ARCHON_TABLE = "ARCHON";
 
@@ -96,7 +89,7 @@ public class H2Storage {
             + CREATED_TIME_COLUMN + "," 
             + PRIORITY_COLUMN + ","
             + ARC_STATE_COLUMN  + ","
-            + MODIFIED_TIME_COLUMN  + ","
+            + MODIFIED_TIME_COLUMN
             + ") VALUES (?,?,?,?,?,?)"; // #|?|=6
 
     private final static String setArcStateStatement = "UPDATE "+ ARCHON_TABLE 
@@ -176,28 +169,36 @@ public class H2Storage {
             +SHARD_ID_COLUMN+" = ?";
 
 
+    public static void initialize(String driverName, String driverUrl, String userName, String password) throws SQLException {
+  	    dataSource = new BasicDataSource();
+        dataSource.setDriverClassName(driverName);
+        dataSource.setUsername(userName);
+        dataSource.setPassword(password);
+        dataSource.setUrl(driverUrl);
 
-    public H2Storage(String dbFilePath) throws SQLException {
-        log.info("Intialized H2Storage, dbFile=" + dbFilePath);
-        synchronized (H2Storage.class) {
-            initializeDBConnection(dbFilePath);
-        }
+        dataSource.setDefaultReadOnly(false);
+        dataSource.setDefaultAutoCommit(false);
+
+        //enable detection and logging of connection leaks
+        dataSource.setRemoveAbandonedOnBorrow(true);
+        dataSource.setRemoveAbandonedOnMaintenance(true);
+        dataSource.setRemoveAbandonedTimeout(3600); //1 hour
+        dataSource.setLogAbandoned(true);
+
+        INITDATE = new Date();
+  }
+
+
+
+    public ArchonStorage() throws Exception {
+        connection = dataSource.getConnection();
     }
-
-    public static H2Storage getInstance() {
-        if (instance == null) {
-            throw new IllegalArgumentException("H2 Storage has not been initialized yet");
-        }
-
-        return instance;
-    }
-
 
 
     public int nextShardId() throws Exception{
         PreparedStatement stmt = null;
         try {
-            stmt = singleDBConnection.prepareStatement(selectNextShardIdQuery);
+            stmt = connection.prepareStatement(selectNextShardIdQuery);
             ResultSet rs = stmt.executeQuery();
 
             rs.next(); //Select MAX will always return 1 result (maybe NULL) 
@@ -218,8 +219,7 @@ public class H2Storage {
     }
 
 
-    //synchronized since we are writing.
-    public synchronized void addARC(String arcPath) throws Exception {
+    public void addARC(String arcPath) throws Exception {
 
 
         log.info("Persisting new arc-file: " + arcPath);
@@ -234,7 +234,7 @@ public class H2Storage {
 
         PreparedStatement stmt = null;
         try {					
-            stmt = singleDBConnection.prepareStatement(addArcStatement);
+            stmt = connection.prepareStatement(addArcStatement);
 
 
             long now = System.currentTimeMillis();
@@ -247,8 +247,7 @@ public class H2Storage {
             stmt.setLong(6,now);
             //Shardid is not set. Will be null
             stmt.execute();
-
-            singleDBConnection.commit(); 
+ 
         } catch (Exception e) {
             log.error("SQL Exception in addFile:" + e.getMessage());								
             throw e;
@@ -258,8 +257,7 @@ public class H2Storage {
     }
 
 
-    //synchronized since we are writing.
-    public synchronized void addOrUpdateARC(String arcPath) throws Exception {
+    public void addOrUpdateARC(String arcPath) throws Exception {
 
 
         log.info("AddOrUpdateARC arc-file: " + arcPath);
@@ -273,7 +271,7 @@ public class H2Storage {
         try {
             if (aRCIDExist){ //update
                 log.info("Updating folder for arc-file: " + arcPath);
-                stmt = singleDBConnection.prepareStatement(changeArcFolderStatement);
+                stmt =  connection.prepareStatement(changeArcFolderStatement);
                 stmt.setString(1, folder);
                 stmt.setLong(2, System.currentTimeMillis());
                 stmt.setString(3, arcId);
@@ -285,7 +283,7 @@ public class H2Storage {
             }
             else{ //create new
                 log.info("Persisting new arc-file: " + arcPath);
-                stmt = singleDBConnection.prepareStatement(addArcStatement);
+                stmt =  connection.prepareStatement(addArcStatement);
 
                 long now = System.currentTimeMillis();
 
@@ -298,9 +296,9 @@ public class H2Storage {
                 //Shardid is not set. Will be null
                 stmt.execute();
             }
-            singleDBConnection.commit(); 
+ 
         } catch (Exception e) {
-            log.error("SQL Exception in addFile:" + e.getMessage());                                
+            log.error("SQL Exception in addOrUpdateARC:" + e.getMessage());                                
             throw e;
         } finally {
             closeStatement(stmt);
@@ -312,7 +310,7 @@ public class H2Storage {
         PreparedStatement stmt = null;
         ArrayList<String> ids = new ArrayList<String>();
         try {
-            stmt = singleDBConnection.prepareStatement(selectShardIDsQuery);
+            stmt =  connection.prepareStatement(selectShardIDsQuery);
             ResultSet rs = stmt.executeQuery();
 
             while(rs.next()){
@@ -335,7 +333,7 @@ public class H2Storage {
         ArrayList<ArcVO> list = new  ArrayList<ArcVO>();
         try {
             log.info("Reloading cache for shardID:"+shardID);
-            stmt = singleDBConnection.prepareStatement(selectNextArcQuery);
+            stmt =  connection.prepareStatement(selectNextArcQuery);
             stmt.setInt(1, shardIdInt);
             ResultSet rs = stmt.executeQuery();
 
@@ -355,7 +353,7 @@ public class H2Storage {
 
     }
 
-    public synchronized String nextARC(String shardID) throws Exception{
+    public String nextARC(String shardID) throws Exception{
 
         PreparedStatement stmt = null;
 
@@ -407,7 +405,7 @@ public class H2Storage {
         ArrayList<String> arcs = new ArrayList<String>();
         int shardIdInt =  Integer.parseInt(shardID);  
         try {
-            stmt = singleDBConnection.prepareStatement(getArcsByShardIDQuery);
+            stmt =  connection.prepareStatement(getArcsByShardIDQuery);
             stmt.setInt(1, shardIdInt);
             ResultSet rs = stmt.executeQuery();
 
@@ -431,7 +429,7 @@ public class H2Storage {
 
         PreparedStatement stmt = null;
         try {
-            stmt = singleDBConnection.prepareStatement(getArcByIDQuery);
+            stmt =  connection.prepareStatement(getArcByIDQuery);
             stmt.setString(1, arcID);
             ResultSet rs = stmt.executeQuery();
 
@@ -457,7 +455,7 @@ public class H2Storage {
 
         PreparedStatement stmt = null;
         try {
-            stmt = singleDBConnection.prepareStatement(selectCountArcsQuery);
+            stmt =  connection.prepareStatement(selectCountArcsQuery);
 
             ResultSet rs = stmt.executeQuery();
             rs.next();
@@ -478,7 +476,7 @@ public class H2Storage {
 
         List<ArcVO> latestArcs = new ArrayList<ArcVO>();
         try {
-            stmt = singleDBConnection.prepareStatement(selectNewest1000Query);            
+            stmt =  connection.prepareStatement(selectNewest1000Query);            
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()){        
@@ -501,7 +499,7 @@ public class H2Storage {
 
         List<ArcVO> latestArcs = new ArrayList<ArcVO>();
         try {
-            stmt = singleDBConnection.prepareStatement(selectAllRunningQuery);            
+            stmt =  connection.prepareStatement(selectAllRunningQuery);            
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()){        
@@ -518,10 +516,7 @@ public class H2Storage {
     }
 
 
-
-
-    //synchronized since we are writing.
-    public synchronized void setARCState(String arcPath, ArchonConnector.ARC_STATE arcState) throws Exception{
+    public void setARCState(String arcPath, ArchonConnector.ARC_STATE arcState) throws Exception{
         String[] splitPath = splitPath(arcPath); 
         String folder = splitPath[0];
         String arcId = splitPath[1];
@@ -534,7 +529,7 @@ public class H2Storage {
                 throw new IllegalArgumentException("ArcID does not exist:"+arcId);            
             }
 
-            stmt = singleDBConnection.prepareStatement(setArcStateStatement);
+            stmt =  connection.prepareStatement(setArcStateStatement);
 
             stmt.setString(1, arcState.toString());
             stmt.setLong(2, System.currentTimeMillis());
@@ -544,7 +539,7 @@ public class H2Storage {
                 throw new IllegalArgumentException("Arcfile not found with id:"+arcId);
             }
 
-            singleDBConnection.commit(); 
+ 
         } catch (Exception e) {
             log.error("SQL Exception in setARCState:" + e.getMessage());                                
             throw e;
@@ -554,18 +549,14 @@ public class H2Storage {
     }
 
 
-
-
-    //TODO vil gerne returnere antallet af ændrede filer
     //change state/priority for all archfiles in the shardID
-    //synchronized since we are writing.
-    public synchronized void setShardState(String shardID, ArchonConnector.ARC_STATE state, int priority) throws Exception{
+    public  void setShardState(String shardID, ArchonConnector.ARC_STATE state, int priority) throws Exception{
 
         PreparedStatement stmt = null;
         try {                   
 
 
-            stmt = singleDBConnection.prepareStatement(setShardStateStatement);
+            stmt =  connection.prepareStatement(setShardStateStatement);
 
             stmt.setString(1, state.toString());
             stmt.setInt(2, priority);
@@ -575,9 +566,7 @@ public class H2Storage {
 
             //System.out.println("setShardState for shardID:"+shardID +" #updated arcfiles ="+updated);
             log.info("setShardState for shardID:"+shardID +" #updated arcfiles ="+updated);
-
-
-            singleDBConnection.commit(); 
+ 
         } catch (Exception e) {
             log.error("SQL Exception in setARCState:" + e.getMessage());                                
             throw e;
@@ -585,11 +574,9 @@ public class H2Storage {
             closeStatement(stmt);
         }                           
     }
+ 
 
-    //synchronized since we are writing. 
-    //TODO vil gerne returnere antallet af ændrede filer
-    //Supposed to change all data for the given arcID
-    public synchronized void setARCProperties(String fullPath, String shardID,ArchonConnector.ARC_STATE state, int priority) throws Exception{
+    public void setARCProperties(String fullPath, String shardID,ArchonConnector.ARC_STATE state, int priority) throws Exception{
 
         String[] splitPath = splitPath(fullPath); 
         String folder = splitPath[0];
@@ -602,7 +589,7 @@ public class H2Storage {
                 throw new IllegalArgumentException("ArcID does not exist:"+arcId);            
             }
 
-            stmt = singleDBConnection.prepareStatement(setArcPropertiesStatement);
+            stmt =  connection.prepareStatement(setArcPropertiesStatement);
 
             stmt.setInt(1, Integer.parseInt(shardID));
             stmt.setString(2, state.toString());
@@ -614,8 +601,7 @@ public class H2Storage {
             if (updated == 0){ //arcfile not found
                 throw new IllegalArgumentException("Arcfile not found with id:"+arcId);
             }
-
-            singleDBConnection.commit(); 
+ 
         } catch (Exception e) {
             log.error("SQL Exception in setARCProperties:" + e.getMessage());                                
             throw e;
@@ -624,9 +610,8 @@ public class H2Storage {
         }               
     }
 
-
-    //synchronized since we are writing.     
-    public synchronized void setARCPriority(String fullPath, int priority) throws Exception{
+     
+    public void setARCPriority(String fullPath, int priority) throws Exception{
 
         String[] splitPath = splitPath(fullPath); 
         String folder = splitPath[0];
@@ -639,7 +624,7 @@ public class H2Storage {
                 throw new IllegalArgumentException("ArcID does not exist:"+arcId);            
             }
 
-            stmt = singleDBConnection.prepareStatement(setArcPriorityStatement);
+            stmt =  connection.prepareStatement(setArcPriorityStatement);
 
             stmt.setInt(1, priority);            
             stmt.setLong(2, System.currentTimeMillis());
@@ -649,8 +634,7 @@ public class H2Storage {
             if (updated == 0){ //arcfile not found
                 throw new IllegalArgumentException("Arcfile not found with id:"+arcId);
             }
-
-            singleDBConnection.commit(); 
+ 
         } catch (Exception e) {
             log.error("SQL Exception in setARCPriority:" + e.getMessage());                                
             throw e;
@@ -659,10 +643,8 @@ public class H2Storage {
         }               
     }
 
-    
-
-    //synchronized since we are writing.     
-    public synchronized void resetArcWithPriorityStatement(String fullPath, int priority) throws Exception{
+         
+    public  void resetArcWithPriorityStatement(String fullPath, int priority) throws Exception{
 
         String[] splitPath = splitPath(fullPath); 
         String folder = splitPath[0];
@@ -675,7 +657,7 @@ public class H2Storage {
                 throw new IllegalArgumentException("ArcID does not exist:"+arcId);            
             }
 
-            stmt = singleDBConnection.prepareStatement(resetArcWithPriorityStatement);
+            stmt =  connection.prepareStatement(resetArcWithPriorityStatement);
 
             stmt.setInt(1, priority);            
             stmt.setLong(2, System.currentTimeMillis());
@@ -685,8 +667,7 @@ public class H2Storage {
             if (updated == 0){ //arcfile not found
                 throw new IllegalArgumentException("Arcfile not found with id:"+arcId);
             }
-
-            singleDBConnection.commit(); 
+ 
         } catch (Exception e) {
             log.error("SQL Exception in resetArcWithPriorityStatement:" + e.getMessage());                                
             throw e;
@@ -695,9 +676,7 @@ public class H2Storage {
         }               
     }
 
-    
-    //synchronized since we are writing.
-    public synchronized void removeARC(String arcID) throws Exception{
+    public  void removeARC(String arcID) throws Exception{
         PreparedStatement stmt = null;
         try {                   
 
@@ -706,7 +685,7 @@ public class H2Storage {
                 throw new IllegalArgumentException("ArcID does not exist:"+arcID);            
             }
 
-            stmt = singleDBConnection.prepareStatement(deleteArcByIDQuery);
+            stmt =  connection.prepareStatement(deleteArcByIDQuery);
 
             stmt.setString(1, arcID);
             int updated = stmt.executeUpdate();
@@ -714,8 +693,7 @@ public class H2Storage {
             if (updated == 0){ //arcfile not found
                 throw new IllegalArgumentException("Arcfile not found with id:"+arcID);
             }
-
-            singleDBConnection.commit(); 
+             
         } catch (Exception e) {
             log.error("SQL Exception in removeARC:" + e.getMessage());                                
             throw e;
@@ -726,20 +704,18 @@ public class H2Storage {
 
     }
 
-    //synchronized since we are writing.
-    public synchronized void clearIndexing(String shardID) throws Exception{
+    public void clearIndexing(String shardID) throws Exception{
         PreparedStatement stmt = null;
         try {                               
-            stmt = singleDBConnection.prepareStatement(clearIndexingStatement);
+            stmt =  connection.prepareStatement(clearIndexingStatement);
 
             stmt.setString(1, "NEW");
-            stmt.setString(2, null);
+            stmt.setNull(2,Types.BIGINT);
             stmt.setInt(3, Integer.parseInt(shardID));
             stmt.setString(4, "RUNNING");
 
             int updated = stmt.executeUpdate();
-            log.info("Cleared indexing for shardId:"+shardID +" Number of arcfiles changed status:"+updated);           
-            singleDBConnection.commit(); 
+            log.info("Cleared indexing for shardId:"+shardID +" Number of arcfiles changed status:"+updated);            
         } catch (Exception e) {
             log.error("SQL Exception in clearIndexing:" + e.getMessage());                                
             throw e;
@@ -749,16 +725,13 @@ public class H2Storage {
 
     }
 
-
-    //synchronized since we are writing.
-    public synchronized void resetShardId(String shardID) throws Exception{
+    public void resetShardId(String shardID) throws Exception{
         PreparedStatement stmt = null;
         try {                               
-            stmt = singleDBConnection.prepareStatement(resetShardIDStatement);
+            stmt =  connection.prepareStatement(resetShardIDStatement);
             stmt.setInt(1, Integer.parseInt(shardID));
             int updated = stmt.executeUpdate();
-            log.info("resetShardId:"+shardID +" Number of arcfiles changed status:"+updated);           
-            singleDBConnection.commit(); 
+            log.info("resetShardId:"+shardID +" Number of arcfiles changed status:"+updated);                       
         } catch (Exception e) {
             log.error("SQL Exception in resetShardId:" + e.getMessage());                                
             throw e;
@@ -772,7 +745,7 @@ public class H2Storage {
 
         PreparedStatement stmt = null;
         try {
-            stmt = singleDBConnection.prepareStatement(getArcByIDQuery);
+            stmt = connection.prepareStatement(getArcByIDQuery);
             stmt.setString(1, arcID);
             ResultSet rs = stmt.executeQuery();
 
@@ -811,76 +784,26 @@ public class H2Storage {
         nextArcIdsCached= new HashMap<String,ArrayList<ArcVO>>();
     }
 
-    /*
-     * Will create a zip-file with a backup of the database.
-     * 
-     * @param filePathtoBackup Full path+ filename of the backup file (including .zip)
-     * 
-     * It will take about 5 seconds for a database with 250K rows
-     */
-    public synchronized void backupDatabase(String fileName) throws SQLException {
-        log.info("Creating database backup :" + fileName);
-        PreparedStatement stmt = null;
-        try {
-            stmt = singleDBConnection.prepareStatement("BACKUP TO '" + fileName + "'");
-            stmt.execute();
-            log.info("Database backup success");
-        } catch (SQLException e) {
-            log.error("SQL Exception in databasebackup:" + e.getMessage());
-            throw e;
-        } finally {
-            closeStatement(stmt);
-        }
-        LASTDATABASEBACKUPDATE = new Date();
-        NUMBER_DATABASE_BACKUP_SINCE_STARTUP++;
+    
+
+    public void commit() throws Exception {
+        connection.commit();
     }
 
-
-
-
-    private synchronized void initializeDBConnection(String dbFilePath) throws SQLException {
-        log.info("initializeDBConnection. DB path:" + dbFilePath);
-        if (singleDBConnection != null) {
-            log.error("DB allready initialized and locked:" + dbFilePath);
-            throw new RuntimeException("DB allready initialized and locked:" + dbFilePath);
-        }
-
+    public void rollback() {
         try {
-            Class.forName("org.h2.Driver"); // load the driver
-        } catch (ClassNotFoundException e) {
-            throw new SQLException(e);
+            connection.rollback();
+        } catch (Exception e) {
+            //nothing to do here
         }
-        String DB_URL = "jdbc:h2:" + dbFilePath;
-        singleDBConnection = DriverManager.getConnection(DB_URL, "", "");
-        singleDBConnection.setAutoCommit(false);
-
-        instance = this;
-        // If ever performance is an issue, TRANSACTION_READ_UNCOMMITTED can be enabled. But
-        // I prefer not to have this setting. Since we only have 1 connection at a time,
-        // it should be possible to enable this setting without breaking anything.
-        // singleDBConnection.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
-
-        INITDATE = new Date();
-
-        // In-comment to enable profiler (small performance overhead)
-        // profiler = new Profiler();
-        // profiler.startCollecting();
-
     }
 
-
-    // Used from unittests. Create tables DDL etc.
-    protected synchronized void runDDLScript(File file) throws SQLException {
-        log.info("Running DDL script:" + file.getAbsolutePath());
-
-        if (!file.exists()) {
-            log.error("DDL script not found:" + file.getAbsolutePath());
-            throw new RuntimeException("DDLscript file not found:" + file.getAbsolutePath());
+    public void close() {
+        try {
+            connection.close();
+        } catch (Exception e) {
+            //nothing to do here
         }
-
-        String scriptStatement = "RUNSCRIPT FROM '" + file.getAbsolutePath() + "'";
-
-        singleDBConnection.prepareStatement(scriptStatement).execute();
     }
 
     private void closeStatement(PreparedStatement stmt) {
@@ -894,18 +817,14 @@ public class H2Storage {
         }
     }
 
+
     // This is called by from InialialziationContextListener by the Web-container when server is shutdown,
     // Just to be sure the DB lock file is free.
     public static void shutdown() {
-        log.info("Shutdown H2Storage");
+        log.info("Shutdown ArchonStorage");        
         try {
-            if (singleDBConnection != null) {
-                PreparedStatement shutdown = singleDBConnection.prepareStatement("SHUTDOWN");
-                shutdown.execute();
-                if (singleDBConnection != null) {
-                    singleDBConnection.close();
-                }
-                Thread.sleep(3000L);
+            if (dataSource != null) {
+                dataSource.close();
             }
         } catch (Exception e) {
             // ignore errors during shutdown, we cant do anything about it anyway

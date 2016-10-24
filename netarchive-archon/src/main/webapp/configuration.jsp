@@ -17,7 +17,7 @@
 <body>
 
 <%
-   H2Storage storage = H2Storage.getInstance();   
+   ArchonStorage storage = new ArchonStorage();   
 %>
 
 <script>

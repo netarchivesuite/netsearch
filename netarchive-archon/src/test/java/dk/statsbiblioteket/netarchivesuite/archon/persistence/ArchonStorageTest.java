@@ -6,12 +6,17 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-
-import dk.statsbiblioteket.netarchivesuite.core.ArchonUtil;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -26,44 +31,63 @@ import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector.ARC_STATE;
 
 /*
  * Unittest class for the H2Storage.
+ * The unittest uses the H2 driver so no running database server is required
+ * 
  * All tests creates and use H2 database in the directory: target/h2
- * 
- * The directory will be deleted before the first test-method is called.
- * Each test-method will delete all entries in the database, but keep the database tables.
- * 
+ *  
  * Currently the directory is not deleted after the tests have run. This is useful as you can
  * open and checke the database and see what the unit-tests did.
  */
 
-public class H2StorageTest {
+public class ArchonStorageTest {
 
-    private static final Logger log = LoggerFactory.getLogger(H2StorageTest.class);
-    private static final String DB_TEMP_DIR = "target/h2";
-    private static final String DB_FILE = DB_TEMP_DIR + "/archon_h2storage";
+    private static final Logger log = LoggerFactory.getLogger(ArchonStorageTest.class);
+  
     private static final String CREATE_TABLES_DDL_FILE = "H2_DDL_scripts/archon_create_db.ddl";
-    private static final String DELETE_FROM_TABLES_DDL_FILE = "H2_DDL_scripts/delete_from_all_tables.ddl";
-
-    private static H2Storage storage = null;
+    
+    private static final String DRIVER = "org.h2.Driver";
+    private static final String URL = "jdbc:h2:target/test-classes/h2/archon";
+    private static final String USERNAME = "";
+    private static final String PASSWORD = "";
+    
+    private static ArchonStorage storage = null;
 
     private static final String arcFile1 ="folder1/folder2/arcfile1";
     private static final String arcFile2 ="folder3/arcfile2";
 
-    /*
-     * Delete database file if it exists. Create database with tables
-     */
+    private static void createEmptyDBFromDDL() throws Exception {
+        // Delete if exists
+        doDelete(new File("target/test-classes/h2"));
+        Connection connection = null;
+
+        try {
+            Class.forName(DRIVER); // load the driver
+        } catch (ClassNotFoundException e) {
+            throw new SQLException(e);
+        }
+        connection = DriverManager.getConnection(URL, "", "");
+
+        File file = getFile(CREATE_TABLES_DDL_FILE);
+        log.info("Running DDL script:" + file.getAbsolutePath());
+
+        if (!file.exists()) {
+            log.error("DDL script not found:" + file.getAbsolutePath());
+            throw new RuntimeException("DDLscript file not found:" + file.getAbsolutePath());
+        }
+
+        String scriptStatement = "RUNSCRIPT FROM '" + file.getAbsolutePath() + "'";
+
+        connection.prepareStatement(scriptStatement).execute();
+
+        PreparedStatement shutdown = connection.prepareStatement("SHUTDOWN");
+        shutdown.execute();
+        connection.close();
+    }
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        // Nuke DB completely and rebuild it.
-        File db_temp_dir = new File(DB_TEMP_DIR);
-        if (db_temp_dir.exists() && db_temp_dir.isDirectory()) {
-            log.debug("Deleting H2 temp dir:" + db_temp_dir.getAbsolutePath());
-            doDelete(db_temp_dir);
-        }
-        storage = new H2Storage(DB_FILE);
-        File create_ddl_file = ArchonUtil.getFile(CREATE_TABLES_DDL_FILE);
-
-        storage.runDDLScript(create_ddl_file);
+        createEmptyDBFromDDL();
+        ArchonStorage.initialize(DRIVER, URL, USERNAME, PASSWORD);
 
     }
 
@@ -71,7 +95,7 @@ public class H2StorageTest {
     public static void afterClass() throws Exception {
         // No reason to delete DB data after test, since we delete it before each test.
         // This way you can open the DB in a DB-browser after a unittest and see the result.
-        H2Storage.shutdown();
+        ArchonStorage.shutdown();
     }
 
     /*
@@ -80,13 +104,18 @@ public class H2StorageTest {
 
     @Before
     public void before() throws Exception {
-        // Nuke all data in DB
-        File delete_ddl_file = ArchonUtil.getFile(DELETE_FROM_TABLES_DDL_FILE);
-        storage.runDDLScript(delete_ddl_file);
+        storage = new ArchonStorage();
     }
 
     @After
     public void after() throws Exception {
+        storage.rollback();
+        storage.close();
+    }
+
+    @Test
+    public void testCreateEmptyDB() throws Exception {
+    
     }
 
 
@@ -304,7 +333,8 @@ public class H2StorageTest {
     @Test
     public void testSetARCState() throws Exception {
 
-
+    	Date d = new Date(1477303834757L);
+    	
         try{
             storage.setARCState(arcFile1,ArchonConnector.ARC_STATE.RUNNING);// does not exist
             fail();
@@ -479,10 +509,6 @@ public class H2StorageTest {
         assertEquals("folder3/folder4/arcfile1", arc.getFileName());
     }
     
-    @Test
-    public void testCreateEmptyDB() throws Exception {
-        
-    }
     
     // file.delete does not work for a directory unless it is empty. hence this method
     private static void doDelete(File path) throws IOException {
@@ -492,9 +518,32 @@ public class H2StorageTest {
             }
         }
         if (!path.delete()) {
-            throw new IOException("Could not delete " + path);
+            log.info("Could not delete " + path);
         }
     }
 
+
+    /**
+     * Multi protocol resource loader. Primary attempt is direct file, secondary is classpath resolved to File.
+     *
+     * @param resource
+     *            a generic resource.
+     * @return a File pointing to the resource.
+     */
+    private static File getFile(String resource) throws IOException {
+        File directFile = new File(resource);
+        if (directFile.exists()) {
+            return directFile;
+        }
+        URL classLoader = Thread.currentThread().getContextClassLoader().getResource(resource);
+        if (classLoader == null) {
+            throw new FileNotFoundException("Unable to locate '" + resource + "' as direct File or on classpath");
+        }
+        String fromURL = classLoader.getFile();
+        if (fromURL == null || fromURL.isEmpty()) {
+            throw new FileNotFoundException("Unable to convert URL '" + fromURL + "' to File");
+        }
+        return new File(fromURL);
+    }
 }
 
