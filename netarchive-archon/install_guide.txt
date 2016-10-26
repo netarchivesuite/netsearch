@@ -1,0 +1,28 @@
+Archon install guide:
+
+Copy archon.properties to the home-directory and edit JDBC properties.
+If using H2 copy the  the empty H2 database file to the desired location.(empty tables are created in the file)
+Install netarchive-archon.war in a web-server (Tomcat or Jetty)
+The index build-server is an obvious choice for location of the server
+
+See archon_screenshot.png to see how it looks like when Archon is installed correct.
+
+Add an arc-file:
+Use POST url: localhost:xxxx/netarchive-archon/services/addARC/{full path to file}
+
+If you move your arc-files location(but not filename) can update this information also
+Use POST url: localhost:xxxx/netarchive-archon/services/addOrUpdateARC/{full path to file}
+You can also use this to add new files. If they exist the folder will be updated.
+
+Scripts to add multiple files:
+
+register_arc_files_in_folder.sh:
+This adds or updates location for all arc-files from a given folder 
+
+register_add_ALL_arc_files.sh:
+This adds all arc-files recursive from folders (change line 3 to specify folders)
+
+
+To backup the database POST url: localhost:xxxx/netarchive-archon/services/system/backup_database
+I suggest making a backup after every index has been build.
+ 
