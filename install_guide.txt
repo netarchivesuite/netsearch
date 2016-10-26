@@ -1,5 +1,5 @@
 Follow the install-guides in the 4 folders:
-archon
-arctika
-solr
-zookeeper
+archon/install_guide
+arctika/install_guide
+arctika/solr/install_guide
+arctika/zookeeper/install_guide

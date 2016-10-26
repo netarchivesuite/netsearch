@@ -33,7 +33,7 @@ Rest of solr servers (shard02 example):
 java  -Djetty.port=52302  -DzkHost=localhost:52001,localhost:52002,localhost:52003 -jar start.jar
 (Shard02 runs on port 52302)
 
-If you are  using T picture SolrCloud.png omcat instead of jetty, you have remove the -jetty.port property and specify the tomcat port in server.xml
+If you are using Tomat instead of jetty, you have remove the -jetty.port property and specify the tomcat port in server.xml
 Also you can set the properties for Tomcat in the setenv.sh file.
 
 And if you are not using jetty and the example installation you need to configure an additional port (I suggest using default solr port 8983) that must be the same
