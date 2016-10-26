@@ -10,7 +10,7 @@ to delete the index before starting a index build with a new shardid.
 
 From github you need to clone and build: https://github.com/ukwa/webarchive-discovery
 In the warc-indexer maven sub-module you take the warc-indexer-2.0.2-SNAPSHOT-jar-with-dependencies.jar from
-the target folder and also copy that into the arctika folder. 
+the target folder and also copy that into the arctika folder. (or later version)
 
 In 'start_indexer.sh' just change the folder locations to match your setup.
 When you start the indexer both the  Archon and Solr-server must be up an running.
