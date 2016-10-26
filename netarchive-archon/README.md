@@ -5,11 +5,14 @@ Tracks overall progress in indexing ARC files with the sister project ARCTika
 
 How to set up the archon application.
 Version 1.2
+This new version has a better seperation of logic and persistance layer and you can use any JDBC driver nu.
+The H2 database did not scale well when you have several million entries.
+
 1)Copy /netarchive-archon/properties/archon.properties to home-dir
 2)Edit archon.properties. 4 JDDB driver properties must be defined. When using other than postgres/h2 add driver to pom.xml dependencies 
 3) 'mvn package deploy' (in main module)
 4) Copy the war-file under /target to your favorite web server
-When deployed in Tomcat the context-root will be netarchive-archon
+When deployed in Tomcat the context-root will be netarchive-archon instead
  
 
 
