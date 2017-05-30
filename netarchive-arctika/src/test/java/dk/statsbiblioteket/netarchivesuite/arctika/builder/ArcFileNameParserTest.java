@@ -33,35 +33,50 @@ public class ArcFileNameParserTest extends TestCase {
 
     // Example 25666-33-20080221003533-00046-sb-prod-har-004.arc
     private static final Pattern arc_sb_Pattern = Pattern.compile(
-            "([0-9]+)-([0-9]+)-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})-([0-9]+)-(sb-prod-har)-([0-9]{1,3}).(statsbiblioteket.dk.warc|statsbiblioteket.dk.arc|arc)");
+            "([0-9]+)-([0-9]+)-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})-([0-9]+)-(sb-prod-har)-([0-9]{1,3}).(statsbiblioteket.dk.warc.gz|statsbiblioteket.dk.warc|statsbiblioteket.dk.arc.gz|statsbiblioteket.dk.arc|arc.gz|arc)");
 
     // Example 15638-38-20070418163759-00235-kb-prod-har-002.kb.dk.arc
-    private static final Pattern arc_kb1_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})-([0-9]+)-(kb-prod-har|kb-prod-wb)-([0-9]{1,3}).(arc|kb.dk.arc|kb.dk.warc|kb228081.kb.dk.warc)");
+    private static final Pattern arc_kb1_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})-([0-9]+)-(kb-prod-har|kb-prod-wb)-([0-9]{1,3}).(kb.dk.arc.gz|kb.dk.arc|kb.dk.warc.gz|kb.dk.warc|kb228081.kb.dk.warc.gz|kb228081.kb.dk.warc|arc.gz|arc)");
 
     //Example 193305-197-20131111175547-00001-kb228081.kb.dk.warc
-    private static final Pattern arc_kb2_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})-([0-9]+)-(kb228081.kb.dk.warc)");
+    private static final Pattern arc_kb2_Pattern = Pattern.compile("([0-9]+)-([0-9]+)-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})-([0-9]+)-(kb228081.kb.dk.warc.gz|kb228081.kb.dk.warc)");
 
     //Example kb-pligtsystem-36861-20121018210245-00000.warc
-    private static final Pattern arc_kb_pligt_Pattern = Pattern.compile("(kb-pligtsystem)-([0-9]+)-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})-([0-9]{1,5}).(warc)" );
+    private static final Pattern arc_kb_pligt_Pattern = Pattern.compile("(kb-pligtsystem)-([0-9]+)-([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})-([0-9]{1,5}).(warc.gz|warc)" );
 
     //Example 1298-metadata-2.arc
-    private static final Pattern arc_metadata_Pattern = Pattern.compile("([0-9]+)-(metadata)-([0-9]+).(warc|arc)" );
+    private static final Pattern arc_metadata_Pattern = Pattern.compile("([0-9]+)-(metadata)-([0-9]+).(warc.gz|warc|arc.gz|arc)" );
+
+    private static final Pattern arc_archiveit_Pattern = Pattern.compile(
+            "(?:.*)(ARCHIVEIT-(\\d+)-[A-Z_]+-JOB(\\d+)-(\\d{4})(\\d{2})(\\d{2})(\\d{2})(\\d{2})(\\d{2})(\\d{3})-(\\d+).(arc.gz|arc|warc.gz|warc))");
+    private static final String SAMPLE_ARCHIVEIT = "ARCHIVEIT-4897-ONE_TIME-JOB270764-20170303033836937-00000.warc.gz";
 
     private static final String SB_RULES =
             arc_sb_Pattern + "\t" + ARC_TYPE_FIELD + ":sb" + "\t" + HARVEST_TIME_FIELD + ":$3-$4-$5T$6:$7:$8.000Z\n" +
             arc_kb1_Pattern + "\t" + ARC_TYPE_FIELD + ":kb" + "\t" + HARVEST_TIME_FIELD + ":$3-$4-$5T$6:$7:$8.000Z\n" +
             arc_kb2_Pattern + "\t" + ARC_TYPE_FIELD + ":kb" + "\t" + HARVEST_TIME_FIELD + ":$3-$4-$5T$6:$7:$8.000Z\n" +
             arc_kb_pligt_Pattern + "\t" + ARC_TYPE_FIELD + ":kb" + "\t" + HARVEST_TIME_FIELD + ":$3-$4-$5T$6:$7:$8.000Z\n" +
+            arc_archiveit_Pattern + "\t" + ARC_TYPE_FIELD + ":archiveit" + "\t" + HARVEST_TIME_FIELD + ":$4-$5-$6T$7:$8:$9.$10Z\n" +
             arc_metadata_Pattern + "\t" + ARC_TYPE_FIELD + ":metadata\n" +
             "^.*$" + "\t" + ARC_TYPE_FIELD + ":unknown\n";
+
+    public void testArchiveITMatch() {
+        assertTrue("The ArchiveIT pattern should match the sample",
+                   arc_archiveit_Pattern.matcher(SAMPLE_ARCHIVEIT).matches());
+    }
 
     public void testSBRules() {
         ArcFileNameParser parser = new ArcFileNameParser(SB_RULES);
         for (String test[]: new String[][]{
                 {"[arc_type:sb, arc_harvesttime:2008-02-21T00:35:33.000Z]", "25666-33-20080221003533-00046-sb-prod-har-004.arc"},
+                {"[arc_type:sb, arc_harvesttime:2008-02-21T00:35:33.000Z]", "25666-33-20080221003533-00046-sb-prod-har-004.arc.gz"},
                 {"[arc_type:kb, arc_harvesttime:2007-04-18T16:37:59.000Z]", "15638-38-20070418163759-00235-kb-prod-har-002.kb.dk.arc"},
+                {"[arc_type:kb, arc_harvesttime:2007-04-18T16:37:59.000Z]", "15638-38-20070418163759-00235-kb-prod-har-002.kb.dk.arc.gz"},
                 {"[arc_type:kb, arc_harvesttime:2013-11-11T17:55:47.000Z]", "193305-197-20131111175547-00001-kb228081.kb.dk.warc"},
+                {"[arc_type:kb, arc_harvesttime:2013-11-11T17:55:47.000Z]", "193305-197-20131111175547-00001-kb228081.kb.dk.warc.gz"},
                 {"[arc_type:kb, arc_harvesttime:2012-10-18T21:02:45.000Z]", "kb-pligtsystem-36861-20121018210245-00000.warc"},
+                {"[arc_type:kb, arc_harvesttime:2012-10-18T21:02:45.000Z]", "kb-pligtsystem-36861-20121018210245-00000.warc.gz"},
+                {"[arc_type:archiveit, arc_harvesttime:2017-03-03T03:38:36.937Z]", SAMPLE_ARCHIVEIT}, // Always gz
                 {"[arc_type:metadata]", "1298-metadata-2.arc"},
                 {"[arc_type:unknown]", "ksjvksjfvsk"}
         }) {
