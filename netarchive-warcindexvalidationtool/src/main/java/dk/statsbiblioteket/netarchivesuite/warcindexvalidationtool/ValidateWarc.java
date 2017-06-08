@@ -55,7 +55,9 @@ public class ValidateWarc {
 
   public ValidateWarc(String warcFilePath, String solrServerUrl){
     this.warcFilePath=warcFilePath;
-    solrClient = new SolrClient(solrServerUrl);    
+    if (solrServerUrl != null){
+    solrClient = new SolrClient(solrServerUrl);
+    }
   }
 
   public void validate() throws Exception{
