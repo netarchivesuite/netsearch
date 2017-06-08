@@ -55,6 +55,7 @@ Each folder has an install guide. You only need to git clone and build the warc-
 is included in the release package.
 
 **Validation tool**
+
 The sub-module netarchive-warcindexvalidationtool can validate a Arc/Warc file. And can also validate the Warc-index has created the correct number of documents in the Solr-index from a given Arc/Warc file. See the README.TXT in this module.
 
 **Performance test**
