@@ -11,9 +11,9 @@ If a solrserver url is given as a second argument, it checks and list missing re
 
 Example usage:
 
-java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.jar <pathToWarcFile>
+java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.jar pathToWarcFile
 
 or
 
-java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.jar <pathToWarcFile> <SolrServerUrl>
+java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.jar pathToWarcFile SolrServerUrl
 
