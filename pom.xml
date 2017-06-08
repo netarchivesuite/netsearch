@@ -24,6 +24,8 @@
     <module>netarchive-core</module>
     <module>netarchive-archon</module>
     <module>netarchive-arctika</module>
+    <module>netarchive-warcindexvalidationtool</module>
+
   </modules>
 
   <!-- For sub-modules. -->
