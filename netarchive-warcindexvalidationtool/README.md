@@ -36,10 +36,15 @@ Warc types:
 Http codes:
 
   200:5147
+  
   300:1
+  
   302:620
+  
   404:169
+  
   500:1
+  
 Validating records are found in Solr...
 
 The Solr index does not have the correct number of documents! File:5147 solr index:5100
