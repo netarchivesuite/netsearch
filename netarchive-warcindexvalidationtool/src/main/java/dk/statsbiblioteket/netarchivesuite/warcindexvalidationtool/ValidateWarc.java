@@ -102,11 +102,11 @@ public class ValidateWarc {
       else if (isWarc && !"application/http; msgtype=response".equals(r.getHeader().getHeaderFields().get("Content-Type"))){  //Warc, only read these
         skip=true;       
       }
-
       if (!skip){ 
         totalNumberOfRecordsInWarc++;
-        //50 characters is more than enough to read the header line
-        byte[] rawData = IOUtils.toByteArray(r, r.available());
+        //10000 characters is more than enough to read the header line
+         int maxSize = Math.min(10000,  r.available());      
+        byte[] rawData = IOUtils.toByteArray(r, maxSize);
         String httpCodeStr = getHttpStatusCode(isWarc, rawData);
         int httpCode = Integer.parseInt(httpCodeStr);                      
         increaseCount(httpCodeStr,httpCodeCount);
