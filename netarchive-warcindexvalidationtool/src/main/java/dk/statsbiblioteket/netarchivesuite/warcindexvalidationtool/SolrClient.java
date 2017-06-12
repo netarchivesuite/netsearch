@@ -1,10 +1,18 @@
 package dk.statsbiblioteket.netarchivesuite.warcindexvalidationtool;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest.METHOD;
 import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+
+
+import com.google.common.collect.Iterables;
+
 
 public class SolrClient {
 
@@ -16,6 +24,61 @@ public class SolrClient {
     solrServer.setRequestWriter(new BinaryRequestWriter()); //To avoid http error code 413/414, due to monster URI. (and it is faster) 
   }
   
+  /*
+   * Bulk query 1000 at a time. Add results
+   * 
+   */
+public ArrayList<String> lookupRecords(ArrayList<String> source_files) throws Exception{
+    
+ ArrayList<String> recordsFound = new ArrayList<String>(); 
+  
+  Iterable<List<String>> splitSets = Iterables.partition(source_files, 1000); //split into sets of size max 1000;
+  
+  for (List<String> records : splitSets){
+    ArrayList<String> recs= lookupRecordsMax1000(records);
+    recordsFound.addAll(recs);
+  }   
+    return recordsFound;
+  }
+
+  
+private ArrayList<String> lookupRecordsMax1000(List<String> source_files) throws Exception{
+
+  if (source_files.size() > 1000){
+    throw new IllegalArgumentException("More than 1000 different urls in query:"+source_files.size() +". Solr does not allow more than 1024 queries");
+  }
+
+  //Generate URL string: (url:"A" OR url:"B" OR ....)
+  StringBuffer buf = new StringBuffer();
+  buf.append("(source_file_s:test"); //Just to avoid last OR logic
+  int i =0;
+  for (String  url : source_files) {            
+    buf.append(" OR source_file_s:\""+url+"\"");        
+
+  }
+  buf.append(")");
+
+
+  String  query = buf.toString();     
+  SolrQuery solrQuery = new SolrQuery();
+  solrQuery.setQuery(query);
+
+  solrQuery.setRows(source_files.size());
+  solrQuery.set("facet", "false"); 
+  solrQuery.add("fl","id,source_file_s"); //only request fields used
+
+  QueryResponse rsp = solrServer.query(solrQuery,METHOD.POST);        
+
+  ArrayList<String>  records = new ArrayList<String>();
+
+  for ( SolrDocument doc: rsp.getResults()){
+
+    records.add((String) doc.getFieldValue("source_file_s"));                             
+  }                    
+
+  return records;                     
+}
+
   
   public boolean lookupRecord(String source_file_s) throws Exception{
     

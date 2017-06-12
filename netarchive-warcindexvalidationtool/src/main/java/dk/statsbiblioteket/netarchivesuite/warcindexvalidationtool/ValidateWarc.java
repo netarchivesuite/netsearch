@@ -152,29 +152,16 @@ public class ValidateWarc {
       }
       else{
         System.out.println("The Solr index does not have the correct number of documents! File:"+expectedNumberOfDocsInSolr +" solr index:"+solrRecords );
-        System.out.println("Checking every document... (can takes up to 30 minutes)");
-
-        boolean missing=false;
-        int numberMissing=0;
-        for (String r : solrSourceFileRecord){
-          boolean found = solrClient.lookupRecord(r);
-          if (!found){
-            missing=true; //at least one is missing
-            numberMissing++;
-            System.out.println("Missing solr document:"+r);
-          }
-        }      
-        if (missing){
-          System.out.println("Validation error! Number of missing documents:"+numberMissing);
-        }
-        else{
-          System.out.println("No missing documents in Solr");
-        }
+         ArrayList<String> solrIndexRecords = solrClient.lookupRecords(solrSourceFileRecord);
+         solrSourceFileRecord.removeAll(solrIndexRecords); //will now only contain the missing records
+                  
+         for (String rec : solrSourceFileRecord){
+            System.out.println("Missing record:"+rec);
+         }         
       }
     }
 
   }
-
 
   private String getHttpStatusCode(boolean isWarc, byte[] rawData){
 
@@ -185,7 +172,7 @@ public class ValidateWarc {
       String[] tokens = contentStart.split(" ");
       String httpCodeStr =tokens[1]; 
       if (httpCodeStr.indexOf("\n") >1){ //For some reason this can happen : 'HTTP/1.1 404\nContent-Type:'
-        System.out.println("new line detected");
+        System.out.println("new line detected:"+httpCodeStr);
         httpCodeStr = httpCodeStr.split("\n")[0];
       }
       
