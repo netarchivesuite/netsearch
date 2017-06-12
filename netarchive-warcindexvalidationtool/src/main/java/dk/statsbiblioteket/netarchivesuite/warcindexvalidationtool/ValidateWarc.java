@@ -107,7 +107,6 @@ public class ValidateWarc {
         totalNumberOfRecordsInWarc++;
         //50 characters is more than enough to read the header line
         byte[] rawData = IOUtils.toByteArray(r, r.available());
-
         String httpCodeStr = getHttpStatusCode(isWarc, rawData);
         int httpCode = Integer.parseInt(httpCodeStr);                      
         increaseCount(httpCodeStr,httpCodeCount);
@@ -185,7 +184,12 @@ public class ValidateWarc {
 
       String[] tokens = contentStart.split(" ");
       String httpCodeStr =tokens[1]; 
-
+      if (httpCodeStr.indexOf("\n") >1){ //For some reason this can happen : 'HTTP/1.1 404\nContent-Type:'
+        System.out.println("new line detected");
+        httpCodeStr = httpCodeStr.split("\n")[0];
+      }
+      
+      
       return httpCodeStr.trim();
     }
     else{
