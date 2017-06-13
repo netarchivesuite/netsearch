@@ -103,6 +103,7 @@ public class ValidateWarc {
         skip=true;       
       }
       if (!skip){ 
+        //System.out.println(r.getHeader().getOffset());
         totalNumberOfRecordsInWarc++;
         //10000 characters is more than enough to read the header line
          int maxSize = Math.min(10000,  r.available());      
@@ -172,7 +173,7 @@ public class ValidateWarc {
       String[] tokens = contentStart.split(" ");
       String httpCodeStr =tokens[1]; 
       if (httpCodeStr.indexOf("\n") >1){ //For some reason this can happen : 'HTTP/1.1 404\nContent-Type:'
-        System.out.println("new line detected:"+httpCodeStr);
+        //System.out.println("new line detected:"+httpCodeStr);
         httpCodeStr = httpCodeStr.split("\n")[0];
       }
       
