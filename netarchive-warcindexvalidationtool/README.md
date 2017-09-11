@@ -5,8 +5,8 @@ Warcindexvalidationtool
 
 The jar fil can be found in the /target folder. Notice snapshot-version can be incuded in the name.
 It validates the Arc/Warc file using the archive.org Arc/Warc reader and counts the expected number of records
-to be sent to the Solrserver for indexing. (Http status codes 200-299).
-If a solrserver url is given as a second argument, it checks and list missing records in the Solr Index.
+to be sent to the Solrserver for indexing. 
+If a solrserver url is given as a second argument, it checks and list missing records in the Solr Index. This also require a list of http status prefix codes. 
 
 
 Example usage:
@@ -15,7 +15,11 @@ java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.
 
 or
 
-java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.jar pathToWarcFile SolrServerUrl
+java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.jar pathToWarcFile SolrServerUrl 2
+(only accept http 2xx status codes).
+java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.jar pathToWarcFile SolrServerUrl 2 4
+(only both http 2xx and 4xx status status codes).
+
 
 Example run:
 
