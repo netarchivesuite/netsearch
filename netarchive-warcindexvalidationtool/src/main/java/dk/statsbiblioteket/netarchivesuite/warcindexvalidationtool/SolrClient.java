@@ -51,7 +51,6 @@ private ArrayList<String> lookupRecordsMax1000(List<String> source_files) throws
   //Generate URL string: (url:"A" OR url:"B" OR ....)
   StringBuffer buf = new StringBuffer();
   buf.append("(source_file_s:test"); //Just to avoid last OR logic
-  int i =0;
   for (String  url : source_files) {            
     buf.append(" OR source_file_s:\""+url+"\"");        
 

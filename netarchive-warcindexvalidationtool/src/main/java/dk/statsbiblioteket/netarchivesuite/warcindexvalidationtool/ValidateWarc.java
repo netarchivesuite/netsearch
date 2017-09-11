@@ -3,6 +3,7 @@ package dk.statsbiblioteket.netarchivesuite.warcindexvalidationtool;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.TreeMap;
 
 import org.apache.commons.io.IOUtils;
@@ -21,8 +22,9 @@ public class ValidateWarc {
 
 
   private SolrClient solrClient = null;
-  private  String warcFilePath;
+  private String warcFilePath;
   private boolean isWarc = false; //else it is Arc
+  private HashSet<Integer> statusCodePrefixes = new HashSet<Integer>();
 
   /**
    * @param args pathToWarcFile solrServerUrl (optional)
@@ -30,21 +32,46 @@ public class ValidateWarc {
    * if solrServerUrl is given, it will be checked the Solr index has the expected number of records and list missing records
    * @throws Exception 
    */
-  public static void main(String[] args) {
-
+  public static void main(String[] args) {    
     try{
-      if (args.length== 0 || args.length > 2){       
-        System.out.println("Arguments are: pathToWarcFile solrServerUrl(optional)");
+
+      //Show help
+      if (args.length == 0){
+        System.out.println("Arguments are: pathToWarcFile(required) solrServerUrl(optional) httpstatus-prefixes (list, optional)");
+        System.out.println("Example: filename.warc.gz    - This will list info about the warc-file such as number of different records, http-status codes etc. Will not validate against an index");
+        System.out.println("Example: filename.warc.gz localhost:8983/solr/collectionName 2 - validate the file against an index and expect all HTTP 2xx status codes are indexed. Will list missing records");
+        System.out.println("Example: filename.warc.gz localhost:8983/solr/collectionName 2 4 - expect both HTTP 2XX and HTTP 4XX status codes are indexed");
+      }           
+      else if (args.length ==1 ){
+        String warcFile=args[0];
+        ValidateWarc valWarc = new ValidateWarc(warcFile,null, null);        
+        valWarc.validate();
+      }
+      else if (args.length == 2 ){
+        System.out.println("Http status prefix list missing. Example: filename.warc.gz localhost:8983/solr/collectionName 2    (http 2xx status codes)");  
         System.exit(1);
       }
-      String warcFile=args[0];
-      String solrUrl = null;
-      if(args.length == 2){
-        solrUrl = args[1];
-      }     
+      else{
+        String warcFile=args[0];        
+        String solrUrl = args[1];
 
-      ValidateWarc valWarc = new ValidateWarc(warcFile,solrUrl);
-      valWarc.validate();
+        
+        HashSet<Integer>  statusCodePrefixes = new HashSet<Integer>(); 
+        try{
+          //Parse http prefix.
+          for (int i=2 ; i<args.length ;i++){
+            int httpPrefix = Integer.parseInt(args[i]); 
+            statusCodePrefixes.add(httpPrefix);
+          }
+       
+          ValidateWarc valWarc = new ValidateWarc(warcFile,solrUrl,  statusCodePrefixes);
+          valWarc.validate();
+        }
+        catch(Exception e){
+          System.out.println("Only numeric values for http status prefix");
+          System.exit(1);  
+        }                    
+      }      
     }
     catch(Exception e){      
       e.printStackTrace();
@@ -53,10 +80,11 @@ public class ValidateWarc {
   }
 
 
-  public ValidateWarc(String warcFilePath, String solrServerUrl){
+  public ValidateWarc(String warcFilePath, String solrServerUrl, HashSet<Integer> httpStatusPrefixAllowed){
     this.warcFilePath=warcFilePath;
     if (solrServerUrl != null){
-    solrClient = new SolrClient(solrServerUrl);
+      solrClient = new SolrClient(solrServerUrl);
+      this.statusCodePrefixes = httpStatusPrefixAllowed;
     }
   }
 
@@ -99,14 +127,20 @@ public class ValidateWarc {
       if (!isWarc && "text/dns".equals(r.getHeader().getHeaderFields().get("content-type"))){ //Arc, skip these
         skip = true;
       }
-      else if (isWarc && !"application/http; msgtype=response".equals(r.getHeader().getHeaderFields().get("Content-Type"))){  //Warc, only read these
-        skip=true;       
+      else if (isWarc){
+        String contentType= (String) r.getHeader().getHeaderFields().get("Content-Type");
+        
+        // must be one of the two types of response. Heritrix uses first syntax, wget uses second
+        if (!(contentType.equals("application/http; msgtype=response") || contentType.equals("application/http;msgtype=response"))){
+          skip=true;          
+        }        
+        
       }
       if (!skip){ 
         //System.out.println(r.getHeader().getOffset());
         totalNumberOfRecordsInWarc++;
         //10000 characters is more than enough to read the header line
-         int maxSize = Math.min(10000,  r.available());      
+        int maxSize = Math.min(10000,  r.available());      
         byte[] rawData = IOUtils.toByteArray(r, maxSize);
         String httpCodeStr = getHttpStatusCode(isWarc, rawData);
         int httpCode = Integer.parseInt(httpCodeStr);                      
@@ -116,12 +150,13 @@ public class ValidateWarc {
           type = (String) r.getHeader().getHeaderValue("WARC-Type");        
           increaseCount(type,contentTypeCount);
         }        
-
-        if(200 <= httpCode &&  httpCode < 300 && !"revisit".equals(type) ){ //only these records are sent to Solr                
+       
+        if( httpStatusInPrefixSet(httpCode,statusCodePrefixes) && !"revisit".equals(type) ){ //only these records are sent to Solr                
           String solrRecord = arcFile+"@"+r.getHeader().getOffset();          
           solrSourceFileRecord.add(solrRecord);          
           expectedNumberOfDocsInSolr++;        
         }
+        
       }
     }
 
@@ -141,10 +176,8 @@ public class ValidateWarc {
     }
 
 
-
     if(solrClient != null){
       System.out.println("Validating records are found in Solr...");
-
       //Check first if solr has the correct number of documents. If not, check them one at a time
 
       int solrRecords = solrClient.countRecordsForFile(warcFilePath);
@@ -153,17 +186,26 @@ public class ValidateWarc {
       }
       else{
         System.out.println("The Solr index does not have the correct number of documents! File:"+expectedNumberOfDocsInSolr +" solr index:"+solrRecords );
-         ArrayList<String> solrIndexRecords = solrClient.lookupRecords(solrSourceFileRecord);
-         solrSourceFileRecord.removeAll(solrIndexRecords); //will now only contain the missing records
-                  
-         for (String rec : solrSourceFileRecord){
-            System.out.println("Missing record:"+rec);
-         }         
+        ArrayList<String> solrIndexRecords = solrClient.lookupRecords(solrSourceFileRecord);
+        solrSourceFileRecord.removeAll(solrIndexRecords); //will now only contain the missing records
+
+        for (String rec : solrSourceFileRecord){
+          System.out.println("Missing record:"+rec);
+        }         
       }
     }
 
   }
 
+  private boolean httpStatusInPrefixSet(int httpStatus, HashSet<Integer> statusCodePrefixes){
+    for (int code: statusCodePrefixes){
+      if (Integer.toString(httpStatus).startsWith(Integer.toString(code))){
+        return true;
+      }            
+    }        
+    return false;
+  }
+  
   private String getHttpStatusCode(boolean isWarc, byte[] rawData){
 
     String content = new String(rawData);
@@ -176,8 +218,8 @@ public class ValidateWarc {
         //System.out.println("new line detected:"+httpCodeStr);
         httpCodeStr = httpCodeStr.split("\n")[0];
       }
-      
-      
+
+
       return httpCodeStr.trim();
     }
     else{
