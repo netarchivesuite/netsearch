@@ -1,0 +1,13 @@
+/netarkiv/0206/filedir/272829-30-20170322191049682-00202-sb-prod-har-001.statsbiblioteket.dk.warc.gz
+/netarkiv/0116/filedir/276809-272-20170622193108196-00004-kb-prod-har-001.kb.dk.warc.gz
+/netarkiv/0115/filedir/272412-267-20170315153207091-00000-kb-prod-har-004.kb.dk.warc.gz
+/netarkiv/0212/filedir/276693-272-20170622081520337-00007-kb-prod-har-002.kb.dk.warc.gz
+/netarkiv/0216/filedir/279682-247-20170908170207470-00000-sb-prod-har-003.statsbiblioteket.dk.warc.gz
+/netarkiv/0105/filedir/271169-139-20170219122916264-00015-sb-prod-har-001.statsbiblioteket.dk.warc.gz
+/netarkiv/0209/filedir/269879-242-20170108010756416-00045-sb-prod-har-001.statsbiblioteket.dk.warc
+/netarkiv/0132/filedir/199345-205-20140203171430-00007-kb-prod-har-007.kb.dk.warc
+/netarkiv/0104/filedir/252107-244-20160221003819-00021-sb-prod-har-004.statsbiblioteket.dk.warc
+/netarkiv/0211/filedir/265254-255-20160924003413852-00009-sb-prod-har-004.statsbiblioteket.dk.warc
+/netarkiv/0111/filedir/271978-267-20170309174410614-00001-kb-prod-har-001.kb.dk.warc.gz
+/netarkiv/0117/filedir/279812-254-20170912172808897-00002-sb-prod-har-002.statsbiblioteket.dk.warc.gz
+/netarkiv/0108/filedir/67238-102-20091209053237-00404-sb-prod-har-002.statsbiblioteket.dk.arc
