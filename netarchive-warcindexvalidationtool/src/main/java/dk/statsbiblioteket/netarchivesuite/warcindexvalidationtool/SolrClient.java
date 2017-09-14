@@ -32,7 +32,7 @@ public ArrayList<String> lookupRecords(ArrayList<String> source_files) throws Ex
     
  ArrayList<String> recordsFound = new ArrayList<String>(); 
   
-  Iterable<List<String>> splitSets = Iterables.partition(source_files, 1000); //split into sets of size max 1000;
+  Iterable<List<String>> splitSets = Iterables.partition(source_files, 500); //split into sets of size max 500; //wasd 1000 before 3.0 support
   
   for (List<String> records : splitSets){
     ArrayList<String> recs= lookupRecordsMax1000(records);
@@ -42,17 +42,26 @@ public ArrayList<String> lookupRecords(ArrayList<String> source_files) throws Ex
   }
 
   
+/*
+ * The look up is different is warc-indexer 2.0 and 3.0. But the fix is just a double query that will find match in one of the cases
+ * 
+ */
 private ArrayList<String> lookupRecordsMax1000(List<String> source_files) throws Exception{
 
-  if (source_files.size() > 1000){
-    throw new IllegalArgumentException("More than 1000 different urls in query:"+source_files.size() +". Solr does not allow more than 1024 queries");
+  if (source_files.size() > 500){
+    throw new IllegalArgumentException("More than 500 different urls in query:"+source_files.size() +". Solr does not allow more more than 1000 query terms.");
   }
 
   //Generate URL string: (url:"A" OR url:"B" OR ....)
   StringBuffer buf = new StringBuffer();
   buf.append("(source_file_s:test"); //Just to avoid last OR logic
   for (String  url : source_files) {            
-    buf.append(" OR source_file_s:\""+url+"\"");        
+    // Split in two parts: 276693-272-20170622081520337-00007-kb-prod-har-002.kb.dk.warc.gz@762 
+    int offsetIndex = url.indexOf("@");
+     String warc=url.substring(0,offsetIndex);
+     String offset = url.substring(offsetIndex+1);
+        
+    buf.append(" OR source_file_s:\""+url+"\" OR (source_file:\""+warc+"\" AND source_file_offset:"+offset+")"); //First is 2.0, second is 3.        
 
   }
   buf.append(")");
@@ -64,7 +73,7 @@ private ArrayList<String> lookupRecordsMax1000(List<String> source_files) throws
 
   solrQuery.setRows(source_files.size());
   solrQuery.set("facet", "false"); 
-  solrQuery.add("fl","id,source_file_s"); //only request fields used
+  solrQuery.add("fl","id,source_file_s,source_file ,source_file_offset"); //only request fields used
 
   QueryResponse rsp = solrServer.query(solrQuery,METHOD.POST);        
 
@@ -72,25 +81,21 @@ private ArrayList<String> lookupRecordsMax1000(List<String> source_files) throws
 
   for ( SolrDocument doc: rsp.getResults()){
 
-    records.add((String) doc.getFieldValue("source_file_s"));                             
+    String arc2_0 = (String) doc.getFieldValue("source_file_s");
+    if (arc2_0 != null){ //warc-indexer 2.0
+      records.add(arc2_0);      
+    }
+    else{ //warc-indexer 3.0
+      String name = (String) doc.getFieldValue("source_file");
+      long offset = (Long) doc.getFieldValue("source_file_offset");
+      records.add(name+"@"+offset);      
+    }
+    
+                                 
   }                    
-
   return records;                     
 }
-
-  
-  public boolean lookupRecord(String source_file_s) throws Exception{
-    
-    SolrQuery solrQuery = new SolrQuery();
-    solrQuery.setQuery("source_file_s:\""+source_file_s+"\""); 
-    solrQuery.set("fl", "id,source_file_s");
-    QueryResponse rsp = solrServer.query(solrQuery,METHOD.POST);
-
-    long numberFound =  rsp.getResults().getNumFound();  
-    return numberFound==1;
-  
-  }
-    
+      
 public int countRecordsForFile(String arc_full) throws Exception{
     
     SolrQuery solrQuery = new SolrQuery();
