@@ -80,7 +80,7 @@ public class ValidateWarc {
   }
 
 
-  public ValidateWarc(String warcFilePath, String solrServerUrl, HashSet<Integer> httpStatusPrefixAllowed){
+  public ValidateWarc(String warcFilePath, String solrServerUrl, HashSet<Integer> httpStatusPrefixAllowed) throws Exception{
     this.warcFilePath=warcFilePath;
     if (solrServerUrl != null){
       solrClient = new SolrClient(solrServerUrl);
@@ -218,8 +218,6 @@ public class ValidateWarc {
         //System.out.println("new line detected:"+httpCodeStr);
         httpCodeStr = httpCodeStr.split("\n")[0];
       }
-
-
       return httpCodeStr.trim();
     }
     else{
@@ -230,9 +228,7 @@ public class ValidateWarc {
       String[] tokens = httpLine.split(" ");      
       String httpCodeStr =tokens[1]; 
       return httpCodeStr.trim();
-
     }
-
   }
 
   public void increaseCount(String key, TreeMap<String,Integer> map){
