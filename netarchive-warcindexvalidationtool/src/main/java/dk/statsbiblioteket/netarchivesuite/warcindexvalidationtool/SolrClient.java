@@ -124,7 +124,7 @@ public class SolrClient {
 
 
       String  query = buf.toString();     
-System.out.println(query);
+
       SolrQuery solrQuery = new SolrQuery();
       solrQuery.setQuery(query);
 
