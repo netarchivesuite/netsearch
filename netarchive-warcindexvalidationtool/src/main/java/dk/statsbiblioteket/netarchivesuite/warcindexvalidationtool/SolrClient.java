@@ -144,7 +144,7 @@ public class SolrClient {
   return records;                     
   }
 
-  public int countRecordsForFile(String arc_full) throws Exception{
+  public int countRecordsForFile(String arc_full, boolean includeRevisits) throws Exception{
 
     String[] tokens = arc_full.split("/");
     String filename = tokens[tokens.length-1]; //last is filename
@@ -153,6 +153,9 @@ public class SolrClient {
     
      if (hasSource_file_field){
       q = "source_file:\""+filename+"\"";
+      if (!includeRevisits){
+        q += " AND record_type:response";
+      }           
     }
     else if ( hasSource_file_s_field){
       q="source_file_s:"+filename+"*"; // * is wildcard for all @offset suffixes.

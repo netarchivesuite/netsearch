@@ -31,7 +31,7 @@ public class ValidateWarcBatchTest {
     List<String> lines = Files.readAllLines(Paths.get(warcFileList));
 
     for (String line : lines){      
-      ValidateWarc validateWarc = new ValidateWarc(line,solr,httpStatusPrefix);
+      ValidateWarc validateWarc = new ValidateWarc(line,null,true,httpStatusPrefix);
       validateWarc.validate();      
     }
   }

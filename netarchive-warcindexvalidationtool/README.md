@@ -15,10 +15,10 @@ java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.
 
 or
 
-java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.jar pathToWarcFile SolrServerUrl 2
-(only accept http 2xx status codes).
-java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.jar pathToWarcFile SolrServerUrl 2 4
-(only both http 2xx and 4xx status status codes).
+java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.jar pathToWarcFile SolrServerUrl true 2
+(include revisits only accept http 2xx status codes).
+java -jar netarchive-warcindexvalidationtool-1.3-SNAPSHOT-jar-with-dependencies.jar pathToWarcFile SolrServerUrl false 2 404
+(no revisits, both http 2xx and 404 status status codes).
 
 
 Example run:
@@ -36,6 +36,7 @@ Total records:5938
 Expected Solr documents:5147
 
 Warc types:
+  response:5147
 
 Http codes:
 
@@ -53,7 +54,7 @@ Validating records are found in Solr...
 
 The Solr index does not have the correct number of documents! File:5147 solr index:5100
 
-Checking every document... (can takes up to 30 minutes)
+Checking every document... (can takes a few minutes)
 
 Missing solr document:48477-91-20090610093830-00033-sb-prod-har-005.arc@99229491 
 

@@ -23,6 +23,7 @@ public class ValidateWarc {
 
   private SolrClient solrClient = null;
   private String warcFilePath;
+  private boolean includeRevisits;
   private boolean isWarc = false; //else it is Arc
   private HashSet<Integer> statusCodePrefixes = new HashSet<Integer>();
 
@@ -37,40 +38,50 @@ public class ValidateWarc {
 
       //Show help
       if (args.length == 0){
-        System.out.println("Arguments are: pathToWarcFile(required) solrServerUrl(optional) httpstatus-prefixes (list, optional)");
+        System.out.println("Arguments are: pathToWarcFile(required) solrServerUrl(optional) revisits(boolean) httpstatus-prefixes (list, optional)");
         System.out.println("Example: filename.warc.gz    - This will list info about the warc-file such as number of different records, http-status codes etc. Will not validate against an index");
-        System.out.println("Example: filename.warc.gz localhost:8983/solr/collectionName 2 - validate the file against an index and expect all HTTP 2xx status codes are indexed. Will list missing records");
-        System.out.println("Example: filename.warc.gz localhost:8983/solr/collectionName 2 4 - expect both HTTP 2XX and HTTP 4XX status codes are indexed");
+        System.out.println("Example: filename.warc.gz localhost:8983/solr/collectionName true 2 - validate the file against an index and expect all HTTP 2xx status codes are indexed. Will list missing records. Revisits included");
+        System.out.println("Example: filename.warc.gz localhost:8983/solr/collectionName false 2 4 - expect both HTTP 2XX and HTTP 4XX status codes are indexed. No revisits.");
       }           
       else if (args.length ==1 ){
         String warcFile=args[0];
-        ValidateWarc valWarc = new ValidateWarc(warcFile,null, null);        
+        System.out.println("Not validating against a solr index. Revisits are included");
+        ValidateWarc valWarc = new ValidateWarc(warcFile,null,true, null);        
         valWarc.validate();
       }
-      else if (args.length == 2 ){
-        System.out.println("Http status prefix list missing. Example: filename.warc.gz localhost:8983/solr/collectionName 2    (http 2xx status codes)");  
+      else if (args.length == 2  || args.length ==3 ){
+        System.out.println("Missing revisits(boolean) and http codes. Example: filename.warc.gz localhost:8983/solr/collectionName false 2    (no, revisits and http 2xx status codes)");  
         System.exit(1);
       }
       else{
         String warcFile=args[0];        
         String solrUrl = args[1];
-
+        String revisits = args[2].toLowerCase();
+        if (! (revisits.equals("true") || revisits.equals("false"))){
+          System.out.println("revists must be true or false (2. parameter)");
+          System.exit(1);    
+        }
+        boolean includeRevisits = "true".equals(revisits);
         
         HashSet<Integer>  statusCodePrefixes = new HashSet<Integer>(); 
         try{
           //Parse http prefix.
-          for (int i=2 ; i<args.length ;i++){
+          for (int i=3 ; i<args.length ;i++){
+          System.out.println(args[i]);
             int httpPrefix = Integer.parseInt(args[i]); 
             statusCodePrefixes.add(httpPrefix);
           }
-       
-          ValidateWarc valWarc = new ValidateWarc(warcFile,solrUrl,  statusCodePrefixes);
-          valWarc.validate();
+                 
         }
         catch(Exception e){
-          System.out.println("Only numeric values for http status prefix");
+          System.out.println("Only numeric values for http status prefix");          
           System.exit(1);  
-        }                    
+        }
+        
+        System.out.println("solrUrl:"+solrUrl);
+        ValidateWarc valWarc = new ValidateWarc(warcFile,solrUrl,  includeRevisits, statusCodePrefixes);
+        valWarc.validate();
+        
       }      
     }
     catch(Exception e){      
@@ -80,11 +91,12 @@ public class ValidateWarc {
   }
 
 
-  public ValidateWarc(String warcFilePath, String solrServerUrl, HashSet<Integer> httpStatusPrefixAllowed) throws Exception{
+  public ValidateWarc(String warcFilePath, String solrServerUrl, boolean includeRevisits, HashSet<Integer> httpStatusPrefixAllowed) throws Exception{
     this.warcFilePath=warcFilePath;
     if (solrServerUrl != null){
       solrClient = new SolrClient(solrServerUrl);
       this.statusCodePrefixes = httpStatusPrefixAllowed;
+      this.includeRevisits=includeRevisits;
     }
   }
 
@@ -131,7 +143,7 @@ public class ValidateWarc {
         String contentType= (String) r.getHeader().getHeaderFields().get("Content-Type");
         
         // must be one of the two types of response. Heritrix uses first syntax, wget uses second
-        if (!(contentType.equals("application/http; msgtype=response") || contentType.equals("application/http;msgtype=response"))){
+        if (!(contentType.equals("application/http; msgtype=response") || contentType.equals("application/http;msgtype=response") )){
           skip=true;          
         }        
         
@@ -151,7 +163,8 @@ public class ValidateWarc {
           increaseCount(type,contentTypeCount);
         }        
        
-        if( httpStatusInPrefixSet(httpCode,statusCodePrefixes) && !"revisit".equals(type) ){ //only these records are sent to Solr                
+        // correct status and only revisits if includeRevists is true
+        if( httpStatusInPrefixSet(httpCode,statusCodePrefixes) && ( ("revisit".equals(type) &&  includeRevisits ) || "response".equals(type)) ){ //only these records are sent to Solr                
           String solrRecord = arcFile+"@"+r.getHeader().getOffset();          
           solrSourceFileRecord.add(solrRecord);          
           expectedNumberOfDocsInSolr++;        
@@ -180,7 +193,7 @@ public class ValidateWarc {
       System.out.println("Validating records are found in Solr...");
       //Check first if solr has the correct number of documents. If not, check them one at a time
 
-      int solrRecords = solrClient.countRecordsForFile(warcFilePath);
+      int solrRecords = solrClient.countRecordsForFile(warcFilePath,includeRevisits);
       if (solrRecords == expectedNumberOfDocsInSolr){
         System.out.println("The Solr index has the correct number of documents ("+expectedNumberOfDocsInSolr+")");
       }
