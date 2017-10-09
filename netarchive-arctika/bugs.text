@@ -1,7 +1,14 @@
-not indexing font mime type:
+Kun problem solrwayback. gzip over 2GB. java fejl
+http://belinda:9721/solrwayback/services/view?arcFilePath=/netarkiv/0105/filedir/271359-159-20170223111913083-00010-sb-prod-har-003.statsbiblioteket.dk.warc.gz&offset=765999583
 
-belinda:9721/solrwayback/services/view?arcFilePath=/netarkiv/0/105/filedir/272473-246-20170309220319216-00000-sb-prod-har-004.statsbiblioteket.dk.warc.gz&offset=29180358
+Mangler stadig bedre URL normalizering
+
+encoding fejl:
+http://teg-desktop.sb.statsbiblioteket.dk:8080/solrwayback/services/view?source_file_path=/media/teg/1200GB_SSD/netarkiv/0105/filedir/271824-246-20170306230137681-00004-sb-prod-har-001.statsbiblioteket.dk.warc.gz&offset=261206035
 
 
-This image also missing:
-http://belinda:9721/solrwayback/services/view?arcFilePath=/netarkiv/0105/filedir/272473-246-20170309220319216-00000-sb-prod-har-004.statsbiblioteket.dk.warc.gz&offset=31473137
+warc indexer. exif gps range fejl:
+/media/teg/1200GB_SSD/netarkiv/0105/filedir/271883-267-20170309155807501-00029-kb-prod-har-001.kb.dk.warc.gz
+Eksempel på index command:
+java -Xmx1024M -Djava.io.tmpdir=tika_tmp -jar warc-indexer-3.0.0-SNAPSHOT-jar-with-dependencies.jar -c config3.conf -s  "http://localhost:8983/solr/netarchivebuilder"  /netarkiv/0201/filedir/389-17-20050728035844-00115-kb-prod-har-002.kb.dk.arc
+
