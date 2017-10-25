@@ -104,7 +104,6 @@ public class ValidateWarc {
     System.out.println("Reading warc file:"+warcFilePath);
     String[] fileTokens = warcFilePath.split("/");
     String arcFile = fileTokens[fileTokens.length-1]; //Get the filename from the full path
-    System.out.println("File:"+arcFile);
 
     // Set up a local compressed WARC file for reading 
     BufferedInputStream bis = new BufferedInputStream (new FileInputStream(warcFilePath));
