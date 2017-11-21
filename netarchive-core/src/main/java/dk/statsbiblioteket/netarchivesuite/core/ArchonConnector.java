@@ -14,6 +14,7 @@
  */
 package dk.statsbiblioteket.netarchivesuite.core;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ArchonConnector {
@@ -54,6 +55,14 @@ public interface ArchonConnector {
      * @param state the new state.
      */
     void setARCState(String arcID, ARC_STATE state);
+
+    /**
+     * Set the state for the given ARCs. This will normally be called when ARC files has been indexed or has failed
+     * indexing.
+     * @param arcIDs the unique IDs for the ARCs.
+     * @param state the new state.
+     */
+    void setARCStates(Collection<String> arcIDs, ARC_STATE state);
 
     /**
      * Iterates all ARC files that has the given shardID and state=RUNNING and sets the state to NEW. It also sets the shardID to null

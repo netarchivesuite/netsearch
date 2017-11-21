@@ -2,6 +2,10 @@ package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
 
 import dk.statsbiblioteket.util.JobController;
@@ -16,6 +20,7 @@ import dk.statsbiblioteket.netarchivesuite.arctika.solr.SolrCoreStatus;
 import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
 import dk.statsbiblioteket.netarchivesuite.core.ArchonConnectorClient;
 
+@SuppressWarnings("WeakerAccess")
 public class IndexBuilder {
     private static final Logger log = LoggerFactory.getLogger(IndexBuilder.class);
 
@@ -200,24 +205,30 @@ public class IndexBuilder {
     }
 
     private boolean startNewIndexWorker() {
-        String nextARC = archonClient.nextARC(""+config.getShardId());
-        if ("".equals(nextARC)){
+        List<String> arcs = new ArrayList<String>(config.getBatch_size());
+        String nextARC;
+        while (arcs.size() < config.getBatch_size() &&
+               (nextARC = archonClient.nextARC(""+config.getShardId())) != null) {
+
+            //Check if file exist, or exit! Something is serious wrong.
+            File f = new File(nextARC);
+            if (!f.exists()){
+                String message = "Arc-file does not exist. Indexing will exit when workers are finished. " +
+                                 "Missing file: " + nextARC;
+                log.error(message);
+                System.out.println(message);
+                return false;
+            }
+
+            arcs.add(nextARC);
+        }
+        if (arcs.size() == 0){
             String message = "No more arc-files to index. Stopping index process. " +
                              "It can be continued when there are new arc-files";
             log.warn(message);
             System.out.println(message);
             return false;
         }
- 
-        //Check file exist, or exit! Something is serious wrong.
-        File f = new File(nextARC);
-        if (!f.exists()){
-            String message = "Arc-file does not exist. Indexing will exit when workers are finished. Missing file:"+nextARC;
-            log.error(message);
-            System.out.println(message);
-            return false;            
-        }
-
         //if there is a corename in the properties file
         String solrUrl = config.getSolr_url();
         if(config.getCoreName() != null && config.getCoreName().length() > 0) {
@@ -227,13 +238,20 @@ public class IndexBuilder {
             solrUrl += config.getCoreName();
         }
 
-        jobController.submit(new IndexWorker(
-                nextARC, solrUrl,
-                config.getWorker_maxMemInMb(),
-                config.getWorker_jar_file(),
-                config.getWarcIndexerConfigFile(),
-                config.getWorker_temp_dir()));                
+        jobController.submit(createWorker(arcs, solrUrl, config));
         return true;
+    }
+
+    private Callable<IndexWorker> createWorker(List<String> arcs, String solrUrl, IndexBuilderConfig config) {
+        switch (config.getWorker_type()) {
+            case jvm:
+                return new IndexWorkerSpawnJVM(arcs, solrUrl, config);
+            case shell:
+                return new IndexWorkerShellCall(arcs, solrUrl, config);
+            default:
+                throw new UnsupportedOperationException(
+                        "The worker type '" + config.getWorker_type() + "' is currently unsupported");
+        }
     }
 
     private void taskFinished(Future<IndexWorker> finished)  {
@@ -249,31 +267,44 @@ public class IndexBuilder {
         }
 
         jobProfiler.beat();
+        // TODO: Change stats to be per WARC-file
         String progress = String.format(
-                "Finished ARC: %d (%s) in %d ms. Average worker processing speed: %s seconds/ARC. " +
-                "Average clock speed: %s seconds/ARC",
-                jobProfiler.getBeats(), worker.getArcFile(), worker.getRuntime(),
-                IndexWorker.timeStats(), toFinalTime(jobProfiler, true));
+                "Finished job: %d with %d (W)ARCs (%s) in %d ms. Average worker processing speed: %s seconds/job. " +
+                "Average clock speed: %s seconds/job",
+                jobProfiler.getBeats(), worker.getArcStatuses().size(), IndexWorker.join(worker.getArcStatuses()),
+                worker.getRuntime(), IndexWorker.timeStats(), toFinalTime(jobProfiler, true));
         RUN_STATUS workerStatus = worker.getStatus();
-        if (workerStatus==RUN_STATUS.COMPLETED){
-            log.info("Worker completed success: " + worker.getArcFile() + " " + progress);
-            archonClient.setARCState(worker.getArcFile(), ArchonConnector.ARC_STATE.COMPLETED);
-
+        if (workerStatus == RUN_STATUS.NEW || workerStatus == RUN_STATUS.RUNNING) {
+            log.error("Logic error: Worker status was " + worker + ". Expected " + RUN_STATUS.COMPLETED +
+                      " or " + RUN_STATUS.RUN_ERROR + ". Worker (W)ARCs in unknown state: "
+                      + IndexWorker.join(worker.getArcFiles()));
+            return;
         }
-        if (workerStatus==RUN_STATUS.RUN_ERROR){
-                
-            if (worker.getNumberOfErrors()<= config.getMax_worker_tries()){
-                log.info("Worker failed. Will re-try. Error count: " + worker.getNumberOfErrors() +" arcfile: "
-                         + worker.getArcFile() + " " + progress);
-                worker.increaseErrorCount();
-                worker.setStatus(IndexWorker.RUN_STATUS.NEW);
-                jobController.submit(worker);
-            } else {
-                log.info("Worker FAIL: Error count: " + worker.getNumberOfErrors() + " arcfile: "
-                         + worker.getArcFile() + " " + progress);
-                failedWorkers++;
-                archonClient.setARCState(worker.getArcFile(), ArchonConnector.ARC_STATE.REJECTED);
+
+        Set<IndexWorker.ARCStatus> arcStatuses = worker.getArcStatuses();
+        Set<IndexWorker.ARCStatus> arcRetry = new HashSet<IndexWorker.ARCStatus>(arcStatuses.size());
+        for (IndexWorker.ARCStatus arcStatus: arcStatuses) {
+            if (arcStatus.getStatus() == ArchonConnector.ARC_STATE.COMPLETED) {
+                log.info("(W)ARC finished with success: " + arcStatus.getArc() + ". " + progress);
+                archonClient.setARCState(arcStatus.getArc(), ArchonConnector.ARC_STATE.COMPLETED);
+            } else if (arcStatus.getStatus() == ArchonConnector.ARC_STATE.REJECTED) {
+                if (worker.getNumberOfErrors() <= config.getMax_worker_tries()) {
+                    log.info("(W)ARC failed. Will re-try. Error count: " + worker.getNumberOfErrors() + " arcfile: "
+                             + arcStatus + " " + progress);
+                    arcRetry.add(arcStatus);
+                } else {
+                    log.info("(W)ARC FAIL: Error count: " + worker.getNumberOfErrors() + " arcfile: "
+                             + arcStatus + " " + progress);
+                    failedWorkers++;
+                    archonClient.setARCState(arcStatus.getArc(), ArchonConnector.ARC_STATE.REJECTED);
+                }
             }
+        }
+        if (!arcRetry.isEmpty()) {
+            worker.increaseErrorCount();
+            worker.setStatus(IndexWorker.RUN_STATUS.NEW);
+            worker.setStatuses(arcStatuses);
+            jobController.submit(worker);
         }
     }
 

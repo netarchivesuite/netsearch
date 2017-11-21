@@ -73,6 +73,13 @@ public class MemoryArchon implements ArchonConnector {
     }
 
     @Override
+    public void setARCStates(Collection<String> arcIDs, ARC_STATE state) {
+        for (String arcID: arcIDs) {
+            setARCState(arcID, state);
+        }
+    }
+
+    @Override
     public synchronized void clearIndexing(String shardID) {
         for (ARC arc: arcs) {
             if (arc.getShardID().equals(shardID) && arc.getState() == ARC_STATE.RUNNING) {

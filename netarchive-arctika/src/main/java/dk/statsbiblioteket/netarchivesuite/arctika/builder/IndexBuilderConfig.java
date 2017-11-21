@@ -9,8 +9,11 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("WeakerAccess")
 public class IndexBuilderConfig {
     private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);
+
+    public enum WORKER_TYPE {jvm, shell}
 
     private static final long GB = 1073741824L;
     private static final long MB = 1048576L;
@@ -20,6 +23,7 @@ public class IndexBuilderConfig {
     private int max_worker_tries=3;
     private int worker_maxMemInMb = -1;
     private int max_concurrent_workers = -1;
+    private int batch_size = 1; // Number of arc files to process in each job
     private long index_max_size = -1; //This will be combined with the unit below
     private long index_max_size_unit = 0; //will point to gB or mB
     
@@ -30,7 +34,10 @@ public class IndexBuilderConfig {
     private String solr_url;
     private String solr_core_name;
     private String worker_temp_dir="/tmp"; 
-    
+
+    private WORKER_TYPE worker_type;
+    private String worker_shell_command;
+
     public IndexBuilderConfig(String configFilePath) throws Exception {
         initProperties(configFilePath);
     }
@@ -65,6 +72,30 @@ public class IndexBuilderConfig {
 
     public void setMax_concurrent_workers(int max_concurrent_workers) {
         this.max_concurrent_workers = max_concurrent_workers;
+    }
+
+    public int getBatch_size() {
+        return batch_size;
+    }
+
+    public void setBatch_size(int batch_size) {
+        this.batch_size = batch_size;
+    }
+
+    public WORKER_TYPE getWorker_type() {
+        return worker_type;
+    }
+
+    public void setWorker_type(WORKER_TYPE worker_type) {
+        this.worker_type = worker_type;
+    }
+
+    public String getWorker_shell_command() {
+        return worker_shell_command;
+    }
+
+    public void setWorker_shell_command(String worker_shell_command) {
+        this.worker_shell_command = worker_shell_command;
     }
 
     public int getMax_worker_tries() {
@@ -154,7 +185,8 @@ public class IndexBuilderConfig {
 
         worker_maxMemInMb = Integer.parseInt(serviceProperties.getProperty("actika.worker.maxMemInMb"));
         max_concurrent_workers = Integer.parseInt(serviceProperties.getProperty("actika.max_concurrent_workers"));
-        
+        batch_size = Integer.parseInt(serviceProperties.getProperty("actika.batch_size"));
+
         String index_max_size_str = serviceProperties.getProperty("arctika.index_max_size");
         String unit;
         if (index_max_size_str.indexOf("MB")>0){           
@@ -179,8 +211,10 @@ public class IndexBuilderConfig {
         solr_core_name=serviceProperties.getProperty("arctika.solr_core_name");
         warcIndexerConfigFile = serviceProperties.getProperty("arctika.worker.warcindexer.configfile");        
         worker_jar_file = serviceProperties.getProperty("arctika.worker.index.jar.file");
-        worker_temp_dir = serviceProperties.getProperty("arctika.worker.tmp.dir");         
-                
+        worker_temp_dir = serviceProperties.getProperty("arctika.worker.tmp.dir");
+        worker_type = WORKER_TYPE.valueOf(serviceProperties.getProperty("arctika.worker_type"));
+        worker_shell_command = serviceProperties.getProperty("actika.worker_shell.command");
+
         log.info("Property: worker_jar_file = " + worker_jar_file);
         log.info("Property: max_worker_tries = " +max_worker_tries);
         log.info("Property: arctika.worker.tmp.dir = " +  worker_temp_dir);

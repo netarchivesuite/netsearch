@@ -1,6 +1,7 @@
 package dk.statsbiblioteket.netarchivesuite.core;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -65,8 +66,16 @@ public class ArchonConnectorClient implements ArchonConnector{
     public void setARCState(String arcID, ARC_STATE state){
         log.debug("setARCState(arcID=" + arcID + ", state=" + state + ") called");
         String urlencodedArcId= fixSlashUrlEncoding(arcID);         
-        ClientResponse response = service.path("setARCState").path(urlencodedArcId).path(state.toString()).post(ClientResponse.class);
+        ClientResponse response =
+                service.path("setARCState").path(urlencodedArcId).path(state.toString()).post(ClientResponse.class);
         handleHttpExceptions(response);
+    }
+
+    @Override
+    public void setARCStates(Collection<String> arcIDs, ARC_STATE state){
+        for (String arcID: arcIDs) {
+            setARCState(arcID, state);
+        }
     }
 
     @Override
