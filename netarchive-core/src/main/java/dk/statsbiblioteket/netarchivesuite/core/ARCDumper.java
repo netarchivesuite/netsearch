@@ -54,7 +54,10 @@ public class ARCDumper {
             if (in.skip(delta) != delta) {
                 System.err.println("Could not skip " + delta + " bytes");
             }
-            in.readLine();
+             // Skip the newline after content
+            if (in.read() == -1) {
+                break;
+            }
             oldOffset = in.getOffset();
             line = in.readLine();
             //noinspection StatementWithEmptyBody
