@@ -185,7 +185,7 @@ public class IndexBuilderConfig {
 
         worker_maxMemInMb = Integer.parseInt(serviceProperties.getProperty("actika.worker.maxMemInMb"));
         max_concurrent_workers = Integer.parseInt(serviceProperties.getProperty("actika.max_concurrent_workers"));
-        batch_size = Integer.parseInt(serviceProperties.getProperty("actika.batch_size"));
+        batch_size = Integer.parseInt(serviceProperties.getProperty("arctika.batch_size"));
 
         String index_max_size_str = serviceProperties.getProperty("arctika.index_max_size");
         String unit;
@@ -213,7 +213,7 @@ public class IndexBuilderConfig {
         worker_jar_file = serviceProperties.getProperty("arctika.worker.index.jar.file");
         worker_temp_dir = serviceProperties.getProperty("arctika.worker.tmp.dir");
         worker_type = WORKER_TYPE.valueOf(serviceProperties.getProperty("arctika.worker_type"));
-        worker_shell_command = serviceProperties.getProperty("actika.worker_shell.command");
+        worker_shell_command = serviceProperties.getProperty("arctika.worker_shell.command");
 
         log.info("Property: worker_jar_file = " + worker_jar_file);
         log.info("Property: max_worker_tries = " +max_worker_tries);

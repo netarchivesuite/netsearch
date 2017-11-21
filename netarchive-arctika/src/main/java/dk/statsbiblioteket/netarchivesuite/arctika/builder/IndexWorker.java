@@ -151,7 +151,7 @@ public abstract class IndexWorker implements Callable<IndexWorker> {
 
     public static class ARCStatus {
         private final String arc;
-        private ArchonConnector.ARC_STATE status = null;
+        private ArchonConnector.ARC_STATE status = ArchonConnector.ARC_STATE.NEW;
 
         public ARCStatus(String arc) {
             this.arc = arc;

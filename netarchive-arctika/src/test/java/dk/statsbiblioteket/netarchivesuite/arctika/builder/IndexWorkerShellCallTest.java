@@ -1,7 +1,13 @@
 package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
+import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 
 import static org.junit.Assert.*;
@@ -29,4 +35,36 @@ public class IndexWorkerShellCallTest {
         assertEquals("Result should be correct", 0, Integer.parseInt(matcher.group(1)));
     }
 
+    @Test
+    public void testSuccess() throws Exception {
+        final int ARCS = 10;
+
+        IndexBuilderConfig config = new IndexBuilderConfig(locate("arctika.shell.properties"));
+        config.setWorker_shell_command(locate("ssh_test_script.sh"));
+        List<String> arcs = new ArrayList<String>(ARCS);
+        for (int i = 0 ; i < ARCS ; i++) {
+            arcs.add("dummy_" + i);
+        }
+        IndexWorker worker = new IndexWorkerShellCall(arcs, "solrdummy", config);
+        for (IndexWorker.ARCStatus arcStatus: worker.getArcStatuses()) {
+            assertEquals("The state for arc '" + arcStatus.getArc() + "' before processing should be correct",
+                         ArchonConnector.ARC_STATE.NEW, arcStatus.getStatus());
+        }
+        worker.call();
+        for (IndexWorker.ARCStatus arcStatus: worker.getArcStatuses()) {
+            assertEquals("The state for arc '" + arcStatus.getArc() + "' should be correct",
+                         ArchonConnector.ARC_STATE.COMPLETED, arcStatus.getStatus());
+        }
+    }
+
+    public String locate(String resource) throws FileNotFoundException {
+        if (new File(resource).exists()) {
+            return resource;
+        }
+        URL url = Thread.currentThread().getContextClassLoader().getResource(resource);
+        if (url != null) {
+            return url.getFile();
+        }
+        throw new FileNotFoundException("Unable to locate '" + resource + "'");
+    }
 }
