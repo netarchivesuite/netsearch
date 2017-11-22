@@ -67,7 +67,7 @@ TO BUILD THE JAR WITH DEPENDENCIES USE:
   <dependency>
      <groupId>org.apache.solr</groupId>
      <artifactId>solr-solrj</artifactId>
-     <version>4.6.0</version>
+     <version>7.0.1</version>
    </dependency>
    
     
