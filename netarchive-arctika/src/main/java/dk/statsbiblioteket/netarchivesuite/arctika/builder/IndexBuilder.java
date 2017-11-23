@@ -65,7 +65,7 @@ public class IndexBuilder {
 
     public IndexBuilder(IndexBuilderConfig config){
         this.config = config;
-        solrClient = new ArctikaSolrJClient(config.getSolr_url());
+        solrClient = new ArctikaSolrJClient(config.getSolr_url(),config.getCoreName());
         archonClient =  new ArchonConnectorClient(config.getArchon_url());
         jobController = new JobController<IndexWorker>(config.getMax_concurrent_workers(), true, true) {
             @Override
@@ -218,15 +218,7 @@ public class IndexBuilder {
             return false;            
         }
 
-        //if there is a corename in the properties file
-        String solrUrl = config.getSolr_url();
-        if(config.getCoreName() != null && config.getCoreName().length() > 0) {
-            if(!solrUrl.endsWith("/")) {
-               solrUrl += "/";
-            }
-            solrUrl += config.getCoreName();
-        }
-
+        String solrUrl = getSolrUrlWithCollection(config.getSolr_url(),config.getCoreName());
         jobController.submit(new IndexWorker(
                 nextARC, solrUrl,
                 config.getWorker_maxMemInMb(),
@@ -277,6 +269,15 @@ public class IndexBuilder {
         }
     }
 
+    public static String getSolrUrlWithCollection(String solrUrl,String collectionName){    
+      String newUrl = solrUrl;
+      if (!newUrl.endsWith("/")){
+        newUrl += "/";
+      }
+      
+      return solrUrl+ collectionName;    
+    }
+    
     public String getStatus() throws IOException, SolrServerException {
         SolrCoreStatus status = solrClient.getStatus();
         long indexSizeBytes = status.getIndexSizeBytes();
