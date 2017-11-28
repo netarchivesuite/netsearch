@@ -41,7 +41,8 @@ public class IndexWorkerShellCallTest {
 
         IndexBuilderConfig config = new IndexBuilderConfig(locate("arctika.shell.properties"));
         config.setWarcIndexerConfigFile(locate("warc_test_config.conf"));
-        config.setWorker_shell_command(locate("ssh_test_script.sh"));
+        config.setWorker_shell_command(config.getWorker_shell_command().replace(
+                "ssh_test_script.sh", locate("ssh_test_script.sh"))); // Expand location
         List<String> arcs = new ArrayList<String>(ARCS);
         for (int i = 0 ; i < ARCS ; i++) {
             arcs.add("dummy_" + i);

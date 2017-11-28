@@ -53,12 +53,8 @@ public class IndexWorkerShellCall extends IndexWorker {
             throw new IllegalArgumentException("Warc indexer config file not found:'"+configFile+"'");
         }
 
-        List<String> commands = new ArrayList<String>(2+arcs.size());
-        commands.add(workerShellCommand);
-        commands.add(solrUrl);
-        for (ARCStatus arc: arcs) {
-            commands.add(arc.getArc());
-        }
+        List<String> commands = getCallArguments(arcs);
+        log.debug("Calling " + join(commands, "  "));
         ProcessRunner runner = new ProcessRunner(commands);
 
         runner.setTimeout(WORKER_TIMEOUT); // 1 hour
@@ -95,5 +91,33 @@ public class IndexWorkerShellCall extends IndexWorker {
             setStatus(RUN_STATUS.RUN_ERROR);
         }
     }
+
+    // $SOLR: Solr URL
+    // $WARCS: All WARC files in the batch, each as a new argument
+    // $MAX_MEM_MB: The value of actika.worker.maxMemInMb
+    // $TMP_DIR: The value of arctika.worker.tmp.dir
+    // $INDEX_JAR: The value of arctika.worker.index.jar.file
+    // $INDEXER_CONFIG: The property file specified with -DArctikaPropertyFile
+    private List<String> getCallArguments(Set<ARCStatus> arcs) {
+        List<String> arguments = new ArrayList<String>();
+        String[] templates = workerShellCommand.split(" ");
+        for (String template: templates) {
+            if ("$WARCS".equals(template)) {
+                for (ARCStatus arc: arcs) {
+                    arguments.add(arc.getArc());
+                }
+            } else {
+                arguments.add(template.
+                        replace("$SOLR", solrUrl).
+                        replace("$MAX_MEM_MB", Integer.toString(maxMemInMb)).
+                        replace("$TMP_DIR", tmpDir).
+                        replace("$INDEX_JAR", workerJarFile).
+                        replace("$INDEXER_CONFIG", configFile)
+                );
+            }
+        }
+        return arguments;
+    }
+
     public static final Pattern STATUS_CODE = Pattern.compile("^([0-9]+) .*");
 }
