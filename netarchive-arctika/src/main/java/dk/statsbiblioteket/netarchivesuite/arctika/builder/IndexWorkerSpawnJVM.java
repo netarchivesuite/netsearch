@@ -51,7 +51,7 @@ public class IndexWorkerSpawnJVM extends IndexWorker {
                                                  configFile,
                                                  "-s",
                                                  solrUrl,
-                                                 join(arcs));
+                                                 join(arcs, " "));
 
         runner.setTimeout(WORKER_TIMEOUT); // 1 hour
         runner.run(); //this will wait until native call returned
