@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class IndexWorker implements Callable<IndexWorker> {
-    private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(IndexWorker.class);
     // TODO: Make this a property
     public static final long WORKER_TIMEOUT = 60 * 60 * 1000L;
     
