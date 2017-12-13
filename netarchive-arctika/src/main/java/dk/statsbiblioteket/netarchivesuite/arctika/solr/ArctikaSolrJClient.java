@@ -25,12 +25,15 @@ public class ArctikaSolrJClient{
 	  String solrUrlWithCore = null;
 	  try{
           removeHttpLogSpam();
-
+          int timeOut4Hours = 24*60*60*1000; //24 hours.. Only temporary solution. Optimize seems to be blocking until it is completed in Solr 7.
+          
           String solrCollection= IndexBuilder.getSolrUrlWithCollection(solrUrl, coreName);          
           
-          solrCoreAdminServer= new HttpSolrClient.Builder(solrUrl).build(); //Must be without collectionname can not use solrServer                  
-          solrUrlWithCollection =  new HttpSolrClient.Builder(solrCollection).build();                        
-        }
+          //long timeout, since coreadmin is called when optimizing
+          solrCoreAdminServer= new HttpSolrClient.Builder(solrUrl).withSocketTimeout(timeOut4Hours).build(); //Must be without collectionname can not use solrServer                 
+          solrUrlWithCollection =  new HttpSolrClient.Builder(solrCollection).withSocketTimeout(timeOut4Hours).build();          
+  
+	  }
         catch(Exception e){
             System.out.println("Unable to connect to netarchive indexer Solr server:"+solrUrlWithCore);
             e.printStackTrace();
@@ -39,8 +42,8 @@ public class ArctikaSolrJClient{
 	}
 	
 	public void optimize() throws IOException, SolrServerException {
-	  solrUrlWithCollection.commit(true,true); //flush before optimizing
-	  solrUrlWithCollection.optimize();	       	    
+	  solrUrlWithCollection.commit(false,true); //flush before optimizing. Do not wait flush
+	  solrUrlWithCollection.optimize(false,false);	       	    
 	}
 
 	//http://127.0.0.1:8983/solr/admin/cores?action=STATUS
