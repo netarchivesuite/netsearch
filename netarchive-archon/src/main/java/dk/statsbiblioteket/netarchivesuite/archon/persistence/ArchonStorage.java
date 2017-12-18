@@ -66,7 +66,7 @@ public class ArchonStorage {
                     +" ORDER BY "
                     +" "+SHARD_ID_COLUMN +" DESC,"
                     +" "+PRIORITY_COLUMN +" DESC"                                        
-                    +" LIMIT 100";
+                    +" LIMIT 1000";
 
 
     private final static String selectNewest1000Query =
