@@ -43,6 +43,9 @@ public class IndexBuilder {
     private final Profiler jobProfiler = new Profiler(9999, 10); // 9999 as expected ARCS is unknown (unusable ETA)
     private int failedWorkers = 0;
 
+    public enum STATE {starting, indexing, checking, optimizing, finished}
+    private STATE builderState = STATE.starting;
+
     public static void main (String[] args) throws Exception {
         String propertyFile = System.getProperty("ArctikaPropertyFile");
         if (propertyFile == null || "".equals(propertyFile)){
@@ -86,6 +89,7 @@ public class IndexBuilder {
     public void buildIndex() throws Exception{
         SolrCoreStatus status = solrClient.getStatus();
         log.info("Starting building index for shardID "+config.getShardId() + " with status " + status);
+        builderState = STATE.indexing;
 
         //Clear shardId for old jobs that hang(status RUNNING)
         archonClient.clearIndexing(""+config.getShardId());
@@ -93,6 +97,7 @@ public class IndexBuilder {
         //Check index has target size before we start indexing further
         if (isIndexingFinished()) {
             log.info("Exiting without any updates as index size has been reached for shardID " + config.getShardId());
+            builderState = STATE.finished;
             return;
         }
 
@@ -115,6 +120,7 @@ public class IndexBuilder {
             }
         } while (!isIndexingFinished());
 
+        builderState = STATE.optimizing;
         // TODO: Avoid double timeout from isIndexingFinished in case of problems
         jobController.popAll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS);
         int active = jobController.getActiveCount();
@@ -122,7 +128,7 @@ public class IndexBuilder {
             log.warn("There are still " + active + " workers after popAll with timeout " + IndexWorker.WORKER_TIMEOUT
                      + " ms. The shutdown will leave some ARCs in Archon marked as currently being indexed");
         }
-
+        builderState = STATE.finished;
         log.info(getStatus());
     }
     private String toFinalTime(Profiler profiler, boolean useCurrentSpeed) {
@@ -141,6 +147,7 @@ public class IndexBuilder {
     }
 
     private boolean isIndexingFinished() throws ExecutionException, InterruptedException, IOException, SolrServerException {
+        builderState = STATE.checking;
         int emptyRun = 0;
         if (config.getMax_worker_tries() == 0) {
             log.warn("isIndexingFinished: config.getMax_worker_tries() == 0 with " + jobController.getActiveCount()
@@ -155,9 +162,11 @@ public class IndexBuilder {
         if (active > 0) {
             log.error("There are still " + active + " workers after popAll with timeout " + IndexWorker.WORKER_TIMEOUT
                       + " ms. Optimization will not be run and index building will exit");
+            builderState = STATE.finished;
             return true;
         }
         long start = System.currentTimeMillis();
+        builderState = STATE.optimizing;
         if (solrClient.getStatus().isOptimized()) {
             log.debug("isOptimizedLimitReached: Index already optimized");
         } else {
@@ -194,6 +203,7 @@ public class IndexBuilder {
         if (indexSizeBytes >config.getIndex_max_sizeInBytes()){
             String message = "Total screw up. Index too large. Max allowed bytes="+config.getIndex_max_sizeInBytes()
                              +" but index was: "+indexSizeBytes;
+            builderState = STATE.finished;
             log.error(message);
             log.info(getStatus());
             System.err.println(message);
@@ -201,6 +211,9 @@ public class IndexBuilder {
         }
 
         //Big enough?
+        boolean isFinished = solrClient.getStatus().isOptimized() &&
+                             indexSizeBytes > config.getIndex_target_limit()*config.getIndex_max_sizeInBytes();
+        builderState = isFinished ? STATE.finished : STATE.indexing;
         return (solrClient.getStatus().isOptimized() && indexSizeBytes > config.getIndex_target_limit()*config.getIndex_max_sizeInBytes());
     }
 
@@ -288,7 +301,7 @@ public class IndexBuilder {
                 log.info("(W)ARC finished with success: " + arcStatus.getArc() + ". " + progress);
                 archonClient.setARCState(arcStatus.getArc(), ArchonConnector.ARC_STATE.COMPLETED);
             } else if (arcStatus.getStatus() == ArchonConnector.ARC_STATE.REJECTED) {
-                if (worker.getNumberOfErrors() <= config.getMax_worker_tries()) {
+                if (worker.getNumberOfErrors() <= config.getMax_worker_tries() || canReissueFailedJobs()) {
                     log.info("(W)ARC failed. Will re-try. Error count: " + worker.getNumberOfErrors() + " arcfile: "
                              + arcStatus + " " + progress);
                     arcRetry.add(arcStatus);
@@ -306,6 +319,13 @@ public class IndexBuilder {
             worker.setStatuses(arcStatuses);
             jobController.submit(worker);
         }
+    }
+
+    /**
+     * @return true if failes jobs can be re-issued. This will be false during optimization and similar operations.
+     */
+    private boolean canReissueFailedJobs() {
+        return builderState == STATE.indexing;
     }
 
     public String getStatus() throws IOException, SolrServerException {
