@@ -1,8 +1,8 @@
 package dk.statsbiblioteket.netarchivesuite.arctika.solr;
 
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.request.CoreAdminRequest;
 import org.apache.solr.client.solrj.response.CoreAdminResponse;
 import org.apache.solr.common.params.CoreAdminParams.CoreAdminAction;
@@ -11,42 +11,53 @@ import org.apache.solr.common.util.NamedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.statsbiblioteket.netarchivesuite.arctika.builder.IndexBuilder;
+
 import java.io.IOException;
 
 public class ArctikaSolrJClient{
     private static final Logger log = LoggerFactory.getLogger(ArctikaSolrJClient.class);
-    private static HttpSolrServer solrServer;	
+    private static SolrClient solrUrlWithCollection;	
+    private static SolrClient solrCoreAdminServer;
 	
-	public ArctikaSolrJClient(String solr_url){
-        try{
-            removeHttpLogSpam();
-            
-            solrServer = new HttpSolrServer(solr_url);
-            solrServer.setRequestWriter(new BinaryRequestWriter()); //To avoid http error code 413/414, due to monster URI. (and it is faster)               
-        }
+    
+	public ArctikaSolrJClient(String solrUrl, String coreName){
+	  String solrUrlWithCore = null;
+	  try{
+          removeHttpLogSpam();
+          int timeOut4Hours = 24*60*60*1000; //24 hours.. Only temporary solution. Optimize seems to be blocking until it is completed in Solr 7.
+          
+          String solrCollection= IndexBuilder.getSolrUrlWithCollection(solrUrl, coreName);          
+          
+          //long timeout, since coreadmin is called when optimizing
+          solrCoreAdminServer= new HttpSolrClient.Builder(solrUrl).withSocketTimeout(timeOut4Hours).build(); //Must be without collectionname can not use solrServer                 
+          solrUrlWithCollection =  new HttpSolrClient.Builder(solrCollection).withSocketTimeout(timeOut4Hours).build();          
+  
+	  }
         catch(Exception e){
-            System.out.println("Unable to connect to netarchive indexer Solr server:"+solr_url);
+            System.out.println("Unable to connect to netarchive indexer Solr server:"+solrUrlWithCore);
             e.printStackTrace();
-            log.error("Unable to connect to netarchive indexer Solr server:"+solr_url,e);       
+            log.error("Unable to connect to netarchive indexer Solr server:"+solrUrlWithCore,e);       
         }  	    
 	}
 	
 	public void optimize() throws IOException, SolrServerException {
-	   solrServer.commit(true,true); //flush before optimizing
-	   solrServer.optimize();	       	    
+	  solrUrlWithCollection.commit(false,true); //flush before optimizing. Do not wait flush
+	  solrUrlWithCollection.optimize(false,false);	       	    
 	}
-		
+
 	//http://127.0.0.1:8983/solr/admin/cores?action=STATUS
 	@SuppressWarnings("unchecked")
 	public SolrCoreStatus getStatus() throws IOException, SolrServerException {
-	    CoreAdminRequest request = new CoreAdminRequest();
+       	  
+	  CoreAdminRequest request = new CoreAdminRequest();
 	    request.setAction(CoreAdminAction.STATUS);
-	    CoreAdminResponse cores = request.process(solrServer);
+	    CoreAdminResponse cores = request.process(solrCoreAdminServer);
 
 	    SolrCoreStatus status = new SolrCoreStatus();
 	    
 	    //This is the solr way to represent XML/JSON. You must know attributes names
-	    String coreName = cores.getCoreStatus().getName(0); // Exactly 1 core define for index building	    
+	    String coreName = cores.getCoreStatus().getName(0); // Exactly 1 core define for index building. TODO match core	    
 	    NamedList<Object> namedList = cores.getCoreStatus().get(coreName);	    	    
 	    NamedList<Object> indexObj = ( NamedList<Object> ) namedList.get("index"); //Unchecked cast
 	    
@@ -66,8 +77,7 @@ public class ArctikaSolrJClient{
         System.setProperty("org.apache.commons.logging.simplelog.log.httpclient.wire", "ERROR"); 
         System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http", "ERROR"); 
         System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http.headers", "ERROR");        
-        java.util.logging.Logger.getLogger("org.apache.http.wire").setLevel(java.util.logging.Level.OFF); 
-        java.util.logging.Logger.getLogger("org.apache.http.headers").setLevel(java.util.logging.Level.OFF);
+        java.util.logging.Logger.getLogger("org.apache.http").setLevel(java.util.logging.Level.OFF);
 	}
 	
 	

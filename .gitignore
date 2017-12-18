@@ -1,3 +1,7 @@
 target/
 .idea/
 *.iml
+/.settings/
+/.project
+/ssh_session
+/teg_pass

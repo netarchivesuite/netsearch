@@ -14,9 +14,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings("WeakerAccess")
 public abstract class IndexWorker implements Callable<IndexWorker> {
-    private static final Logger log = LoggerFactory.getLogger(IndexBuilderConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(IndexWorker.class);
     // TODO: Make this a property
-    public static final long WORKER_TIMEOUT = 60 * 60 * 1000L;
+    public static final long WORKER_TIMEOUT = 4*60 * 60 * 1000L; //4 hours
     
     // A bit ugly with globals...
     public static final AtomicInteger workerCount = new AtomicInteger(0);
