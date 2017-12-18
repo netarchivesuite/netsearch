@@ -39,7 +39,7 @@ public class IndexWorkerShellCallTest {
     public void testSuccess() throws Exception {
         final int ARCS = 10;
 
-        IndexBuilderConfig config = new IndexBuilderConfig(locate("arctika.shell.properties"));
+        IndexBuilderConfig config = new IndexBuilderConfig(locate("properties/arctika.shell.properties"));
         config.setWarcIndexerConfigFile(locate("warc_test_config.conf"));
         config.setWorker_shell_command(config.getWorker_shell_command().replace(
                 "ssh_test_script.sh", locate("ssh_test_script.sh"))); // Expand location
