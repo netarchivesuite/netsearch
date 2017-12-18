@@ -27,7 +27,7 @@ public class IndexBuilderConfig {
     private long index_max_size = -1; //This will be combined with the unit below
     private long index_max_size_unit = 0; //will point to gB or mB
     
-    private double optimize_limit = 0.96d; // 96% default value
+    private double optimize_limit = 0.97d; // 96% default value
     private double index_target_limit = 0.95d; // 95% default value
     private String archon_url;
     private String warcIndexerConfigFile;
