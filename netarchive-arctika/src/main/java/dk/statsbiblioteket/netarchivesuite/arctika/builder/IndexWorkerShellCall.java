@@ -94,7 +94,7 @@ public class IndexWorkerShellCall extends IndexWorker {
 
     // $SOLR: Solr URL
     // $WARCS: All WARC files in the batch, each as a new argument
-    // $MAX_MEM_MB: The value of actika.worker.maxMemInMb
+    // $MAX_MEM_MB: The value of arctika.worker.maxMemInMb
     // $TMP_DIR: The value of arctika.worker.tmp.dir
     // $INDEX_JAR: The value of arctika.worker.index.jar.file
     // $INDEXER_CONFIG: The property file specified with -DArctikaPropertyFile

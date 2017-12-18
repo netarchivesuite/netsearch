@@ -3,7 +3,7 @@ Arctika install guide:
 Copy the entire folder (the index build-server is an obvious choice).
 Arctika.properties:
 Change the port/server names to match your setup.
-The property 'actika.max_concurrent_workers' should match the number of CPUs in the server.
+The property 'arctika.max_concurrent_workers' should match the number of CPUs in the server.
 The property 'arctika.shardId' must be manually increased when an index has been completed. Also remember
 to delete the index before starting a index build with a new shardid.
 

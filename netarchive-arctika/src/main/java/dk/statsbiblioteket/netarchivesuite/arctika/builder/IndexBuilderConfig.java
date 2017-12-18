@@ -183,8 +183,8 @@ public class IndexBuilderConfig {
         serviceProperties.load(isr);
         isr.close();
 
-        worker_maxMemInMb = Integer.parseInt(serviceProperties.getProperty("actika.worker.maxMemInMb"));
-        max_concurrent_workers = Integer.parseInt(serviceProperties.getProperty("actika.max_concurrent_workers"));
+        worker_maxMemInMb = Integer.parseInt(serviceProperties.getProperty("arctika.worker.maxMemInMb"));
+        max_concurrent_workers = Integer.parseInt(serviceProperties.getProperty("arctika.max_concurrent_workers"));
         batch_size = Integer.parseInt(serviceProperties.getProperty("arctika.batch_size"));
 
         String index_max_size_str = serviceProperties.getProperty("arctika.index_max_size");
@@ -204,7 +204,7 @@ public class IndexBuilderConfig {
         
         optimize_limit = Double.parseDouble(serviceProperties.getProperty("arctika.optimize_limit"));
         index_target_limit = Double.parseDouble(serviceProperties.getProperty("arctika.index_target_limit"));
-        max_worker_tries = Integer.parseInt(serviceProperties.getProperty("actika.worker.tries"));
+        max_worker_tries = Integer.parseInt(serviceProperties.getProperty("arctika.worker.tries"));
         shardId = Integer.parseInt(serviceProperties.getProperty("arctika.shardId"));
         archon_url = serviceProperties.getProperty("arctika.archon_url");
         solr_url = serviceProperties.getProperty("arctika.solr_url");
@@ -218,7 +218,7 @@ public class IndexBuilderConfig {
         log.info("Property: worker_jar_file = " + worker_jar_file);
         log.info("Property: max_worker_tries = " +max_worker_tries);
         log.info("Property: arctika.worker.tmp.dir = " +  worker_temp_dir);
-        log.info("Property: actika.worker.maxMemInMb = " + worker_maxMemInMb);
+        log.info("Property: arctika.worker.maxMemInMb = " + worker_maxMemInMb);
         log.info("Property: max_concurrent_workers = " + max_concurrent_workers);
         log.info("Property: index_max_size = " + index_max_size+unit);
         log.info("Property: optimize_limit= = " + optimize_limit);
