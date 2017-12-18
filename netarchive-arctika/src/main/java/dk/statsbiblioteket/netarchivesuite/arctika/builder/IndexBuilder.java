@@ -96,7 +96,7 @@ public class IndexBuilder {
 
         //Check index has target size before we start indexing further
         if (isIndexingFinished()) {
-            log.info("Exiting without any updates as index size has been reached for shardID " + config.getShardId());
+            log.info("Stopping, as index size has been reached for shardID " + config.getShardId());
             builderState = STATE.finished;
             return;
         }
