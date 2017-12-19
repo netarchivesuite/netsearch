@@ -53,6 +53,8 @@ public class IndexWorkerShellCallTest {
                          ArchonConnector.ARC_STATE.NEW, arcStatus.getStatus());
         }
         worker.call();
+        assertEquals("The overall status for the IndexWorker should be correct",
+                     IndexWorker.RUN_STATUS.COMPLETED, worker.getStatus());
         for (IndexWorker.ARCStatus arcStatus: worker.getArcStatuses()) {
             assertEquals("The state for arc '" + arcStatus.getArc() + "' should be correct",
                          ArchonConnector.ARC_STATE.COMPLETED, arcStatus.getStatus());

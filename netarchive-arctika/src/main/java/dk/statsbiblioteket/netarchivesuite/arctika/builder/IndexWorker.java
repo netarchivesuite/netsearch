@@ -106,7 +106,7 @@ public abstract class IndexWorker implements Callable<IndexWorker> {
         try{
             processARCs(arcStatuses);
         } catch(Exception e){
-            log.info("Job Exception processing " + arcStatuses.size() + " (W)ARCs: "+ join(arcStatuses));
+            log.warn("Job Exception processing " + arcStatuses.size() + " (W)ARCs: "+ join(arcStatuses));
             for (ARCStatus arcStatus: arcStatuses) {
                 arcStatus.setStatus(ArchonConnector.ARC_STATE.REJECTED);
             }

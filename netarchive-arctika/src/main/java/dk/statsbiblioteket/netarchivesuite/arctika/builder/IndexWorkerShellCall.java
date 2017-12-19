@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -39,9 +40,11 @@ public class IndexWorkerShellCall extends IndexWorker {
 
     private final String workerShellCommand;
 
-    public IndexWorkerShellCall(Collection<String> arcFiles, String solrUrl, IndexBuilderConfig config) {
+    public IndexWorkerShellCall(Collection<String> arcFiles, String solrUrl, IndexBuilderConfig config)
+            throws FileNotFoundException {
         super(arcFiles, solrUrl, config);
         workerShellCommand = config.getWorker_shell_command();
+        checkExistenceOfScript();
     }
     
     @Override
@@ -98,7 +101,7 @@ public class IndexWorkerShellCall extends IndexWorker {
     // $TMP_DIR: The value of arctika.worker.tmp.dir
     // $INDEX_JAR: The value of arctika.worker.index.jar.file
     // $INDEXER_CONFIG: The property file specified with -DArctikaPropertyFile
-    private List<String> getCallArguments(Set<ARCStatus> arcs) {
+    private List<String> getCallArguments(Set<ARCStatus> arcs) throws FileNotFoundException {
         List<String> arguments = new ArrayList<String>();
         String[] templates = workerShellCommand.split(" ");
         for (String template: templates) {
@@ -117,6 +120,14 @@ public class IndexWorkerShellCall extends IndexWorker {
             }
         }
         return arguments;
+    }
+
+    private void checkExistenceOfScript() throws FileNotFoundException {
+        final String script = workerShellCommand.split(" ")[0];
+        if (Thread.currentThread().getContextClassLoader().getResource(script) == null &&
+                !new File(script).exists()) {
+            throw new FileNotFoundException(String.format("Unable to locate script '%s'", script));
+        }
     }
 
     public static final Pattern STATUS_CODE = Pattern.compile("^([0-9]+) .*");

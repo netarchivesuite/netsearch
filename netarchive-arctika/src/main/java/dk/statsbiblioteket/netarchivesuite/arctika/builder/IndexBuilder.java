@@ -1,6 +1,7 @@
 package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -86,7 +87,7 @@ public class IndexBuilder {
 
 
     @SuppressWarnings("StatementWithEmptyBody")
-    public void buildIndex() throws Exception{
+    public void buildIndex() throws Exception {
         SolrCoreStatus status = solrClient.getStatus();
         log.info("Starting building index for shardID "+config.getShardId() + " with status " + status);
         builderState = STATE.indexing;
@@ -217,7 +218,7 @@ public class IndexBuilder {
         return (solrClient.getStatus().isOptimized() && indexSizeBytes > config.getIndex_target_limit()*config.getIndex_max_sizeInBytes());
     }
 
-    private boolean startNewIndexWorker() {
+    private boolean startNewIndexWorker() throws FileNotFoundException {
         List<String> arcs = new ArrayList<String>(config.getBatch_size());
         String nextARC;
         while (arcs.size() < config.getBatch_size() &&
@@ -249,7 +250,8 @@ public class IndexBuilder {
         return true;
     }
 
-    private Callable<IndexWorker> createWorker(List<String> arcs, String solrUrl, IndexBuilderConfig config) {
+    private Callable<IndexWorker> createWorker(List<String> arcs, String solrUrl, IndexBuilderConfig config)
+            throws FileNotFoundException {
         switch (config.getWorker_type()) {
             case jvm:
                 return new IndexWorkerSpawnJVM(arcs, solrUrl, config);
