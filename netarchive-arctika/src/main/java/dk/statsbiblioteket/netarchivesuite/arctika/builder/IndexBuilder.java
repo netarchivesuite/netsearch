@@ -297,7 +297,7 @@ public class IndexBuilder {
                 log.info("(W)ARC finished with success: " + arcStatus.getArc() + ". " + progress);
                 archonClient.setARCState(arcStatus.getArc(), ArchonConnector.ARC_STATE.COMPLETED);
             } else if (arcStatus.getStatus() == ArchonConnector.ARC_STATE.REJECTED) {
-                if (worker.getNumberOfErrors() <= config.getMax_worker_tries() || canReissueFailedJobs()) {
+                if (worker.getNumberOfErrors() <= config.getMax_worker_tries() && canReissueFailedJobs()) {
                     log.info("(W)ARC failed. Will re-try. Error count: " + worker.getNumberOfErrors() + " arcfile: "
                              + arcStatus + " " + progress);
                     arcRetry.add(arcStatus);
