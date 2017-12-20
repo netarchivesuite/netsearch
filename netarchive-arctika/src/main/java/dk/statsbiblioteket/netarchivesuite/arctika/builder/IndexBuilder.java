@@ -30,7 +30,6 @@ public class IndexBuilder {
      */
     private static final long WAIT_OPTIMIZE = 60 * 1000L;
 
-
     private final JobController<IndexWorker> jobController;
     private final IndexBuilderConfig config;
     private final ArctikaSolrJClient solrClient;
@@ -105,10 +104,10 @@ public class IndexBuilder {
         out: do {
             while (!isOptimizeLimitReached()) { // Contract: #activeWorkers < max
                 // Start up new workers until pool is full or there are no more ARCs
-                int newJobs = 0;
-                while (jobController.getActiveCount() < config.getMax_concurrent_workers() && newJobs++ < 25) {
+                while (jobController.getActiveCount() < config.getMax_concurrent_workers()) {
                     if (!startNewIndexWorker()) {
-                        log.info("Could not start new worker (probably due to no more un-indexed ARCs or an ARC-file does not exist");
+                        log.info("buildIndex: Could not start new worker (probably due to no more un-indexed ARCs or " +
+                                 "an ARC-file does not exist");
                         break out;
                     }
                 }
