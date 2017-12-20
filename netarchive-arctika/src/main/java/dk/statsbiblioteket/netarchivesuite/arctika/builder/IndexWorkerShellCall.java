@@ -15,6 +15,7 @@
 package dk.statsbiblioteket.netarchivesuite.arctika.builder;
 
 import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
+import dk.statsbiblioteket.util.Strings;
 import dk.statsbiblioteket.util.console.ProcessRunner;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -57,24 +58,28 @@ public class IndexWorkerShellCall extends IndexWorker {
         }
 
         List<String> commands = getCallArguments(arcs);
-        log.debug("Calling " + join(commands, "  "));
+        log.debug("processARCs: Calling " + join(commands, "  "));
         ProcessRunner runner = new ProcessRunner(commands);
 
-        runner.setTimeout(WORKER_TIMEOUT); // 1 hour
-        runner.run(); //this will wait until native call returned
+        try {
+            runner.setTimeout(WORKER_TIMEOUT); // 1 hour
+            runner.run(); //this will wait until native call returned
+        } catch (Exception e) {
+            String message = "processARCs: ProcessRunner with arguments " + Strings.join(commands) + " failed";
+            log.warn(message, e);
+            throw new RuntimeException(message, e);
+        }
         int returnCode = runner.getReturnCode();
 
-        
+        log.debug("processARCs: Shell call finished: " + join(commands, "  "));
         String code = runner.getProcessOutputAsString();
-        log.info("response from KAC:");
-        log.info("-----------------");
-        log.info(code);
-        log.info("-----------------");
-        
+        log.info("processARCs: Response from shell call:\n-----------------\n" + code + "-----------------");
+
         if (returnCode == 0){
             String[] result = code.split("\n");
             for (ARCStatus arcStatus: arcs) {
                 arcStatus.setStatus(ArchonConnector.ARC_STATE.REJECTED); // Default
+                boolean found = false;
                 for (String line: result) {
                     if (line.contains(arcStatus.getArc())) {
                         Matcher matcher = STATUS_CODE.matcher(line);
@@ -83,11 +88,15 @@ public class IndexWorkerShellCall extends IndexWorker {
                             log.info("Got return code " + rc + " for " + arcStatus.getArc());
                             arcStatus.setStatus(rc == 0 ? ArchonConnector.ARC_STATE.COMPLETED :
                                                         ArchonConnector.ARC_STATE.REJECTED);
+                            found = true;
                             break;
                         } else {
                             log.debug("Encountered line with warc, but without leading return code: " + line);
                         }
                     }
+                }
+                if (!found) {
+                    log.warn("Unable to locate a return code for WARC " + arcStatus.getArc());
                 }
             }
             setStatus(RUN_STATUS.COMPLETED);
