@@ -167,7 +167,8 @@ public class IndexBuilder {
                           emptyRun, config.getMax_worker_tries(), jobController.getActiveCount()));
                 poppedJobs.addAll(jobController.popAll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS));
             }
-            log.info("isIndexingFinished: Popped " + poppedJobs + " workers out of expected " + active + " workers");
+            log.info("isIndexingFinished: Popped " + poppedJobs.size() + " workers out of expected " + active +
+                     " workers");
         } else {
             log.info("isIndexingFinished: No active workers");
         }
