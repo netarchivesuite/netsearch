@@ -242,6 +242,15 @@ public class IndexBuilder {
     }
 
     private boolean startNewIndexWorker() throws FileNotFoundException {
+        // Sanity check
+        if (!canStartJobs()) {
+            log.error(String.format(
+                    "startNewIndexWorker: Logic error: Cannot start new workers as state is %s, while it should be %s",
+                    builderState, STATE.indexing));
+            return false;
+        }
+
+        // Request jobs from Archon
         List<String> arcs = new ArrayList<String>(config.getBatch_size());
         String nextARC;
         while (arcs.size() < config.getBatch_size() &&
@@ -250,8 +259,8 @@ public class IndexBuilder {
             //Check if file exist, or exit! Something is serious wrong.
             File f = new File(nextARC);
             if (!f.exists()){
-                String message = "Arc-file does not exist. Indexing will exit when workers are finished. " +
-                                 "Missing file: " + nextARC;
+                String message = "startNewIndexWorker: Arc-file does not exist. Indexing will exit when workers are" +
+                                 " finished. Missing file: " + nextARC;
                 log.error(message);
                 System.out.println(message);
                 return false;
@@ -259,17 +268,20 @@ public class IndexBuilder {
 
             arcs.add(nextARC);
         }
+
+        // Exit is no new jobs were available
         if (arcs.size() == 0){
-            String message = "No more arc-files to index. Stopping index process. " +
+            String message = "startNewIndexWorker: No more arc-files to index. Stopping index process. " +
                              "It can be continued when there are new arc-files";
             log.warn(message);
             System.out.println(message);
             return false;
         }
 
+        // Start the worker
         String solrUrl = getSolrUrlWithCollection(config.getSolr_url(),config.getCoreName());
         jobController.submit(createWorker(arcs, solrUrl, config));
-
+        log.debug("startNewIndexWorker: Started worker with " + arcs.size() + " ARCs");
         return true;
     }
 
@@ -320,7 +332,7 @@ public class IndexBuilder {
                 log.info("(W)ARC finished with success: " + arcStatus.getArc() + ". " + progress);
                 archonClient.setARCState(arcStatus.getArc(), ArchonConnector.ARC_STATE.COMPLETED);
             } else if (arcStatus.getStatus() == ArchonConnector.ARC_STATE.REJECTED) {
-                if (worker.getNumberOfErrors() <= config.getMax_worker_tries() && canReissueFailedJobs()) {
+                if (worker.getNumberOfErrors() <= config.getMax_worker_tries() && canStartJobs()) {
                     log.info("(W)ARC failed. Will re-try. Error count: " + worker.getNumberOfErrors() + " arcfile: "
                              + arcStatus + " " + progress);
                     arcRetry.add(arcStatus);
@@ -343,7 +355,7 @@ public class IndexBuilder {
     /**
      * @return true if failes jobs can be re-issued. This will be false during optimization and similar operations.
      */
-    private boolean canReissueFailedJobs() {
+    private boolean canStartJobs() {
         return builderState == STATE.indexing;
     }
 
