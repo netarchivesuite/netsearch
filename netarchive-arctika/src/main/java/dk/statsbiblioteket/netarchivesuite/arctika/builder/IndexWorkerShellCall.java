@@ -50,7 +50,7 @@ public class IndexWorkerShellCall extends IndexWorker {
     @Override
     protected void processARCs(Set<ARCStatus> arcs) throws Exception {
         //Example of final command (Belinda):
-        //java -Xmx256M -Djava.io.tmpdir=/home/summanet/arctika2/arctica_tmp -jar /home/summanet/arctika2/warc-indexer-2.0.2-SNAPSHOT-jar-with-dependencies.jar -c /home/summanet/arctika2/config.conf -s  "http://localhost:9731/solr" /netarkiv/0101/filedir/15626-38-20070418024637-00385-sb-prod-har-001.statsbiblioteket.dk.arc
+        //java -Xmx1024M -Djava.io.tmpdir=/home/summanet/arctika2/arctica_tmp -jar /home/summanet/arctika2/warc-indexer-3.0.-SNAPSHOT-jar-with-dependencies.jar -c /home/summanet/arctika2/config.conf -s  "http://localhost:9731/solr" /netarkiv/0101/filedir/15626-38-20070418024637-00385-sb-prod-har-001.statsbiblioteket.dk.arc
 
         if (!new File(configFile).exists()){
             throw new IllegalArgumentException("Warc indexer config file not found:'"+configFile+"'");
@@ -64,8 +64,15 @@ public class IndexWorkerShellCall extends IndexWorker {
         runner.run(); //this will wait until native call returned
         int returnCode = runner.getReturnCode();
 
+        
+        String code = runner.getProcessOutputAsString();
+        log.info("response from KAC:");
+        log.info("-----------------");
+        log.info(code);
+        log.info("-----------------");
+        
         if (returnCode == 0){
-            String[] result = runner.getProcessOutputAsString().split("\n");
+            String[] result = code.split("\n");
             for (ARCStatus arcStatus: arcs) {
                 arcStatus.setStatus(ArchonConnector.ARC_STATE.REJECTED); // Default
                 for (String line: result) {
@@ -130,5 +137,5 @@ public class IndexWorkerShellCall extends IndexWorker {
         }
     }
 
-    public static final Pattern STATUS_CODE = Pattern.compile("^([0-9]+) .*");
+    public static final Pattern STATUS_CODE = Pattern.compile("^([0-9]+)\\s.*");
 }
