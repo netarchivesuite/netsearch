@@ -43,7 +43,7 @@ public class IndexBuilder {
     private final Profiler jobProfiler = new Profiler(9999, 10); // 9999 as expected ARCS is unknown (unusable ETA)
     private int failedWorkers = 0;
 
-    public enum STATE {starting, indexing, checking, optimizing, finished}
+    public enum STATE {starting, indexing, checking, optimizing, finishing}
     private STATE builderState = STATE.starting;
 
     public static void main (String[] args) throws Exception {
@@ -97,7 +97,7 @@ public class IndexBuilder {
         //Check index has target size before we start indexing further
         if (isIndexingFinished()) {
             log.info("Exiting without any updates as index size has been reached for shardID " + config.getShardId());
-            builderState = STATE.finished;
+            builderState = STATE.finishing;
             return;
         }
 
@@ -120,7 +120,7 @@ public class IndexBuilder {
             }
         } while (!isIndexingFinished());
 
-        builderState = STATE.optimizing;
+        builderState = STATE.finishing;
         // TODO: Avoid double timeout from isIndexingFinished in case of problems
         jobController.popAll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS);
         int active = jobController.getActiveCount();
@@ -128,7 +128,6 @@ public class IndexBuilder {
             log.warn("There are still " + active + " workers after popAll with timeout " + IndexWorker.WORKER_TIMEOUT
                      + " ms. The shutdown will leave some ARCs in Archon marked as currently being indexed");
         }
-        builderState = STATE.finished;
         log.info(getStatus());
     }
     private String toFinalTime(Profiler profiler, boolean useCurrentSpeed) {
@@ -178,7 +177,7 @@ public class IndexBuilder {
         if (active > 0) {
             log.error("There are still " + active + " workers after popAll with timeout " + IndexWorker.WORKER_TIMEOUT
                       + " ms. Optimization will not be run and index building will exit");
-            builderState = STATE.finished;
+            builderState = STATE.finishing;
             return true;
         }
 
@@ -191,7 +190,7 @@ public class IndexBuilder {
             String message = String.format(
                     "isIndexingFinished: Total screw up. Index too large. Max allowed bytes=%d, but index was %d bytes",
                     config.getIndex_max_sizeInBytes(), indexSizeBytes);
-            builderState = STATE.finished;
+            builderState = STATE.finishing;
             log.error(message);
             log.info(getStatus());
             System.err.println(message);
@@ -201,7 +200,7 @@ public class IndexBuilder {
         //Big enough?
         boolean isFinished = solrClient.getStatus().isOptimized() &&
                              indexSizeBytes > config.getIndex_target_limit()*config.getIndex_max_sizeInBytes();
-        builderState = isFinished ? STATE.finished : STATE.indexing;
+        builderState = isFinished ? STATE.finishing : STATE.indexing;
         log.info("isIndexingFinished: Returning isFinished=" + isFinished);
         return isFinished;
     }
@@ -347,7 +346,7 @@ public class IndexBuilder {
         if (!arcRetry.isEmpty()) {
             worker.increaseErrorCount();
             worker.setStatus(IndexWorker.RUN_STATUS.NEW);
-            worker.setStatuses(arcStatuses);
+            worker.setStatuses(arcRetry);
             jobController.submit(worker);
         }
     }
