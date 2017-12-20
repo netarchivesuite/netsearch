@@ -6,7 +6,6 @@
 
 # Input: solr warc*
 
-
 echo "Solr: $1"
 shift # Ignore Solr
 for W in "$@"; do
