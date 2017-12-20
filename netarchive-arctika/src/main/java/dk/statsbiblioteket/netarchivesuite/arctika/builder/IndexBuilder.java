@@ -136,74 +136,62 @@ public class IndexBuilder {
         return profiler.getBeats() == 0 ? "N/A" : String.format("%.1f", 1 / profiler.getBps(useCurrentSpeed));
     }
 
-    private boolean isOptimizeLimitReached() throws ExecutionException, InterruptedException, IOException, SolrServerException {
+    private boolean isOptimizeLimitReached() throws IOException, SolrServerException {
         long indexSizeBytes = solrClient.getStatus().getIndexSizeBytes();
-        boolean limitReached= indexSizeBytes > config.getIndex_max_sizeInBytes()*config.getOptimize_limit();
+        long optimizeLimit = (long) (config.getIndex_max_sizeInBytes() * config.getOptimize_limit());
+        boolean limitReached = indexSizeBytes > optimizeLimit;
         
         if (limitReached){
-            log.info("index size over optimize limit, size: "+indexSizeBytes);
+            log.info(String.format(
+                    "isOptimizeLimitReached: Index size %d bytes exceeds optimize limit %d bytes",
+                    indexSizeBytes, optimizeLimit));
         }
         
         return limitReached;
     }
 
-    private boolean isIndexingFinished() throws ExecutionException, InterruptedException, IOException, SolrServerException {
+    private boolean isIndexingFinished() throws InterruptedException, IOException, SolrServerException {
         builderState = STATE.checking;
-        int emptyRun = 0;
         if (config.getMax_worker_tries() == 0) {
             log.warn("isIndexingFinished: config.getMax_worker_tries() == 0 with " + jobController.getActiveCount()
                      + " running jobs. Optimize will probably be skipped");
         }
-        while (emptyRun++ < config.getMax_worker_tries() && jobController.getActiveCount() > 0) {
-            log.debug("isIndexingFinished: Calling popAll on jobController with active jobs: "
-                      + jobController.getActiveCount());
-            jobController.popAll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS);
-        }
+
+        // Wait up to retries*timeout for the workers to finish
         int active = jobController.getActiveCount();
+        if (jobController.getActiveCount() > 0) {
+            log.info("isIndexingFinished: Waiting for " + active + " workers to finish");
+            int emptyRun = 0;
+            List<Future<IndexWorker>> poppedJobs = new ArrayList<Future<IndexWorker>>(jobController.getActiveCount());
+            while (emptyRun++ < config.getMax_worker_tries() && jobController.getActiveCount() > 0) {
+                log.debug(String.format(
+                        "isIndexingFinished: Calling popAll #%d/%d on jobController with %d active jobs",
+                          emptyRun, config.getMax_worker_tries(), jobController.getActiveCount()));
+                poppedJobs.addAll(jobController.popAll(IndexWorker.WORKER_TIMEOUT, TimeUnit.MILLISECONDS));
+            }
+            log.info("isIndexingFinished: Popped " + poppedJobs + " workers out of expected " + active + " workers");
+        } else {
+            log.info("isIndexingFinished: No active workers");
+        }
+
+        // Exit if there are still pending workers
+        active = jobController.getActiveCount();
         if (active > 0) {
             log.error("There are still " + active + " workers after popAll with timeout " + IndexWorker.WORKER_TIMEOUT
                       + " ms. Optimization will not be run and index building will exit");
             builderState = STATE.finished;
             return true;
         }
-        long start = System.currentTimeMillis();
-        builderState = STATE.optimizing;
-        if (solrClient.getStatus().isOptimized()) {
-            log.debug("isOptimizedLimitReached: Index already optimized");
-        } else {
-            //Do the optimize
-            log.info("Optimizing, size of index before optimize: " + solrClient.getStatus().getIndexSizeHumanReadable());
-            jobProfiler.pause();
-            optimizeProfiler.unpause();
-            //Sometimes solr will automerge segments. Optimize is very time expensive, so check if it is really necessary.
-            if (isOptimizeLimitReached()){               
-              solrClient.optimize();
-              long sleeptime = 500;
-              while (!solrClient.getStatus().isOptimized()){
-                  log.debug("Index not optimized yet. Waiting " + sleeptime + " ms before next check");
-                  Thread.sleep(sleeptime);
-                  sleeptime = sleeptime >= WAIT_OPTIMIZE / 2 ? WAIT_OPTIMIZE : sleeptime * 2;
-              }            
-            }
-            else{
-                log.info("Skipping optimize as index-size is currently below the optimize limit.");  
-            }            
-           
-            optimizeProfiler.beat();
-            optimizeProfiler.pause();
-            jobProfiler.unpause();
-            SolrCoreStatus status = solrClient.getStatus();
-            log.info(String.format("Optimize %d complete. Size of index after optimize: %s. Optimize took %d ms",
-                                   optimizeProfiler.getBeats(), status.getIndexSizeHumanReadable(),
-                                   System.currentTimeMillis()-start));
-        }
+
+        performOptimize();
         SolrCoreStatus status = solrClient.getStatus();
         long indexSizeBytes = status.getIndexSizeBytes();
 
         //Too big? Stop with error
-        if (indexSizeBytes >config.getIndex_max_sizeInBytes()){
-            String message = "Total screw up. Index too large. Max allowed bytes="+config.getIndex_max_sizeInBytes()
-                             +" but index was: "+indexSizeBytes;
+        if (indexSizeBytes > config.getIndex_max_sizeInBytes()){
+            String message = String.format(
+                    "isIndexingFinished: Total screw up. Index too large. Max allowed bytes=%d, but index was %d bytes",
+                    config.getIndex_max_sizeInBytes(), indexSizeBytes);
             builderState = STATE.finished;
             log.error(message);
             log.info(getStatus());
@@ -215,7 +203,43 @@ public class IndexBuilder {
         boolean isFinished = solrClient.getStatus().isOptimized() &&
                              indexSizeBytes > config.getIndex_target_limit()*config.getIndex_max_sizeInBytes();
         builderState = isFinished ? STATE.finished : STATE.indexing;
-        return (solrClient.getStatus().isOptimized() && indexSizeBytes > config.getIndex_target_limit()*config.getIndex_max_sizeInBytes());
+        log.info("isIndexingFinished: Returning isFinished=" + isFinished);
+        return isFinished;
+    }
+
+    private void performOptimize() throws IOException, SolrServerException, InterruptedException {
+        long start = System.currentTimeMillis();
+        builderState = STATE.optimizing;
+        if (solrClient.getStatus().isOptimized()) {
+            log.debug("performOptimize: Index already optimized");
+            return;
+        }
+
+        jobProfiler.pause();
+        //Sometimes solr will automerge segments. Optimize is very time expensive, so check if it is really necessary.
+        if (isOptimizeLimitReached()){
+            log.info("performOptimize: Issuing optimize call. Size of index before optimize: " +
+                     solrClient.getStatus().getIndexSizeHumanReadable());
+            optimizeProfiler.unpause();
+            solrClient.optimize();
+            long sleeptime = 500;
+            while (!solrClient.getStatus().isOptimized()){
+                log.debug("performOptimize: Index not optimized yet. Waiting " + sleeptime + " ms before next check");
+                Thread.sleep(sleeptime);
+                sleeptime = sleeptime >= WAIT_OPTIMIZE / 2 ? WAIT_OPTIMIZE : sleeptime * 2;
+            }
+            optimizeProfiler.beat();
+            optimizeProfiler.pause();
+        } else{
+            log.info("performOptimize: Skipping optimize as index-size is currently below the optimize limit");
+        }
+
+        jobProfiler.unpause();
+        SolrCoreStatus status = solrClient.getStatus();
+        log.info(String.format(
+                "performOptimize: Optimize %d complete. Size of index after optimize: %s. Optimize took %d ms",
+                optimizeProfiler.getBeats(), status.getIndexSizeHumanReadable(),
+                System.currentTimeMillis()-start));
     }
 
     private boolean startNewIndexWorker() throws FileNotFoundException {
