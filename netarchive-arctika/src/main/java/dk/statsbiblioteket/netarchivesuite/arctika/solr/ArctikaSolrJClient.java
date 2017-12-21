@@ -42,8 +42,24 @@ public class ArctikaSolrJClient{
 	}
 	
 	public void optimize() throws IOException, SolrServerException {
-	  solrUrlWithCollection.commit(false,true); //flush before optimizing. Do not wait flush
-	  solrUrlWithCollection.optimize(false,false);	       	    
+		final long startTime = System.nanoTime();
+		try {
+			log.info("Calling commit with SolrJ");
+			solrUrlWithCollection.commit(false, false); //flush before optimizing. Do not wait flush
+		} catch (Exception e) {
+			String message = "Exception while calling commit with waitFlush=false, waitSearcher=false";
+			log.error(message);
+			throw new RuntimeException(message, e);
+		}
+		try {
+			log.info("Calling optimize with SolrJ");
+			solrUrlWithCollection.optimize(false,false);
+		} catch (Exception e) {
+			String message = "Exception while calling optimize with waitFlush=false, waitSearcher=false";
+			log.error(message);
+			throw new RuntimeException(message, e);
+		}
+		log.info("Finished commit + optimize with SolrJ in " + (System.nanoTime()-startTime)/1000000 + "ms");
 	}
 
 	//http://127.0.0.1:8983/solr/admin/cores?action=STATUS
