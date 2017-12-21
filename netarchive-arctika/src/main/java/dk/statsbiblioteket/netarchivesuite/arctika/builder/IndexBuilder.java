@@ -209,6 +209,8 @@ public class IndexBuilder {
     private void performOptimize() throws IOException, SolrServerException, InterruptedException {
         long start = System.currentTimeMillis();
         builderState = STATE.optimizing;
+        log.debug("performOptimize: Flushing before checking for isOptimized");
+        solrClient.flush();
         if (solrClient.getStatus().isOptimized()) {
             log.debug("performOptimize: Index already optimized");
             return;

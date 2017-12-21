@@ -40,17 +40,24 @@ public class ArctikaSolrJClient{
             log.error("Unable to connect to netarchive indexer Solr server:"+solrUrlWithCore,e);       
         }  	    
 	}
-	
-	public void optimize() throws IOException, SolrServerException {
+
+	public void flush() {
 		final long startTime = System.nanoTime();
 		try {
 			log.info("Calling commit with SolrJ");
-			solrUrlWithCollection.commit(false, false); //flush before optimizing. Do not wait flush
+			solrUrlWithCollection.commit(true, false);
 		} catch (Exception e) {
-			String message = "Exception while calling commit with waitFlush=false, waitSearcher=false";
+			String message = "Exception while calling commit with waitFlush=true, waitSearcher=false";
 			log.error(message);
 			throw new RuntimeException(message, e);
 		}
+		log.info("Finished commit with SolrJ in " + (System.nanoTime()-startTime)/1000000/1000 + " seconds");
+
+	}
+
+	public void optimize() throws IOException, SolrServerException {
+		final long startTime = System.nanoTime();
+		flush();
 		try {
 			log.info("Calling optimize with SolrJ");
 			solrUrlWithCollection.optimize(false,false);
