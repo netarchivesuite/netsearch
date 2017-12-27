@@ -27,6 +27,54 @@ public class ArchonFacade {
 		}
 	}
 
+	
+    public static List<ArcVO> getAllRunningArcs() throws Exception{
+      ArchonStorage storage = new ArchonStorage();
+      try {
+        return storage.getAllRunningArcs();   
+      } catch (Exception e) {       
+          throw e;
+      } finally {
+          storage.close();
+      }
+    }
+      
+      
+		 public static List<ArcVO> getLatest1000Arcs() throws Exception{
+	      ArchonStorage storage = new ArchonStorage();
+	      try {
+	          return storage.getLatest1000Arcs();   
+	      } catch (Exception e) {       
+	          throw e;
+	      } finally {
+	          storage.close();
+	      }
+	    }
+	 
+	public static int getArcCount() throws Exception{
+	  ArchonStorage storage = new ArchonStorage();
+      try {
+          return storage.getArcCount();   
+      } catch (Exception e) {       
+          throw e;
+      } finally {
+          storage.close();
+      }
+	}
+	
+
+	public static int getLast1000() throws Exception{
+      ArchonStorage storage = new ArchonStorage();
+      try {
+          return storage.getArcCount();   
+      } catch (Exception e) {       
+          throw e;
+      } finally {
+          storage.close();
+      }
+    }
+
+	
 	public static ArcVO getArcById( String arcID) throws Exception{
 		ArchonStorage storage = new ArchonStorage();
 		try {

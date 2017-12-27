@@ -1,7 +1,7 @@
 All Running ARCs:
 
 <%     
-   List<ArcVO> allRunningArcs = storage.getAllRunningArcs();
+   List<ArcVO> allRunningArcs = ArchonFacade.getAllRunningArcs();
 %>
 
   <table class="table table-striped table-condensed table-hover">

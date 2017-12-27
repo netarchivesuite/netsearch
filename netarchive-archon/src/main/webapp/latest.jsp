@@ -1,6 +1,7 @@
+
 <%     
-   List<ArcVO> latest1000Arcs = storage.getLatest1000Arcs();
-   int totalNumberOfArcFiles = storage.getArcCount();
+   List<ArcVO> latest1000Arcs = ArchonFacade.getLatest1000Arcs();
+   int totalNumberOfArcFiles = ArchonFacade.getArcCount();
 %>
 
 <Strong>TotalNumber of Arc-files: <%=totalNumberOfArcFiles%>  </Strong>
