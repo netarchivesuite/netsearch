@@ -47,7 +47,7 @@ public class ArctikaSolrJClient{
 			log.info("Calling commit with SolrJ");
 			solrUrlWithCollection.commit(true, true);
 		} catch (Exception e) {
-			String message = "Exception while calling commit with waitFlush=true, waitSearcher=false";
+			String message = "Exception while calling commit with waitFlush=true, waitSearcher=true";
 			log.error(message);
 			throw new RuntimeException(message, e);
 		}
