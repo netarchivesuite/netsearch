@@ -64,6 +64,10 @@
 <%
     //Show correct tab (by number 0,1,2,3,..)
     String tab = (String) request.getAttribute("tab");
+     if (tab == null){
+         tab=request.getParameter("tab"); //url parameter
+     }
+
     if (tab != null){%>
 <script>
     $('#configTab li:eq(<%=tab%>) a').tab('show');

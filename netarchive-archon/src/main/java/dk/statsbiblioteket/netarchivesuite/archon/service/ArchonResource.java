@@ -6,12 +6,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.statsbiblioteket.netarchivesuite.archon.facade.ArchonFacade;
 import dk.statsbiblioteket.netarchivesuite.archon.persistence.ArcVO;
+import dk.statsbiblioteket.netarchivesuite.archon.service.exception.ArchonPausedServiceException;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.ArchonServiceException;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.InternalServiceException;
 import dk.statsbiblioteket.netarchivesuite.archon.service.exception.InvalidArgumentServiceException;
@@ -73,7 +75,16 @@ public class ArchonResource {
     @Path("nextARC/{shardID}")        
     @Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})   
     public String nextARC(@PathParam("shardID") String shardID) throws ArchonServiceException  {                                     
-        try {            
+        
+      //If archon is in mode Facade.isPaused do not return new jobs. Instead return HTTP 503 
+      //This situation will only happen if isPaused=true is set from the archon admin webpage.
+      
+      if (ArchonFacade.isPaused()){
+        log.info("Archon is paused, will not return nextArc until archon is active again.");                        
+          throw new ArchonPausedServiceException("Archon is in paused mode. Try later");
+      }
+      
+      try {            
         	return ArchonFacade.nextARC(shardID);        	
         } catch (Exception e) {
             throw handleServiceExceptions(e);
