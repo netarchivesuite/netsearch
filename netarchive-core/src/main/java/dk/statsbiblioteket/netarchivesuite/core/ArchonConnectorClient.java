@@ -18,7 +18,8 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 
 public class ArchonConnectorClient implements ArchonConnector{ 
     private static final Logger log = LoggerFactory.getLogger(ArchonConnectorClient.class);
-
+    public static final String WAIT_MODE="WAIT_MODE"; 
+    
     private final WebResource service;
 
     /**
@@ -56,7 +57,13 @@ public class ArchonConnectorClient implements ArchonConnector{
     public String nextARC(String shardID){
         log.debug("nextARC(shardID=" + shardID + ") called");
         ClientResponse response  = service.path("nextARC").path(shardID).get(ClientResponse.class);
-        handleHttpExceptions(response);
+        
+        int status = response.getStatus(); //Handle 503,  archon in wait mode.
+        if (status == 503){
+          return WAIT_MODE;
+        }                
+        handleHttpExceptions(response); 
+        
         String nextArc = response.getEntity(String.class);
         log.debug("nextARC(shardID=" + shardID + ") resolved '" + nextArc + "'");
         return nextArc;
