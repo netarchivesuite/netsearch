@@ -64,7 +64,7 @@ public class ArchonStorage {
                     +" WHERE "+ ARC_STATE_COLUMN+"  = 'NEW'"
                     +"  AND ("+SHARD_ID_COLUMN+" = ?  OR "+ SHARD_ID_COLUMN +" IS NULL )"
                     +" ORDER BY "
-                    +" "+SHARD_ID_COLUMN +" DESC,"
+                    +" "+SHARD_ID_COLUMN +" ASC," //Null will come last.
                     +" "+PRIORITY_COLUMN +" DESC"                                        
                     +" LIMIT 1000";
 
