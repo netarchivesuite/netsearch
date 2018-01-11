@@ -379,7 +379,12 @@ public class ArchonStorage {
             
             Set<String> keySet = nextArcIdsCached.keySet();
             for (String shardId: keySet){
-                 nextArcIdsCached.get(shardId).remove(nextArc);
+                 boolean removed = nextArcIdsCached.get(shardId).remove(nextArc);
+                  //temp log to see much this happens
+                 if (removed){
+                   log.info("warc was also removed from cache for shardid:"+shardId);
+                 }
+                 
             }
             
             
