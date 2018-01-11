@@ -255,8 +255,7 @@ public class IndexBuilder {
         // Request jobs from Archon
         List<String> arcs = new ArrayList<String>(config.getBatch_size());
         String nextARC;
-        while (arcs.size() < config.getBatch_size() &&
-               (nextARC = archonClient.nextARC(""+config.getShardId())) != null) {
+        while (arcs.size() < config.getBatch_size() && (nextARC = getNextArcWithWait(config.getShardId())) != null) { //will wait and sleep for 10 min if archon is paused
 
             //Check if file exist, or exit! Something is serious wrong.
             File f = new File(nextARC);
@@ -287,6 +286,25 @@ public class IndexBuilder {
         return true;
     }
 
+    
+    private String getNextArcWithWait(int shardid){
+      
+        String nextARC = archonClient.nextARC(""+shardid);
+        while (nextARC.equals(ArchonConnectorClient.WAIT_MODE)){
+          log.info("Sleeping 10 minutes, Archon is on pause mode");
+          try{
+             Thread.sleep(10*60*1000); //10 min
+          }
+          catch(Exception e){
+            log.error("Error sleeping for 10 minutes while archon is in paused mode.");
+          }
+          nextARC = archonClient.nextARC(""+shardid); //try again
+        }
+
+        return nextARC;
+      
+    }
+    
     private Callable<IndexWorker> createWorker(List<String> arcs, String solrUrl, IndexBuilderConfig config)
             throws FileNotFoundException {
         switch (config.getWorker_type()) {

@@ -2,8 +2,9 @@
     java.util.*,
     dk.statsbiblioteket.netarchivesuite.archon.persistence.*,
     dk.statsbiblioteket.netarchivesuite.archon.service.*,
+    dk.statsbiblioteket.netarchivesuite.archon.facade.ArchonFacade,
     dk.statsbiblioteket.netarchivesuite.archon.*"%>
-
+    
 <%@ page contentType="text/html;charset=UTF-8" language="java" pageEncoding="UTF-8"%>
 
 <!DOCTYPE html>
@@ -16,9 +17,7 @@
 </head>
 <body>
 
-<%
-   ArchonStorage storage = new ArchonStorage();   
-%>
+
 
 <script>
     function save(type){
@@ -65,6 +64,10 @@
 <%
     //Show correct tab (by number 0,1,2,3,..)
     String tab = (String) request.getAttribute("tab");
+     if (tab == null){
+         tab=request.getParameter("tab"); //url parameter
+     }
+
     if (tab != null){%>
 <script>
     $('#configTab li:eq(<%=tab%>) a').tab('show');

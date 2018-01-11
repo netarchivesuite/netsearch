@@ -3,6 +3,9 @@ package dk.statsbiblioteket.netarchivesuite.archon.facade;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import dk.statsbiblioteket.netarchivesuite.archon.persistence.ArcVO;
 import dk.statsbiblioteket.netarchivesuite.archon.persistence.ArchonStorage;
 import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
@@ -10,6 +13,12 @@ import dk.statsbiblioteket.netarchivesuite.core.StringListWrapper;
 
 public class ArchonFacade {
 
+  
+  //this variable can be set from the webpage. If true, it will halt returning new arc files from archon. Instead it will 
+  //return HTTP 202 (try again later...). The arctika workers will then go into sleep mode and wake up later and try again.
+  private static final Logger log = LoggerFactory.getLogger(ArchonFacade.class);    
+  private static boolean isPaused=false;
+  
 
 	public static String nextShardID() throws Exception{		
 
@@ -27,6 +36,54 @@ public class ArchonFacade {
 		}
 	}
 
+	
+    public static List<ArcVO> getAllRunningArcs() throws Exception{
+      ArchonStorage storage = new ArchonStorage();
+      try {
+        return storage.getAllRunningArcs();   
+      } catch (Exception e) {       
+          throw e;
+      } finally {
+          storage.close();
+      }
+    }
+      
+      
+		 public static List<ArcVO> getLatest1000Arcs() throws Exception{
+	      ArchonStorage storage = new ArchonStorage();
+	      try {
+	          return storage.getLatest1000Arcs();   
+	      } catch (Exception e) {       
+	          throw e;
+	      } finally {
+	          storage.close();
+	      }
+	    }
+	 
+	public static int getArcCount() throws Exception{
+	  ArchonStorage storage = new ArchonStorage();
+      try {
+          return storage.getArcCount();   
+      } catch (Exception e) {       
+          throw e;
+      } finally {
+          storage.close();
+      }
+	}
+	
+
+	public static int getLast1000() throws Exception{
+      ArchonStorage storage = new ArchonStorage();
+      try {
+          return storage.getArcCount();   
+      } catch (Exception e) {       
+          throw e;
+      } finally {
+          storage.close();
+      }
+    }
+
+	
 	public static ArcVO getArcById( String arcID) throws Exception{
 		ArchonStorage storage = new ArchonStorage();
 		try {
@@ -216,6 +273,16 @@ public class ArchonFacade {
 			storage.close();
 		}
 	}
+
+
+  public static boolean isPaused() {
+    return isPaused;
+  }
+
+  public static void setPaused(boolean isPaused) {
+    ArchonFacade.isPaused = isPaused;
+    log.info("Change to pause mode. Is paused:"+isPaused);
+  }
 
 
 }
