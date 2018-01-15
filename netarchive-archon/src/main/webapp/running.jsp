@@ -42,11 +42,11 @@ boolean isPaused = ArchonFacade.isPaused();
 
 
 
-All Running ARCs:
-
 <%     
    List<ArcVO> allRunningArcs = ArchonFacade.getAllRunningArcs();
 %>
+
+All Running ARCs(<%=allRunningArcs.size()%> currently running)
 
 
 
