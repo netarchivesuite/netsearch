@@ -95,7 +95,7 @@ public class ArctikaSolrJClient{
 	}
 	
 	@SuppressWarnings("unchecked")
-    public SolrCoreStatus getStatusImpl() throws IOException, SolrServerException {
+    private SolrCoreStatus getStatusImpl() throws IOException, SolrServerException {
           
       CoreAdminRequest request = new CoreAdminRequest();
         request.setAction(CoreAdminAction.STATUS);
