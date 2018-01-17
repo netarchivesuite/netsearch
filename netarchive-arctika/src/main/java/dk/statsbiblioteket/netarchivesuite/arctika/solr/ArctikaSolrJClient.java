@@ -25,13 +25,15 @@ public class ArctikaSolrJClient{
 	  String solrUrlWithCore = null;
 	  try{
           removeHttpLogSpam();
-          int timeOut4Hours = 4*60*60*1000; //24 hours.. Only temporary solution. Optimize seems to be blocking until it is completed in Solr 7.
+          int timeout5Min = 5*60*1000; //5minutes.. 
+          int timeout4Hours = 4*60*60*1000; //4 hours. 
+          
           
           String solrCollection= IndexBuilder.getSolrUrlWithCollection(solrUrl, coreName);          
           
           //long timeout, since coreadmin is called when optimizing
-          solrCoreAdminServer= new HttpSolrClient.Builder(solrUrl).withSocketTimeout(timeOut4Hours).build(); //Must be without collectionname can not use solrServer                 
-          solrUrlWithCollection =  new HttpSolrClient.Builder(solrCollection).withSocketTimeout(timeOut4Hours).build();          
+          solrCoreAdminServer= new HttpSolrClient.Builder(solrUrl).withSocketTimeout(timeout5Min).build(); //Must be without collectionname can not use solrServer                 
+          solrUrlWithCollection =  new HttpSolrClient.Builder(solrCollection).withSocketTimeout(timeout4Hours).build();          
   
 	  }
         catch(Exception e){
@@ -70,28 +72,50 @@ public class ArctikaSolrJClient{
 	}
 
 	//http://127.0.0.1:8983/solr/admin/cores?action=STATUS
-	@SuppressWarnings("unchecked")
 	public SolrCoreStatus getStatus() throws IOException, SolrServerException {
        	  
-	  CoreAdminRequest request = new CoreAdminRequest();
-	    request.setAction(CoreAdminAction.STATUS);
-	    CoreAdminResponse cores = request.process(solrCoreAdminServer);
-
-	    SolrCoreStatus status = new SolrCoreStatus();
-	    
-	    //This is the solr way to represent XML/JSON. You must know attributes names
-	    String coreName = cores.getCoreStatus().getName(0); // Exactly 1 core define for index building. TODO match core	    
-	    NamedList<Object> namedList = cores.getCoreStatus().get(coreName);	    	    
-	    NamedList<Object> indexObj = ( NamedList<Object> ) namedList.get("index"); //Unchecked cast
-	    
-        status.setCoreName(coreName);	    	    
-	    status.setSegmentCount((Integer)indexObj.get("segmentCount"));
-	    status.setIndexSizeBytes((Long)indexObj.get("sizeInBytes"));
-	    status.setIndexSizeHumanReadable((String)indexObj.get("size"));
-	    status.setNumDocs((Integer)indexObj.get("numDocs"));
-	    
-        return status;	    
+	  int attemps = 0;
+	  while (attemps++ <3){
+	    try{	     
+	      return getStatusImpl();
+	    }
+	    catch(Exception e){
+	      log.warn("Failed getting core stats, will wait 5 min");
+	     try{
+	      Thread.sleep(5*60*1000);
+	     }
+	     catch(Exception e2){
+	       //ignore
+	     }
+	    }	   
+	  }
+	  
+      throw new IOException("Could not get core status, index is probably still optimizing or may be finished optimizing");	  
+	  
 	}
+	
+	@SuppressWarnings("unchecked")
+    public SolrCoreStatus getStatusImpl() throws IOException, SolrServerException {
+          
+      CoreAdminRequest request = new CoreAdminRequest();
+        request.setAction(CoreAdminAction.STATUS);
+        CoreAdminResponse cores = request.process(solrCoreAdminServer);
+
+        SolrCoreStatus status = new SolrCoreStatus();
+        
+        //This is the solr way to represent XML/JSON. You must know attributes names
+        String coreName = cores.getCoreStatus().getName(0); // Exactly 1 core define for index building. TODO match core        
+        NamedList<Object> namedList = cores.getCoreStatus().get(coreName);              
+        NamedList<Object> indexObj = ( NamedList<Object> ) namedList.get("index"); //Unchecked cast
+        
+        status.setCoreName(coreName);               
+        status.setSegmentCount((Integer)indexObj.get("segmentCount"));
+        status.setIndexSizeBytes((Long)indexObj.get("sizeInBytes"));
+        status.setIndexSizeHumanReadable((String)indexObj.get("size"));
+        status.setNumDocs((Integer)indexObj.get("numDocs"));
+        
+        return status;      
+    }
 	
 	private void removeHttpLogSpam(){
 	  //Silent all the debugs log from HTTP Client (used by SolrJ). 
