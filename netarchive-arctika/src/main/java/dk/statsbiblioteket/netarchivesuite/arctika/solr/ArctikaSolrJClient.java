@@ -25,7 +25,7 @@ public class ArctikaSolrJClient{
 	  String solrUrlWithCore = null;
 	  try{
           removeHttpLogSpam();
-          int timeOut4Hours = 24*60*60*1000; //24 hours.. Only temporary solution. Optimize seems to be blocking until it is completed in Solr 7.
+          int timeOut4Hours = 4*60*60*1000; //24 hours.. Only temporary solution. Optimize seems to be blocking until it is completed in Solr 7.
           
           String solrCollection= IndexBuilder.getSolrUrlWithCollection(solrUrl, coreName);          
           
