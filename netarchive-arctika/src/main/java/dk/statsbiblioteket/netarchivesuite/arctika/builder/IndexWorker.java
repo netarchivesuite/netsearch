@@ -4,9 +4,6 @@ import dk.statsbiblioteket.netarchivesuite.core.ArchonConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import dk.statsbiblioteket.util.console.ProcessRunner;
-
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;

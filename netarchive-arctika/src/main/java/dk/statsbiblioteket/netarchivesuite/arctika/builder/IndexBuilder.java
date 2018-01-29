@@ -104,6 +104,7 @@ public class IndexBuilder {
         out: do {
             while (!isOptimizeLimitReached()) { // Contract: #activeWorkers < max
                 // Start up new workers until pool is full or there are no more ARCs
+                // TODO: Change this to jobController.getTaskCount to get both queued, active and waiting
                 while (jobController.getActiveCount() < config.getMax_concurrent_workers()) {
                     if (!startNewIndexWorker()) {
                         log.info("buildIndex: Could not start new worker (probably due to no more un-indexed ARCs or " +
