@@ -223,7 +223,7 @@ public class IndexBuilder {
                      solrClient.getStatus().getIndexSizeHumanReadable());
             optimizeProfiler.unpause();
             solrClient.optimize();
-            long sleeptime = 500;
+            long sleeptime = 10000; //10 sec
             while (!solrClient.getStatus().isOptimized()){
                 log.debug("performOptimize: Index not optimized yet. Waiting " + sleeptime + " ms before next check");
                 Thread.sleep(sleeptime);
