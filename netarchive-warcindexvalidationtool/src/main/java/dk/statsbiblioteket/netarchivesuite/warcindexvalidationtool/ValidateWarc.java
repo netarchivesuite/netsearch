@@ -142,7 +142,7 @@ public class ValidateWarc {
         String contentType= (String) r.getHeader().getHeaderFields().get("Content-Type");
         
         // must be one of the two types of response. Heritrix uses first syntax, wget uses second
-        if (!(contentType.equals("application/http; msgtype=response") || contentType.equals("application/http;msgtype=response") )){
+        if (!(contentType.startsWith("application/http; msgtype=response") || contentType.startsWith("application/http;msgtype=response") )){
           skip=true;          
         }        
         
