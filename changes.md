@@ -33,6 +33,9 @@ New features that has special potential for Netarchive Search are
  * Streaming exports: No limit on data export size (simulated in version 2/Solr 4 by using client-side code)
  * Graph queries: "Find all records that has the same hash as any record from a given seed domain"
 
+### Indexing changes
+
+Resources for all HTTP-codes are now indexed, including 404 Not Found and 302 Redirect. This makes it possible to track the full life cycle of a web resource.
 
 ### Solr schema changes
 
@@ -40,6 +43,8 @@ The Solr schema defines which fields the index contains and how they behave in S
 
 Version 3 of Netsearch uses the Solr 7 schema located in
 netarchive-arctika/properties/solr7.0/schema.xml
+
+#### Changed fields
 
 There has been a major clean up of the schema from Netsearch version 2 to 3. However, all previous
 fields are still available and from a client perspective they should behave the same.
@@ -60,6 +65,19 @@ just as the content from a stored field is, so this does not break the document 
 
 Fields with DocValues can be used efficiently for exporting, faceting, grouping and other aggregations.
 E.g. it is now possible to perform faceting on nearly all fields.
+
+#### New fields
+
+* `exif_location` contains coordinates extracted from image EXIF, which can be used for geographical search
+* `index_time` is a timestamp for when the Solr document was indexed, usable for checking for new content or freezing a corpus-defining filter to how the index was at freeze time
+* `links_images` contains links to images shown on the page, usable for freetext-based image search
+* `redirect_to_norm` contains redirect information, usable with graph queries to get to the resource behind the redirect
+* `resourcename` is the last part of the resource, typically a filename
+* `status_code` HTTP status-code
+
+To be described: `links_norm, record_type, source_file, source_file_offset, source_file_path, tpye, url_path, url_search, warc_ip, warc_key_id`.
+
+#### Misc
 
 *Note* The field `url_norm`, contains a normalised version of the raw `url`. The field `links`, which
 contains outgoing links for a resource, used the same normalisation. The normalisation attempts to
