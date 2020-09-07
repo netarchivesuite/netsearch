@@ -1,5 +1,11 @@
 # Major changes
 
+## Version 3.1
+Java6 -> java 8
+Tomcat 6 -> tomcat 8.5 
+The tomcat required all method with arcID as pathparam had to be changed to queryparam 
+
+
 ## Premise
 
 This documents covers significant changes between major versions.
