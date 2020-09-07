@@ -21,40 +21,40 @@ An ARC-file unique identifier is only the filename and not the full file-path.<b
         </thead>  
         <tbody>                                                 
           <tr>  
-            <td>services/addARC/{arcPath}</td>  
+            <td>services/addARC?arcPath=arcPath</td>  
             <td>
             Will add a new arc-fil to Archon. Will throw exception if the arc-id already exist<br>
-            example: services/addARC/folder1%2Ffolder2%2Farcfile1.arc  
+            example:  
             </td>  
             <td>
              (none) 
             </td>
           </tr>                   
           <tr>  
-            <td>services/addOrUpdateARC/{arcPath}</td>  
+            <td>services/addOrUpdateARC?arcPath=arcPath</td>  
             <td>
             Will add a new file if it does not exist. If it exist the folder-path will be updated<br>
-            example: services/addOrUpdateARC/folder1%2Ffolder2%2Farcfile1.arc  
+            example:   
             </td>  
             <td>
              (none) 
             </td>
           </tr>
              <tr>  
-            <td>services/setARCPriority/{arcPath}/{priority}</td>  
+            <td>services/setARCPriority?arcPath=arcPath&priority=priority</td>  
             <td>
             Change the priority for the given arc-file<br>
-            example: services/setARCPriority/folder1%2Ffolder2%2Farcfile1.arc/3  
+            example:   
             </td>  
             <td>
              (none) 
             </td>
           </tr>
              <tr>  
-            <td>services/resetARCWithPriority/{arcPath}/{priority}</td>  
+            <td>services/resetARCWithPriority?arcPath=arcPath&priority=priority</td>  
             <td>
             Reset state to NEW and shardid to null and set a priority
-            example: services/resetARCWithPriority/folder1%2Ffolder2%2Farcfile1.arc/3  
+            example:   
             </td>  
             <td>
              (none) 
