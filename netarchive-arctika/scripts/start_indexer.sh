@@ -1,4 +1,2 @@
 #!/bin/bash
-java -Xmx10g -DArtikaPropertyFile=/home/summanet/arctika/arctika.properties -Dlog4j.configuration=file:/home/summanet/arctika/log4j.properties -jar netarchive-arctika-1.2.jar </dev/null >>nohup.out 2>&1 &
-                                                                                                                                                                                                                                
-
+(java -Xmx10g -DArctikaPropertyFile=/home/summanet/arctika3_belinda/arctika.properties -Dlog4j.configuration=file:/home/summanet/arctika3_belinda/log4j.properties -cp netarchive-arctika-3.1-jar-with-dependencies.jar dk.statsbiblioteket.netarchivesuite.arctika.builder.IndexBuilder ;echo 'Shard build complete' | mail -s 'Change index!' thomas.egense@gmail.com ) </dev/null >>nohup1.out 2>&1 & 
