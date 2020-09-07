@@ -5,6 +5,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -40,9 +41,9 @@ public class ArchonResource {
     }
 
     @GET           
-    @Path("find/{arcID}")        
+    @Path("find")        
     @Produces({MediaType.APPLICATION_JSON}) 
-    public ArcVO find(@PathParam("arcID") String arcID) throws ArchonServiceException  {                                        
+    public ArcVO find(@QueryParam("arcID") String arcID) throws ArchonServiceException  {                                        
         try {
             return ArchonFacade.getArcById(arcID);    
         } catch (Exception e) {
@@ -51,8 +52,8 @@ public class ArchonResource {
     }
     
     @POST            
-    @Path("addARC/{arcID}")               
-    public void addARC(@PathParam("arcID") String arcID) throws ArchonServiceException  {                                     
+    @Path("addARC")               
+    public void addARC(@QueryParam("arcID") String arcID) throws ArchonServiceException  {                                     
         try {
             ArchonFacade.addARC(arcID); 
         } catch (Exception e) {
@@ -60,10 +61,12 @@ public class ArchonResource {
         }        
     
     }
-    
+    /*
+     * Rewritten to query param
+     */
     @POST            
-    @Path("addOrUpdateARC/{arcID}")               
-    public void addOrUpdateARC(@PathParam("arcID") String arcID) throws ArchonServiceException  {                                     
+    @Path("addOrUpdateARC")               
+    public void addOrUpdateARC(@QueryParam("arcID") String arcID) throws ArchonServiceException  {                                     
         try {
         	ArchonFacade.addOrUpdateARC(arcID); 
         } catch (Exception e) {
@@ -92,8 +95,8 @@ public class ArchonResource {
     }
 
     @POST            
-    @Path("setARCState/{arcID}/{state}")           
-    public void setARCState(@PathParam("arcID") String arcID , @PathParam("state") String state) throws ArchonServiceException  {                                     
+    @Path("setARCState")           
+    public void setARCState(@QueryParam("arcID") String arcID , @QueryParam("state") String state) throws ArchonServiceException  {                                     
         try {            
         	ArchonFacade.setARCState(arcID, state);        	            
         } catch (Exception e) {
@@ -122,8 +125,8 @@ public class ArchonResource {
     }
     
     @POST            
-    @Path("removeARC/{arcID}")           
-    public void removeARC(@PathParam("arcID") String arcID) throws ArchonServiceException  {                                     
+    @Path("removeARC")           
+    public void removeARC(@QueryParam("arcID") String arcID) throws ArchonServiceException  {                                     
         try {
             ArchonFacade.removeARC(arcID);            
        } catch (Exception e) {
@@ -154,11 +157,11 @@ public class ArchonResource {
     }
 
     @POST            
-    @Path("setARCProperties/{arcID}/{shardID}/{state}/{priority}")              
-    public void setARCProperties(@PathParam("arcID") String arcID,
-            @PathParam("shardID") String shardID,
-            @PathParam("state") String state,
-            @PathParam("priority") int priority) throws ArchonServiceException  {                                     
+    @Path("setARCProperties")              
+    public void setARCProperties(@QueryParam("arcID") String arcID,
+            @QueryParam("shardID") String shardID,
+            @QueryParam("state") String state,
+            @QueryParam("priority") int priority) throws ArchonServiceException  {                                     
   
         try {
          ArchonFacade.setARCProperties(arcID, shardID, state, priority);        	
@@ -169,10 +172,9 @@ public class ArchonResource {
     }
 
     @POST            
-    @Path("setARCPriority/{arcID}/{priority}")              
-    public void setARCPriority(@PathParam("arcID") String arcID,            
-            @PathParam("priority") int priority) throws ArchonServiceException  {                                     
-  
+    @Path("setARCPriority")              
+    public void setARCPriority(@QueryParam("arcID") String arcID,            
+            @QueryParam("priority") int priority) throws ArchonServiceException  {                                       
         try {            
            ArchonFacade.setARCPriority(arcID, priority);            
         } catch (Exception e) {
@@ -182,10 +184,9 @@ public class ArchonResource {
     
 
     @POST            
-    @Path("resetARCWithPriority/{arcID}/{priority}")              
-    public void resetArcWithPriority(@PathParam("arcID") String arcID,            
-            @PathParam("priority") int priority) throws ArchonServiceException  {                                     
-  
+    @Path("resetARCWithPriority")              
+    public void resetArcWithPriority(@QueryParam("arcID") String arcID,            
+            @QueryParam("priority") int priority) throws ArchonServiceException  {                                       
         try {            
              ArchonFacade.resetArcWithPriority(arcID, priority);            
         } catch (Exception e) {
@@ -195,9 +196,9 @@ public class ArchonResource {
         
     @POST            
     @Path("setShardState/{shardID}/{state}/{priority}")              
-    public void setShardState(@PathParam("shardID") String shardID,
-            @PathParam("state") String state,
-            @PathParam("priority") int priority) throws ArchonServiceException  {                                     
+    public void setShardState(@QueryParam("shardID") String shardID,
+        @QueryParam("state") String state,
+        @QueryParam("priority") int priority) throws ArchonServiceException  {                                     
    
         try {
            ArchonFacade.setShardState(shardID, state, priority);           

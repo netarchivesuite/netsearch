@@ -48,8 +48,10 @@ public class ArchonConnectorClient implements ArchonConnector{
     @Override
     public void addARC(String arcID){
         log.debug("addARC(arcID=" + arcID + ") called");
-        String urlencodedArcId= fixSlashUrlEncoding(arcID);       
-        ClientResponse response = service.path("addARC").path(urlencodedArcId).post(ClientResponse.class);                    
+        //String urlencodedArcId= fixSlashUrlEncoding(arcID);                       
+        ClientResponse response = service.path("addARC").
+            queryParam("arcID", arcID)
+           .post(ClientResponse.class);                    
         handleHttpExceptions(response);                    
     }
 
@@ -72,9 +74,13 @@ public class ArchonConnectorClient implements ArchonConnector{
     @Override
     public void setARCState(String arcID, ARC_STATE state){
         log.debug("setARCState(arcID=" + arcID + ", state=" + state + ") called");
-        String urlencodedArcId= fixSlashUrlEncoding(arcID);         
+                
+        //String urlencodedArcId= fixSlashUrlEncoding(arcID);         
         ClientResponse response =
-                service.path("setARCState").path(urlencodedArcId).path(state.toString()).post(ClientResponse.class);
+                 service.path("setARCState").
+                 queryParam("arcID",arcID).
+                 queryParam("state",state.toString())               
+                .post(ClientResponse.class);
         handleHttpExceptions(response);
     }
 
@@ -96,8 +102,10 @@ public class ArchonConnectorClient implements ArchonConnector{
     @Override
     public void removeARC(String arcID){
         log.debug("removeARC(arcID=" + arcID + ") called");
-        String urlencodedArcId= fixSlashUrlEncoding(arcID);
-        ClientResponse response = service.path("removeARC").path(urlencodedArcId).post(ClientResponse.class);
+        //String urlencodedArcId= fixSlashUrlEncoding(arcID);
+        ClientResponse response = service.path("removeARC").
+            queryParam("arcID",arcID).
+            post(ClientResponse.class);
         handleHttpExceptions(response);
     }
 
@@ -115,7 +123,7 @@ public class ArchonConnectorClient implements ArchonConnector{
     @Override
     public List<String> getARCFiles(String shardID){
         log.debug("getARCFiles(shardID=" + shardID + ") called");
-        ClientResponse response = service.path("getARCFiles").path(shardID).get(ClientResponse.class);
+        ClientResponse response = service.path("getARCFiles").path(shardID).get(ClientResponse.class);                
         handleHttpExceptions(response);        
         StringListWrapper wrapper = response.getEntity(StringListWrapper.class);
         ArrayList<String> arcs = wrapper.getValues();
@@ -127,9 +135,14 @@ public class ArchonConnectorClient implements ArchonConnector{
     public void setARCProperties(String arcID, String shardID, ARC_STATE state, int priority){
         log.debug("setARCProperties(arcID=" + arcID + ", shardID=" + shardID + ", state=" + state
                   + ", priority=" + priority + ") called");
-        String urlencodedArcId= fixSlashUrlEncoding(arcID);     
-        ClientResponse response = service.path("setARCProperties").path(urlencodedArcId).path(shardID).
-                path(state.toString()).path(""+priority).post(ClientResponse.class);
+       // String urlencodedArcId= fixSlashUrlEncoding(arcID);     
+               
+        ClientResponse response = service.path("setARCProperties").
+            queryParam("arcId",arcID).
+            queryParam("shardId",shardID).
+            queryParam("state",state.toString()).
+            queryParam("priority",""+priority).            
+            post(ClientResponse.class);
         handleHttpExceptions(response);
     }
 

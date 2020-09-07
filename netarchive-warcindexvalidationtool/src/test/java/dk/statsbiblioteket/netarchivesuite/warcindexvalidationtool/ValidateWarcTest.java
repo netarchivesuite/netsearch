@@ -7,7 +7,7 @@ public class ValidateWarcTest {
   public static void main(String[] args)  throws Exception{
        
 
-  String warc="/media/teg/1200GB_SSD/netarkiv/warcs1/testharvest-00000.warc.gz";
+  String warc="/home/teg/Downloads/solrwayback_2018-08-27-13-29-21.warc";
     
     
     //String warc="/netarkiv/denstoredanske/denstoredanske1923.warc.gz";
@@ -25,7 +25,7 @@ public class ValidateWarcTest {
     httpStatusPrefix.add(8);
     httpStatusPrefix.add(9);        
     
-    ValidateWarc validateWarc = new ValidateWarc(warc,solr,true, httpStatusPrefix);  
+    ValidateWarc validateWarc = new ValidateWarc(warc,null,true, httpStatusPrefix);  
     validateWarc.validate();
   }
 
